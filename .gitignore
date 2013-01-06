@@ -41,5 +41,6 @@ Thumbs.db
 #ipch/
 #obj/
 #Release/
-#Debug/
+#Debug/s
 assets/
+bin/classes/

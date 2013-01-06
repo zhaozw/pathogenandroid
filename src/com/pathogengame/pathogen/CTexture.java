@@ -1,27 +1,46 @@
 package com.pathogengame.pathogen;
 
 import android.content.*;
+import android.content.res.AssetManager;
 import android.opengl.*;
 import android.graphics.*;
+import java.io.*;
+import android.R.*;
 
 public class CTexture 
 {
-	public static int loadTexture(final Context context, final int resourceId)
+	boolean on = false;
+	int tex[] = new int[1];
+	String file;
+	
+	public int Load(final Context context, final String texfile)
 	{
-	    final int[] textureHandle = new int[1];
+	    GLES20.glGenTextures(1, tex, 0);
 	 
-	    GLES20.glGenTextures(1, textureHandle, 0);
-	 
-	    if (textureHandle[0] != 0)
+	    if(tex[0] != 0)
 	    {
-	        final BitmapFactory.Options options = new BitmapFactory.Options();
-	        options.inScaled = false;   // No pre-scaling
+	    	AssetManager am = context.getAssets();
+	        //final BitmapFactory.Options options = new BitmapFactory.Options();
+	        //options.inScaled = false;   // No pre-scaling
 	 
 	        // Read in the resource
-	        final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
+	        final Bitmap bitmap; // = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
 	 
+	        InputStream is = null;
+	        
+	        try 
+	        {
+	        	is = am.open(texfile);
+	        } 
+	        catch (final IOException e) 
+	        {
+	            e.printStackTrace();
+	        }
+	        
+	        bitmap = BitmapFactory.decodeStream(is);
+	        
 	        // Bind to the texture in OpenGL
-	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex[0]);
 	 
 	        // Set filtering
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
@@ -34,11 +53,11 @@ public class CTexture
 	        bitmap.recycle();
 	    }
 	 
-	    if (textureHandle[0] == 0)
-	    {
-	        throw new RuntimeException("Error loading texture.");
-	    }
+	   //if(tex[0] == 0)
+	   //   throw new RuntimeException("Error loading texture.");
+	    
+	    System.out.println(texfile);
 	 
-	    return textureHandle[0];
+	    return tex[0];
 	}
 }

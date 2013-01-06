@@ -4,21 +4,25 @@ import android.opengl.*;
 import java.nio.*;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.egl.EGLConfig;
+import android.os.*;
+import android.app.Activity;
 
 public class MyGL20Renderer implements GLSurfaceView.Renderer 
 {
-	Triangle mTriangle;
-	Square mSquare;
+	
+	public Triangle mTriangle;
+	public MainActivity mActivity;
+	//Square mSquare;
 	
 	/** Store our model data in a float buffer. */
 	private final FloatBuffer mTriangle1Vertices;
-	private final FloatBuffer mTriangle2Vertices;
-	private final FloatBuffer mTriangle3Vertices;
+	//private final FloatBuffer mTriangle2Vertices;
+	//private final FloatBuffer mTriangle3Vertices;
 	 
 	/** How many bytes per float. */
 	private final int mBytesPerFloat = 4;
 	
-	private float[] mViewMatrix = new float[16];
+	float mAngle;
 	
 	public MyGL20Renderer()
 	{
@@ -46,6 +50,7 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer
 	    mTriangle1Vertices.put(triangle1VerticesData).position(0);
 	 
 	    //...
+        //mTriangle = new Triangle();
 	}
 	
     public void onSurfaceCreated(GL10 unused, EGLConfig config) 
@@ -54,10 +59,17 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer
         GLES20.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         
 
+		//GLES20.glEnable(GLES20.GL_CULL_FACE);
+		GLES20.glFrontFace(GLES20.GL_CW);
+		GLES20.glCullFace(GLES20.GL_BACK);
+		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+
         // initialize a triangle
-        mTriangle = new Triangle();
+        
         // initialize a square
-        mSquare = new Square();
+        //mSquare = new Square();
+		
+		mActivity.Init();
         
         /*
      // Position the eye behind the origin.
@@ -86,27 +98,11 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer
 
     public void onDrawFrame(GL10 unused) 
     {
-        // Redraw background color
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        //mTriangle.draw();
+    	mActivity.Draw();
     }
 
     public void onSurfaceChanged(GL10 unused, int width, int height) 
     {
-        GLES20.glViewport(0, 0, width, height);
-    }
-    
-    public static int loadShader(int type, String shaderCode)
-    {
-
-        // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
-        // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
-        int shader = GLES20.glCreateShader(type);
-
-        // add the source code to the shader and compile it
-        GLES20.glShaderSource(shader, shaderCode);
-        GLES20.glCompileShader(shader);
-
-        return shader;
+    	mActivity.Resize(width, height);
     }
 }
