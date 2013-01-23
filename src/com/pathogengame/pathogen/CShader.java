@@ -120,7 +120,7 @@ public class CShader
 	void Use()
 	{
 		GLES20.glUseProgram(mProgram);
-		GLES20.glEnableVertexAttribArray(slot[POSITION]);
-        GLES20.glEnableVertexAttribArray(slot[TEXCOORD]);
+		//GLES20.glEnableVertexAttribArray(slot[POSITION]);
+        //GLES20.glEnableVertexAttribArray(slot[TEXCOORD]);
     }
 }

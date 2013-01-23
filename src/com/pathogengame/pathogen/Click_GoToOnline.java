@@ -1,8 +1,8 @@
 package com.pathogengame.pathogen;
 
-public class CRegisterFunc extends CFuncPtr
+public class Click_GoToOnline extends CFuncPtr
 {
-	public CRegisterFunc(MainActivity act)
+	public Click_GoToOnline(MainActivity act)
 	{
 		super(act);
 	}

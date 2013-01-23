@@ -1,15 +1,17 @@
 package com.pathogengame.pathogen;
 
-import android.view.*;
-import android.R.*;
-import android.os.Bundle;
-import android.os.SystemClock;
-import android.view.View;
-import android.app.Activity;
-import android.view.Menu;
-import android.content.Intent;
-import android.widget.EditText;
 import android.opengl.*;
+import android.app.Activity;
+import android.view.WindowManager;
+import android.content.Context;
+import android.view.Display;
+import android.view.Window;
+import android.os.Bundle;
+import java.io.IOException;
+import android.content.res.AssetManager;
+import android.view.Menu;
+import java.io.InputStream;
+import android.view.View;
 
 public class MainActivity extends Activity 
 {
@@ -20,16 +22,26 @@ public class MainActivity extends Activity
     private MyGLSurfaceView mGLView;
     public MyGL20Renderer mRenderer;
     public CShader mShader[] = new CShader[ CShader.SHADERS ];
+    public CFont mFont[] = new CFont[ CFont.FONTS ];
+    public CGUI mGUI;
 
 	private float[] mViewMatrix = new float[16];
 	private float[] mProjMatrix = new float[16];
 	private float[] mModelMatrix = new float[16];
-	//private float[] mRotationMatrix = new float[16];
 
-	int m_width = 1;
-	int m_height = 1;
+	int mWidth = 1;
+	int mHeight = 1;
+	public float mRetinaScale = 1.0f;
 	
 	CTexture mTexture[] = new CTexture[TEXTURES];
+	
+	int rotational;
+	
+	public void LoadFonts()
+	{
+		for(int i=0; i<CFont.FONTS; i++)
+			mFont[i] = new CFont(this);
+	}
 	
     public void Init()
     {
@@ -37,20 +49,31 @@ public class MainActivity extends Activity
     		mTexture[i] = new CTexture();
     	
     	mRenderer.mTriangle = new Triangle();
-        
-    	mRenderer.mTriangle.mTextureDataHandle = CTexture.loadTexture(this, "textures/texture.jpg");
+    	mRenderer.mTriangle.mTextureDataHandle = CreateTexture("textures/texture", true);
+    	rotational = CreateTexture("gui/rotational", true);
     	
-    	//mShader[CShader.SHADER] = new CShader(this, "shader.vert", "shader.frag");
     	mShader[CShader.MODEL] = new CShader(this, "model.vert", "model.frag");
     	mShader[CShader.MAP] = new CShader(this, "map.vert", "map.frag");
     	mShader[CShader.SKY] = new CShader(this, "sky.vert", "sky.frag");
-    	mShader[CShader.ORTHO] = new CShader(this, "ortho.vert", "ortho");
+    	mShader[CShader.ORTHO] = new CShader(this, "ortho.vert", "ortho.frag");
     	mShader[CShader.BILLBOARD] = new CShader(this, "billboard.vert", "billboard.frag");
+    	
+    	WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+    	Display display = wm.getDefaultDisplay();
+    	mWidth = display.getWidth();
+    	mHeight = display.getHeight();
+    	
+    	if(mHeight > 320)
+    		mRetinaScale = 2.0f;
+    	
+    	LoadFonts();
+    	
+    	mGUI = new CGUI(this);
     }
     
     public void Deinit()
     {
-    	
+    	FreeTextures();
     }
     
     public void Draw()
@@ -74,13 +97,30 @@ public class MainActivity extends Activity
         GLES20.glUniformMatrix4fv(s.slot[CShader.PROJMAT], 1, false, mProjMatrix, 0);
         GLES20.glUniformMatrix4fv(s.slot[CShader.VIEWMAT], 1, false, mViewMatrix, 0);
         GLES20.glUniformMatrix4fv(s.slot[CShader.MODELMAT], 1, false, mModelMatrix, 0);
+		GLES20.glEnableVertexAttribArray(s.slot[CShader.POSITION]);
+        GLES20.glEnableVertexAttribArray(s.slot[CShader.TEXCOORD]);
         mRenderer.mTriangle.draw(s);
+        
+        s = mShader[CShader.ORTHO];
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+        s.Use();
+        GLES20.glUniform1f(s.slot[CShader.WIDTH], (float)mWidth);
+        GLES20.glUniform1f(s.slot[CShader.HEIGHT], (float)mHeight);
+        GLES20.glUniform4f(s.slot[CShader.COLOR], 1, 1, 1, 1);
+        GLES20.glEnableVertexAttribArray(s.slot[CShader.POSITION]);
+        GLES20.glEnableVertexAttribArray(s.slot[CShader.TEXCOORD]);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
+        mGUI.draw();
+        //DrawShadowedText(MSGOTHIC16, 0, 0, "Hello world. My name is Denis.");
+        //mGUI.DrawImage(rotational, 0, 0, mWidth, mHeight);
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
     }
     
     public void Resize(int width, int height)
     {
-    	m_width = width;
-    	m_height = height;
+    	mWidth = width;
+    	mHeight = height;
         GLES20.glViewport(0, 0, width, height);
         float ratio = (float) width / height;
 
@@ -101,6 +141,17 @@ public class MainActivity extends Activity
         mRenderer.mActivity = this;
         mGLView.setRenderer(mRenderer);
         setContentView(mGLView);
+
+        /*
+    	AssetManager am = getAssets();
+    	try
+    	{
+    		System.out.println(am.list("gui/"));
+    	}
+    	catch(IOException e)
+    	{
+    		e.printStackTrace();
+    	}*/
     }
     
     @Override
@@ -118,13 +169,108 @@ public class MainActivity extends Activity
         return true;
     }
     
+    public int NewTexture()
+    {
+    	for(int i=0; i<TEXTURES; i++)
+    		if(!mTexture[i].on)
+    			return i;
+    	
+    	return -1;
+    }
+    
+    public int FindTexture(String strFileName)
+    {
+    	for(int i=0; i<TEXTURES; i++)
+    		if(mTexture[i].on && mTexture[i].file.equals(strFileName))
+    			return i;
+    	
+    	return -1;
+    }
+    
+    public String FindTextureExtension(String strFileName)
+    {
+    	AssetManager am = getAssets();
+    	
+    	String jpgpath = strFileName + ".jpg";
+    	String pngpath = strFileName + ".png";
+    	boolean found = true;
+        InputStream is = null;
+        
+        try 
+        {
+        	is = am.open(jpgpath);
+        } 
+        catch (final IOException e) 
+        {
+            found = false;
+        }
+        
+        if(found)
+        	return jpgpath;
+        found = true;
+    	
+        try 
+        {
+        	is = am.open(pngpath);
+        } 
+        catch (final IOException e) 
+        {
+            found = false;
+        }
+      
+        if(found)
+        	return pngpath;
+        found = true;
+    	
+    	return strFileName;
+    }
+    
     public int CreateTexture(String strFileName, boolean search)
     {
     	int texture = 0;
+    	strFileName = FindTextureExtension(strFileName);
     	
+    	if(search && (texture = FindTexture(strFileName)) >= 0)
+    		return texture;
+    		
+    	int i = NewTexture();
+    	mTexture[i].Load(this, strFileName);
     	
+    	return mTexture[i].tex[0];
+    }
+    
+    public void FreeTextures()
+    {
+    	for(int i=0; i<TEXTURES; i++)
+    	{
+    		if(!mTexture[i].on)
+    			continue;
+    		
+    		GLES20.glDeleteTextures(1, mTexture[i].tex, 0);
+    	}
+    }
+    
+    public String StripPathExtension(String s0)
+    {
+    	int sep0 = s0.lastIndexOf('\\');
+    	int sep1 = s0.lastIndexOf('/');
+    	int sep = Math.max(sep0, sep1);
+    	String s1;
+
+        if (sep != -1)
+            s1 = s0.substring(sep + 1);
+    	else
+    		s1 = s0;
+
+    	int dot = s1.lastIndexOf('.');
+    	String s2;
+
+    	if (dot != -1)
+    		s2 = s1.substring(0, dot);
+    	else
+    		s2 = s1;
     	
-    	return texture;
+    	return s2;
     }
     
     /** Called when the user clicks the Send button */

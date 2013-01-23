@@ -42,5 +42,7 @@ Thumbs.db
 #obj/
 #Release/
 #Debug/s
-assets/
+#assets/
+assets/maps/
+assets/models/
 bin/classes/

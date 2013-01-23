@@ -114,12 +114,14 @@ class Triangle
     {
         ByteBuffer bb = ByteBuffer.allocateDirect(triangleCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
+        //bb.order(ByteOrder.LITTLE_ENDIAN);
         vertexBuffer = bb.asFloatBuffer();
         vertexBuffer.put(triangleCoords);
         vertexBuffer.position(0);
         
         ByteBuffer bb2 = ByteBuffer.allocateDirect(texCoords.length * 4);
         bb2.order(ByteOrder.nativeOrder());
+        //bb2.order(ByteOrder.LITTLE_ENDIAN);
         texCBuffer = bb2.asFloatBuffer();
         texCBuffer.put(texCoords);
         texCBuffer.position(0);
