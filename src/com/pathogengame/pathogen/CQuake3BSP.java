@@ -113,6 +113,10 @@ public class CQuake3BSP
 	
 	MainActivity mActivity;
 
+	Vector<CSpawn> mSpawn;
+	Vector<CSpawn> mSSpawn;
+	Vector<CSpawn> mZSpawn;
+
     CQuake3BSP()
     {
     	m_gridSize = new CVector3(64.0f, 128.0f, 64.0f);
@@ -749,20 +753,63 @@ public class CQuake3BSP
     		offset += (3*4);
     	}
         
-    	m_numOfBrushSides = lumps[kBrushSides].length / sizeof(int);
+    	/*
+	int plane;					// The plane index
+	int textureID;				// The texture index
+	*/
+    	
+    	m_numOfBrushSides = lumps[kBrushSides].length / (4*2); //sizeof(int);
     	m_pBrushSides     = new tBSPBrushSide [m_numOfBrushSides];
         
-    	fseek(fp, lumps[kBrushSides].offset, SEEK_SET);
-    	fread(m_pBrushSides, m_numOfBrushSides, sizeof(tBSPBrushSide), fp);
+    	offset = lumps[kBrushSides].offset;
+    	for(i=0; i<m_numOfBrushSides; i++)
+    	{
+    		m_pBrushSides[i] = new tBSPBrushSide();
+
+    		m_pBrushSides[i].plane = CFile.ReadInt(iS, offset + 0*4);
+    		m_pBrushSides[i].textureID = CFile.ReadInt(iS, offset + 1*4);
+    		
+    		offset += (4*2);
+    	}
         
-    	m_numOfLeafBrushes = lumps[kLeafBrushes].length / sizeof(int);
+    	m_numOfLeafBrushes = lumps[kLeafBrushes].length / 4; //sizeof(int);
     	m_pLeafBrushes     = new int [m_numOfLeafBrushes];
         
-    	fseek(fp, lumps[kLeafBrushes].offset, SEEK_SET);
-    	fread(m_pLeafBrushes, m_numOfLeafBrushes, sizeof(int), fp);
+    	offset = lumps[kLeafBrushes].offset;
+    	for(i=0; i<m_numOfLeafBrushes; i++)
+    	{
+    		m_pLeafBrushes[i] = CFile.ReadInt(iS, offset);
+    		offset += 4;
+    	}
         
-        fseek(fp, lumps[kModels].offset, SEEK_SET);
-    	fread(m_pModels, m_numOfModels, sizeof(tBSPModel), fp);
+    	offset = lumps[kModels].offset;
+    	//fread(m_pModels, m_numOfModels, sizeof(tBSPModel), fp);
+    	for(i=0; i<m_numOfModels; i++)
+    	{
+    		m_pModels[i] = new tBSPModel();
+    		
+    		/*
+			CVector3 mins;
+			CVector3 maxs;
+			int firstFace;
+			int numOfFaces;
+			int firstBrush;
+			int numOfBrushes;
+			*/
+
+    		m_pModels[i].mins.x = CFile.ReadFloat(iS, offset + 0*4);
+    		m_pModels[i].mins.y = CFile.ReadFloat(iS, offset + 1*4);
+    		m_pModels[i].mins.z = CFile.ReadFloat(iS, offset + 2*4);
+    		m_pModels[i].maxs.x = CFile.ReadFloat(iS, offset + 3*4 + 0*4);
+    		m_pModels[i].maxs.y = CFile.ReadFloat(iS, offset + 3*4 + 1*4);
+    		m_pModels[i].maxs.z = CFile.ReadFloat(iS, offset + 3*4 + 2*4);
+    		m_pModels[i].firstFace = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 0*4);
+    		m_pModels[i].numOfFaces = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 1*4);
+    		m_pModels[i].firstBrush = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 2*4);
+    		m_pModels[i].numOfBrushes = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 3*4);
+    		
+    		offset += (3*4*2 + 4*4);
+    	}
         
     	for(i=0; i<m_numOfModels; i++)
     	{
@@ -774,8 +821,8 @@ public class CQuake3BSP
     		m_pModels[i].maxs.y = m_pModels[i].maxs.z;
     		m_pModels[i].maxs.z = -temp;
             
-    		float tempmin = min(m_pModels[i].mins.z, m_pModels[i].maxs.z);
-    		float tempmax = max(m_pModels[i].mins.z, m_pModels[i].maxs.z);
+    		float tempmin = Math.min(m_pModels[i].mins.z, m_pModels[i].maxs.z);
+    		float tempmax = Math.max(m_pModels[i].mins.z, m_pModels[i].maxs.z);
     		m_pModels[i].mins.z = tempmin;
     		m_pModels[i].maxs.z = tempmax;
     	}
@@ -783,20 +830,49 @@ public class CQuake3BSP
     	m_bbox.min = m_pModels[0].mins;
     	m_bbox.max = m_pModels[0].maxs;
         
-    	fseek(fp, lumps[kLightVolumes].offset, SEEK_SET);
-    	fread(m_pLightVols, m_numOfLightVols, sizeof(tBSPLightVol), fp);
+    	offset = lumps[kLightVolumes].offset;
+    	//fread(m_pLightVols, m_numOfLightVols, sizeof(tBSPLightVol), fp);
+    	for(i=0; i<m_numOfLightVols; i++)
+    	{
+    		m_pLightVols[i] = new tBSPLightVol();
+    		/*
+			tVector3uc ambient;
+			tVector3uc directional;
+			tVector2uc dir; //0=phi, 1=theta
+			*/
+
+    		m_pLightVols[i].ambient.x = CFile.ReadUByte(iS, offset + 0*1);
+    		m_pLightVols[i].ambient.y = CFile.ReadUByte(iS, offset + 1*1);
+    		m_pLightVols[i].ambient.z = CFile.ReadUByte(iS, offset + 2*1);
+    		m_pLightVols[i].directional.x = CFile.ReadUByte(iS, offset + 3*1 + 0*1);
+    		m_pLightVols[i].directional.y = CFile.ReadUByte(iS, offset + 3*1 + 1*1);
+    		m_pLightVols[i].directional.z = CFile.ReadUByte(iS, offset + 3*1 + 2*1);
+    		m_pLightVols[i].dir.x = CFile.ReadUByte(iS, offset + 3*1 + 3*1 + 0*1);
+    		m_pLightVols[i].dir.y = CFile.ReadUByte(iS, offset + 3*1 + 3*1 + 1*1);
+    		
+    		offset += (1*3 + 1*3 + 1*2);
+    	}
         
-        num_lightvols.x = (unsigned int) (floorf(m_bbox.max.x/m_gridSize.x) - ceilf(m_bbox.min.x/m_gridSize.x) + 1);
-    	num_lightvols.y = (unsigned int) (floorf(m_bbox.max.y/m_gridSize.y) - ceilf(m_bbox.min.y/m_gridSize.y) + 1);
-    	num_lightvols.z = (unsigned int) (floorf(m_bbox.max.z/m_gridSize.z) - ceilf(m_bbox.min.z/m_gridSize.z) + 1);
+        num_lightvols.x = (long) (Math.floor(m_bbox.max.x/m_gridSize.x) - Math.ceil(m_bbox.min.x/m_gridSize.x) + 1);
+    	num_lightvols.y = (long) (Math.floor(m_bbox.max.y/m_gridSize.y) - Math.ceil(m_bbox.min.y/m_gridSize.y) + 1);
+    	num_lightvols.z = (long) (Math.floor(m_bbox.max.z/m_gridSize.z) - Math.ceil(m_bbox.min.z/m_gridSize.z) + 1);
         
-    	fseek(fp, lumps[kEntities].offset, SEEK_SET);
-    	char* entities = new char[ lumps[kEntities].length ];
-    	fread(entities, lumps[kEntities].length, sizeof(char), fp);
-    	fclose(fp);
+    	//fseek(fp, lumps[kEntities].offset, SEEK_SET);
+    	offset = lumps[kEntities].offset;
+    	
+    	byte entb[] = CFile.ReadBytes(iS, offset, lumps[kEntities].length);
+    	//fread(entities, lumps[kEntities].length, sizeof(char), fp);
+    	//fclose(fp);
+    	
+    	String entities = "";
+    	for(i=0; i<lumps[kEntities].length; i++)
+    	{
+    		entities += (char)entb[i];
+    	}
+    	
+    	iS.close();
         
     	ReadEntities(entities);
-    	delete entities;
         
     	m_FacesDrawn.Resize(m_numOfFaces);
         
@@ -893,4 +969,162 @@ public class CQuake3BSP
 
     void RenderFace(int faceIndex);
     void RenderSkyFace(int faceIndex);
+    
+    
+    
+    void ReadEntities(String str)
+    {
+    	mSpawn = new Vector<CSpawn>();
+    	mSSpawn = new Vector<CSpawn>();
+    	mZSpawn = new Vector<CSpawn>();
+        
+    	String classname;
+    	String origin;
+    	String angle;
+    	String model;
+    	String size;
+    	String type;
+    	String sky;
+    	String count;
+    	String clip;
+    	String collider;
+    	String opensound;
+    	String closesound;
+    	String activity;
+    	String nolightvol;
+    	String bbmin;
+    	String bbmax;
+    	String map;
+    	String script;
+    	String var;
+    	String val;
+        
+    	int len = str.length();
+        
+    	for(int i=0; i<len; i++)
+    	{
+    		classname = "";
+    		angle = "";
+    		origin = "";
+    		model = "";
+    		size = "";
+    		type = "";
+    		sky = "";
+    		count = "";
+    		clip = "";
+    		collider = "";
+    		opensound = "";
+    		closesound = "";
+    		activity = "";
+    		nolightvol = "";
+    		bbmin = "";
+    		bbmax = "";
+    		script = "";
+    		map = "";
+            
+    		for(; i<len; i++)
+    			if(str.charAt(i) != ' ' && str.charAt(i) != '\t' && str.charAt(i) != '\n' && str.charAt(i) != '\r')
+    				break;
+            
+    		for(; i<len; i++)
+    			if(str.charAt(i) == '{')
+    			{
+    				i++;
+    				break;
+    			}
+            
+    		for(; i<len; i++)
+    			if(str.charAt(i) != ' ' && str.charAt(i) != '\t' && str.charAt(i) != '\n' && str.charAt(i) != '\r')
+    				break;
+            
+    		while(str.charAt(i) != '}' && i < len)
+    		{
+    			var = "";
+    			val = "";
+                
+    			for(; i<len; i++)
+    				if(str.charAt(i) == '"')
+    				{
+    					i++;
+    					break;
+    				}
+                
+    			for(; i<len; i++)
+    			{
+    				if(str.charAt(i) == '"')
+    				{
+    					i++;
+    					break;
+    				}
+                    
+    				var = var + str.charAt(i);
+    			}
+                
+    			for(; i<len; i++)
+    				if(str.charAt(i) != ' ' && str.charAt(i) != '\t' && str.charAt(i) != '\n' && str.charAt(i) != '\r')
+    					break;
+                
+    			for(; i<len; i++)
+    				if(str.charAt(i) == '"')
+    				{
+    					i++;
+    					break;
+    				}
+                
+    			for(; i<len; i++)
+    			{
+    				if(str.charAt(i) == '"')
+    				{
+    					i++;
+    					break;
+    				}
+                    
+    				val = val + str.charAt(i);
+    			}
+                
+    			if(var.equalsIgnoreCase("classname"))
+    				classname = val;
+    			else if(var.equalsIgnoreCase("origin"))
+    				origin = val;
+    			else if(var.equalsIgnoreCase("angle"))
+    				angle = val;
+    			else if(var.equalsIgnoreCase("model"))
+    				model = val;
+    			else if(var.equalsIgnoreCase("size"))
+    				size = val;
+    			else if(var.equalsIgnoreCase("type"))
+    				type = val;
+    			else if(var.equalsIgnoreCase("sky"))
+    				sky = val;
+    			else if(var.equalsIgnoreCase("count"))
+    				count = val;
+    			else if(var.equalsIgnoreCase("clip"))
+    				clip = val;
+    			else if(var.equalsIgnoreCase("collider"))
+    				collider = val;
+    			else if(var.equalsIgnoreCase("opensound"))
+    				opensound = val;
+    			else if(var.equalsIgnoreCase("closesound"))
+    				closesound = val;
+    			else if(var.equalsIgnoreCase("activity"))
+    				activity = val;
+    			else if(var.equalsIgnoreCase("nolightvol"))
+    				nolightvol = val;
+    			else if(var.equalsIgnoreCase("min"))
+    				bbmin = val;
+    			else if(var.equalsIgnoreCase("max"))
+    				bbmax = val;
+    			else if(var.equalsIgnoreCase("map"))
+    				map = val;
+    			else if(var.equalsIgnoreCase("script"))
+    				script = val;
+                
+    			for(; i<len; i++)
+    				if(str.charAt(i) != ' ' && str.charAt(i) != '\t' && str.charAt(i) != '\n' && str.charAt(i) != '\r')
+    					break;
+    		}
+            
+    		ReadEntity(classname, origin, angle, model, size, type, sky, count, clip, collider, opensound, closesound, activity, nolightvol, bbmin, bbmax, map, script);
+    	}
+    }
 }

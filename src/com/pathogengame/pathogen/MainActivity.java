@@ -95,6 +95,26 @@ public class MainActivity extends Activity
 	
 	//int rotational;
 	
+	boolean IsHuman(int type)
+	{
+		CEntityType t = mEntityType.get(type);
+	    
+		if(t.category == CEntity.HUMAN)
+			return true;
+	    
+	    return false;
+	}
+
+	boolean IsZombie(int type)
+	{
+		CEntityType t = mEntityType.get(type);
+	    
+		if(t.category == CEntity.ZOMBIE)
+			return true;
+	    
+	    return false;
+	}
+	
 	int NewAI()
 	{
 	    CPlayer p;

@@ -41,8 +41,8 @@ Thumbs.db
 #ipch/
 #obj/
 #Release/
-#Debug/s
-#assets/
+#Debug/
+assets/
 assets/maps/
 assets/models/
 assets/textures/
@@ -53,3 +53,5 @@ assets/gui/
 assets/sounds/
 assets/fonts/
 bin/classes/
+*.apk
+*.ap_

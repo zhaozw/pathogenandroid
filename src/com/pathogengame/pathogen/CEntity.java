@@ -2,7 +2,13 @@ package com.pathogengame.pathogen;
 
 public class CEntity 
 {
-	enum ENTITY{NOCAT, HUMAN, ZOMBIE, DOOR, FIXEDENT, ITEM, ENTITY_CATEGORIES};
+	public static final int NOCAT = -1;
+	public static final int HUMAN = 0;
+	public static final int ZOMBIE = 1;
+	public static final int DOOR = 2;
+	public static final int FIXEDENT = 3;
+	public static final int ITEM = 4;
+	public static final int ENTITY_CATEGORIES = 5;
 
 	enum ENTITYSND{OPENSND, CLOSESND};
 	
