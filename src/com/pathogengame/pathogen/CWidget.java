@@ -106,18 +106,17 @@ public class CWidget
 		int c;
 		for(int i=0; i<t.length(); i++)
 		{
-			c = Character.getNumericValue(t.charAt(i));
-			
-			if(c < 0)
-				continue;
-			
+			c = (int)t.charAt(i);
 			length += mActivity.mFont[f].mGlyph[c].w*mActivity.mRetinaScale;
 		}
 		tpos[0] = (left+right)/2.0f - length/2.0f;
-		tpos[1] = (top+bottom)/2.0f - mActivity.mFont[f].gheight*mActivity.mRetinaScale/2.0f;
+		tpos[1] = (top+bottom)/2.0f - mActivity.mFont[f].mGHeight*mActivity.mRetinaScale/2.0f;
 		over = false;
 		ldown = false;
 		tex = mActivity.CreateTexture(filepath, true);
+		
+		//System.out.println("Button( " + t + " = " + tex);
+		
 		bgtex = mActivity.CreateTexture("gui/buttonbg", true);
 		bgovertex = mActivity.CreateTexture("gui/buttonbgover", true);
 		pos[0] = left;
@@ -137,11 +136,11 @@ public class CWidget
 		float length = 0;
 		for(int i=0; i<t.length(); i++)
 		{
-			int c = Character.getNumericValue(t.charAt(i));
+			int c = (int)t.charAt(i);
 			length += mActivity.mFont[f].mGlyph[c].w;
 		}
 		tpos[0] = (left+right)/2.0f - length/2.0f;
-		tpos[1] = (top+bottom)/2.0f - mActivity.mFont[f].gheight/2.0f;
+		tpos[1] = (top+bottom)/2.0f - mActivity.mFont[f].mGHeight/2.0f;
 		over = false;
 		ldown = false;
 		tex = mActivity.CreateTexture(filepath, true);
@@ -203,7 +202,7 @@ public class CWidget
 		pos[0] = left;
 		pos[1] = top;
 		pos[2] = left+width;
-		pos[3] = top+mActivity.mFont[f].gheight;
+		pos[3] = top+mActivity.mFont[f].mGHeight;
 		frametex = mActivity.CreateTexture("gui/frame", true);
 		filledtex = mActivity.CreateTexture("gui/filled", true);
 		uptex = mActivity.CreateTexture("gui/up", true);
@@ -239,6 +238,8 @@ public class CWidget
 	
 	public void Image_draw()
 	{
+		CShader s = mActivity.mShader[CShader.ORTHO];
+    	GLES20.glUniform4f(s.slot[CShader.COLOR], rgba[0], rgba[1], rgba[2], rgba[3]);
 		mActivity.mGUI.DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
 	}
 	
@@ -247,13 +248,13 @@ public class CWidget
 		mActivity.mGUI.DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
 		
 		CFont f = mActivity.mGUI.mActivity.mFont[font];
-		f.DrawShadowed(tpos[0], tpos[1], text);
+		f.DrawShadowed((int)tpos[0], (int)tpos[1], text, null);
 	}
 
 	public void Text_draw()
 	{
 		CFont f = mActivity.mFont[font];
-		f.DrawShadowed(pos[0], pos[1], text);
+		f.DrawShadowed((int)pos[0], (int)pos[1], text, null);
 	}
 	
 	public void Link_draw()
@@ -264,7 +265,7 @@ public class CWidget
 	        GLES20.glUniform4f(s.slot[CShader.COLOR], 0.8f, 0.8f, 0.8f, 1);
 
         CFont f = mActivity.mFont[font];
-        f.DrawShadowed(pos[0], pos[1], text);
+        f.DrawShadowed((int)pos[0], (int)pos[1], text, null);
         
         GLES20.glUniform4f(s.slot[CShader.COLOR], 1, 1, 1, 1);
 	}
@@ -281,7 +282,7 @@ public class CWidget
         
 		CFont f = mActivity.mGUI.mActivity.mFont[font];
 		String o = options.get(selected);
-		f.DrawShadowed(pos[0]+30, pos[1], o);
+		f.DrawShadowed((int)pos[0]+30, (int)pos[1], o, null);
 	}
 	
 	public void DropDown_draw2()
@@ -291,10 +292,10 @@ public class CWidget
 		
 		CFont f = mActivity.mFont[font];
 		
-		mActivity.mGUI.DrawImage(frametex, pos[0], pos[1]+5+f.gheight, pos[2], pos[3]+5+f.height*rowsshown());
-		mActivity.mGUI.DrawImage(frametex, pos[2]-square(), pos[1]+5, pos[2], pos[3]+5+f.gheight*rowsshown());
+		mActivity.mGUI.DrawImage(frametex, pos[0], pos[1]+5+f.mGHeight, pos[2], pos[3]+5+f.mGHeight*rowsshown());
+		mActivity.mGUI.DrawImage(frametex, pos[2]-square(), pos[1]+5, pos[2], pos[3]+5+f.mGHeight*rowsshown());
 		mActivity.mGUI.DrawImage(uptex, pos[2]-square(), pos[1]+5, pos[2], pos[1]+5+square());
-		mActivity.mGUI.DrawImage(downtex, pos[2]-square(), pos[3]+5+f.gheight*rowsshown()-square(), pos[2], pos[3]+5+f.gheight*rowsshown());
+		mActivity.mGUI.DrawImage(downtex, pos[2]-square(), pos[3]+5+f.mGHeight*rowsshown()-square(), pos[2], pos[3]+5+f.mGHeight*rowsshown());
 		mActivity.mGUI.DrawImage(filledtex, pos[2]-square(), pos[3]+5+scrollspace()*topratio(), pos[2], pos[3]+5+scrollspace()*bottomratio());
 		
 		String o;
@@ -302,7 +303,7 @@ public class CWidget
 		for(int i=(int)scroll; i<(int)scroll+rowsshown(); i++)
 		{
 			o = options.get(i);
-			f.DrawShadowed(pos[0]+30, pos[3]+f.gheight*(i-(int)scroll), o);
+			f.DrawShadowed((int)pos[0]+30, (int)(pos[3]+f.mGHeight*(i-(int)scroll)), o, null);
 		}
 	}
 	
@@ -318,7 +319,7 @@ public class CWidget
 		
 		CFont f = mActivity.mFont[font];
 		float color[] = {1, 1, 1, 1};
-		f.DrawBoxedShad(pos[0], pos[1], width, height, text, color);
+		f.DrawBoxedShad((int)pos[0], (int)pos[1], (int)width, (int)height, text, color);
 	}
 
 	// L button up
@@ -406,8 +407,8 @@ public class CWidget
 			for(int i=(int)scroll; i<(int)scroll+rowsshown(); i++)
 			{
 				// list item?
-				if(x >= pos[0] && x <= pos[2]-square() && y >= pos[3]+f.gheight*(i-(int)scroll)
-						&& y <= pos[3]+f.gheight*(i-(int)scroll+1))
+				if(x >= pos[0] && x <= pos[2]-square() && y >= pos[3]+f.mGHeight*(i-(int)scroll)
+						&& y <= pos[3]+f.mGHeight*(i-(int)scroll+1))
 				{
 					selected = i;
 					opened = false;
@@ -443,7 +444,7 @@ public class CWidget
 			}
 			
 			// down button?
-			if(x >= pos[2]-square() && y >= pos[3]+5+scrollspace() && x <= pos[2] && y <= pos[3]+5+scrollspace()+f.gheight)
+			if(x >= pos[2]-square() && y >= pos[3]+5+scrollspace() && x <= pos[2] && y <= pos[3]+5+scrollspace()+f.mGHeight)
 			{
 				scroll++;
 				if(scroll+rowsshown() > options.size())
@@ -490,8 +491,8 @@ public class CWidget
 		CFont f = mActivity.mFont[font];
 		
 		if(x >= pos[0] && y >= pos[1] &&
-				x <= pos[0]+text.length()*f.gheight/2 &&
-				y <= pos[1]+f.gheight)
+				x <= pos[0]+text.length()*f.mGHeight/2 &&
+				y <= pos[1]+f.mGHeight)
 			over = true;
 		else
 			over = false;
@@ -560,7 +561,7 @@ public class CWidget
 	public int square()
 	{
 		CFont f = mActivity.mFont[font];
-		return (int)f.gheight;
+		return (int)f.mGHeight;
 	}
 	
 	public float topratio()
@@ -576,7 +577,7 @@ public class CWidget
 	public float scrollspace()
 	{
 		CFont f = mActivity.mFont[font];
-		return f.gheight*(rowsshown()-1);
+		return f.mGHeight*(rowsshown()-1);
 	}
 	
 	// Common

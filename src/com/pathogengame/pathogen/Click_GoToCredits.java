@@ -10,6 +10,6 @@ public class Click_GoToCredits extends CFuncPtr
     @Override
     public void func()
     {
-    	
+    	mActivity.mGUI.OpenSoleView("credits", 0);
     }
 }

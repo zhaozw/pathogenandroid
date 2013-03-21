@@ -10,6 +10,6 @@ public class Click_GoToOnline extends CFuncPtr
     @Override
     public void func()
     {
-    	
+    	mActivity.mGUI.OpenSoleView("online", 0);
     }
 }

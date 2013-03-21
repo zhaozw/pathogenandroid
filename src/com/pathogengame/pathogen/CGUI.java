@@ -26,17 +26,197 @@ public class CGUI
 	    float fieldwidth = 280*mActivity.mRetinaScale;
 	    float buttonw = 120*mActivity.mRetinaScale;
 	    float centerw = mActivity.mWidth/2;
-		
+
+	    AddView("logo", 0);
+	    AddImage("logo", (float)mActivity.mWidth/2 - (float)mActivity.mHeight/2, 0, (float)mActivity.mWidth/2 + (float)mActivity.mHeight/2, (float)mActivity.mHeight, 1, 1, 1, 0);
+	    
 		AddView("main", 0);
 		AddImage("gui/bg", 0.0f, 0.0f, (float)mActivity.mWidth, (float)mActivity.mHeight, 1.0f, 1.0f, 1.0f, 1.0f);
-		AddButton("gui/buttonbg", "Play Story", CFont.MSGOTHIC16, centerw-buttonw/2, 100.0f*mActivity.mRetinaScale, centerw+buttonw/2, 130.0f*mActivity.mRetinaScale, new Click_GoToStory(mActivity), null, null);
-		AddButton("gui/buttonbg", "Play Online", CFont.MSGOTHIC16, centerw-buttonw/2, 140.0f*mActivity.mRetinaScale, centerw+buttonw/2, 170.0f*mActivity.mRetinaScale, new Click_GoToOnline(mActivity), null, null);
-		AddButton("gui/buttonbg", "Credits", CFont.MSGOTHIC16, centerw-buttonw/2, 180.0f*mActivity.mRetinaScale, centerw+buttonw/2, 210.0f*mActivity.mRetinaScale, new Click_GoToCredits(mActivity), null, null);
+		AddButton("gui/buttonbg", "Play Story", CFont.MSGOTHIC16, centerw-buttonw/2, 100.0f*mActivity.mRetinaScale, centerw+buttonw/2, 144.0f*mActivity.mRetinaScale, new Click_GoToStory(mActivity), null, null);
+		//AddButton("gui/buttonbg", "Play Online", CFont.MSGOTHIC16, centerw-buttonw/2, 140.0f*mActivity.mRetinaScale, centerw+buttonw/2, 170.0f*mActivity.mRetinaScale, new Click_GoToOnline(mActivity), null, null);
+		AddButton("gui/buttonbg", "Credits", CFont.MSGOTHIC16, centerw-buttonw/2, 180.0f*mActivity.mRetinaScale, centerw+buttonw/2, 224.0f*mActivity.mRetinaScale, new Click_GoToCredits(mActivity), null, null);
 		
-		AddView("login", 0);
+		//AddView("login", 0);
+		//AddImage("gui/bg", 0.0f, 0.0f, (float)mActivity.mWidth, (float)mActivity.mHeight, 1.0f, 1.0f, 1.0f, 1.0f);
+		
+		AddView("credits", 0);
 		AddImage("gui/bg", 0.0f, 0.0f, (float)mActivity.mWidth, (float)mActivity.mHeight, 1.0f, 1.0f, 1.0f, 1.0f);
+		AddText("PROGRAMMING", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*4*mActivity.mRetinaScale);
+		AddText("Denis Ivanov", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*3*mActivity.mRetinaScale);
+		//AddText("Volodar", CFont.MSGOTHIC16, halign, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*2*mActivity.mRetinaScale);
+		AddText("MAPS", CFont.MSGOTHIC16, halign + 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*4*mActivity.mRetinaScale);
+		AddText("Robert Jarrett", CFont.MSGOTHIC16, halign + 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*3*mActivity.mRetinaScale);
+		AddText("MODELS", CFont.MSGOTHIC16, halign + 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*1*mActivity.mRetinaScale);
+		AddText("Robert Jarrett", CFont.MSGOTHIC16, halign + 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*0*mActivity.mRetinaScale);
+		AddText("Sergey Harchenko", CFont.MSGOTHIC16, halign + 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + mActivity.mFont[CFont.MSGOTHIC16].mGHeight*1*mActivity.mRetinaScale);
+		AddText("Denis Ivanov", CFont.MSGOTHIC16, halign + 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + mActivity.mFont[CFont.MSGOTHIC16].mGHeight*2*mActivity.mRetinaScale);
+		AddText("Andrei Shirokov", CFont.MSGOTHIC16, halign + 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + mActivity.mFont[CFont.MSGOTHIC16].mGHeight*3*mActivity.mRetinaScale);
+		AddText("STORY", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*1*mActivity.mRetinaScale);
+		AddText("Ruslan Sabitov", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*0*mActivity.mRetinaScale);
+		AddText("VIDEO", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + mActivity.mFont[CFont.MSGOTHIC16].mGHeight*2*mActivity.mRetinaScale);
+		AddText("Ruslan Sabitov", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + mActivity.mFont[CFont.MSGOTHIC16].mGHeight*3*mActivity.mRetinaScale);
+	    AddButton("buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, 240.0f*mActivity.mRetinaScale, centerw+buttonw/2, 284.0f*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
+
+	    //float dpadsize = 128.0f * (float)mActivity.mHeight / 320;
+	    float dpadsize = 128.0f * mActivity.mRetinaScale;
+	  
+	    AddView("play", 0);
+		AddText("chat0", "", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+0*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("chat1", "", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+1*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("chat2", "", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+2*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("chat3", "", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+3*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("chat4", "", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+4*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("chat5", "", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+5*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("score", "Score: 0", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+6*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("hp", "", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+7*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("stamina", "Stamina: 1.00 / 1.0", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+8*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+		AddText("ammo", "", CFont.MSGOTHIC16, 5*mActivity.mRetinaScale, (5+9*mActivity.mFont[CFont.MSGOTHIC16].mGHeight)*mActivity.mRetinaScale);
+
+		//AddDpad(String n, String texf, float left, float top, float right, float bottom, CFuncPtr dpadf)
 		
-		OpenSoleView("main", 0);
+	    AddDPad("rotational", "gui/rotational", (float)mActivity.mWidth-dpadsize, (float)mActivity.mHeight-dpadsize, (float)mActivity.mWidth, (float)mActivity.mHeight, new Rotational(mActivity));
+	    AddDPad("movement", "gui/rotational", 0*mActivity.mRetinaScale, (float)mActivity.mWidth-dpadsize, dpadsize, (float)mActivity.mHeight, new Movement(mActivity));
+		AddImage("gui/crosshairtop", (float)mActivity.mWidth/2 - 16*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 16*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 16*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 16*mActivity.mRetinaScale, 1, 1, 1, 1);
+		AddImage("gui/crosshairbottom", (float)mActivity.mWidth/2 - 16*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 16*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 16*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 16*mActivity.mRetinaScale, 1, 1, 1, 1);
+		AddImage("gui/crosshairleft", (float)mActivity.mWidth/2 - 16*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 16*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 16*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 16*mActivity.mRetinaScale, 1, 1, 1, 1);
+		AddImage("gui/crosshairright", (float)mActivity.mWidth/2 - 16*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 16*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 16*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 16*mActivity.mRetinaScale, 1, 1, 1, 1);
+		
+		AddView("switch view", 0);
+	    AddButton("buttonbg", "Switch View", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 0*mActivity.mRetinaScale, (float)mActivity.mWidth, 44*mActivity.mRetinaScale, new Click_SwitchView(mActivity), null, null);
+	    
+	    AddView("shoot", 0);
+	    AddButton("buttonbg", "Shoot", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    
+	    AddView("swing", 0);
+	    AddButton("buttonbg", "Swing", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    
+	    AddView("stab", 0);
+	    AddButton("buttonbg", "Stab", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    
+	    AddView("switch item", 0);
+	    AddButton("buttonbg", "Switch Item", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 54*mActivity.mRetinaScale, (float)mActivity.mWidth, 98*mActivity.mRetinaScale, new Click_EquipNext(mActivity), null, null);
+	    
+	    AddView("reload", 0);
+	    AddButton("buttonbg", "Reload", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 108*mActivity.mRetinaScale, (float)mActivity.mWidth, 152*mActivity.mRetinaScale, new Click_Reload(mActivity), null, null);
+	    
+	    AddView("crouch", 0);
+	    AddButton("buttonbg", "Crouch", CFont.MSGOTHIC16, 0*mActivity.mRetinaScale, 0*mActivity.mRetinaScale, buttonw, 60*mActivity.mRetinaScale, new Click_Crouch(mActivity), null, null);
+	    
+	    AddView("jump", 0);
+	    AddButton("buttonbg", "Jump", CFont.MSGOTHIC16, buttonw+10*mActivity.mRetinaScale, 00*mActivity.mRetinaScale, buttonw*2+10*mActivity.mRetinaScale, 60*mActivity.mRetinaScale, new Click_Jump(mActivity), null, new Unclick_Jump(mActivity));
+	    
+	    AddView("run", 0);
+	    AddButton("buttonbg", "Run", CFont.MSGOTHIC16, buttonw*2+20*mActivity.mRetinaScale, 00*mActivity.mRetinaScale, buttonw*3+20*mActivity.mRetinaScale, 60*mActivity.mRetinaScale, new Click_Run(mActivity), null, null);
+		 
+	    AddView("pick up", 0);
+		AddImage("mp5icon", (float)mActivity.mWidth-256*mActivity.mRetinaScale, (float)mActivity.mHeight/2-128*mActivity.mRetinaScale, (float)mActivity.mWidth, (float)mActivity.mHeight/2+128*mActivity.mRetinaScale, 1, 1, 1, 0);
+		AddText("+1", CFont.MSGOTHIC16, (float)mActivity.mWidth-100*mActivity.mRetinaScale, (float)mActivity.mHeight/2+28*mActivity.mRetinaScale);
+	    
+		AddView("open door", 0);
+	    AddButton("buttonbg", "Open", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 90*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
+	    
+		AddView("close door", 0);
+	    AddButton("buttonbg", "Close", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 90*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
+	    
+		AddView("game over", 0);
+		AddText("Game Over", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 32*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 8*mActivity.mRetinaScale);
+	    AddButton("buttonbg", "Try Again", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 50*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 94*mActivity.mRetinaScale, new Click_Retry(mActivity), null, null);
+	    
+	    AddView("message", 0);
+		AddImage("bg", 0, 0, (float)mActivity.mWidth, (float)mActivity.mHeight, 1, 1, 1, 1);
+	    AddTextBox("error", "Hosho was the world's first commissioned ship to be designed and built as an aircraft carrier, and the first aircraft carrier of the Imperial Japanese Navy (IJN). Commissioned in 1922, the ship was used for testing aircraft and equipment, and to evaluate operational methods and tactics. She provided valuable lessons and experience for the IJN in early carrier air operations.", CFont.MSGOTHIC16, 50*mActivity.mRetinaScale, 100*mActivity.mRetinaScale, (float)mActivity.mWidth-50*mActivity.mRetinaScale, (float)mActivity.mHeight-100*mActivity.mRetinaScale);
+	    AddButton("buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-10*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
+	    
+	    AddView("dialog", 0);
+		AddImage("bg", 0, 0, (float)mActivity.mWidth, (float)mActivity.mHeight, 1, 1, 1, 1);
+	    AddTextBox("dialog", "", CFont.MSGOTHIC16, 50*mActivity.mRetinaScale, 100*mActivity.mRetinaScale, (float)mActivity.mWidth-50*mActivity.mRetinaScale, (float)mActivity.mHeight-100*mActivity.mRetinaScale);
+	    AddButton("buttonbg", "Continue", CFont.MSGOTHIC16, centerw-20*mActivity.mRetinaScale-buttonw, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw-20*mActivity.mRetinaScale, (float)mActivity.mHeight-1*mActivity.mRetinaScale, new Click_DialogContinue(mActivity), null, null);
+	    AddButton("buttonbg", "Don't Show Any More", CFont.MSGOTHIC16, centerw, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw*1.5f, (float)mActivity.mHeight-1*mActivity.mRetinaScale, new Click_DontShow(mActivity), null, null);
+	    
+	    AddView("status", 0);
+		AddImage("bg", 0, 0, (float)mActivity.mWidth, (float)mActivity.mHeight, 1, 1, 1, 1);
+	    AddText("status", "Status...", CFont.MSGOTHIC16, halign, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight/2);
+	    
+	    AddView("status back", 0);
+		AddImage("bg", 0, 0, (float)mActivity.mWidth, (float)mActivity.mHeight, 1, 1, 1, 1);
+	    AddText("status", "Status", CFont.MSGOTHIC16, halign, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight/2);
+	    AddButton("buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-10*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
+
+		//OpenSoleView("main", 0);
+		OpenSoleView("logo", 0);
+	}
+	
+	void RedoHP()
+	{
+	    CPlayer* p = &g_player[g_localP];
+	    
+	    char msg[128];
+	    sprintf(msg, "HP: %1.1f/%1.0f", p->hp, p->MaxHP());
+	    g_GUI.getview("play")->gettext("hp")->text = msg;
+	}
+
+	void RedoStamina()
+	{
+		CPlayer* p = &g_player[g_localP];
+		char msg[128];
+		sprintf(msg, "Stamina: %1.2f / %1.0f", p->stamina, p->MaxStamina());
+		//sprintf(msg, "Yaw: %f", g_entity[p->entity].camera.Yaw());
+		g_GUI.getview("play")->gettext("stamina")->text = msg;
+	}
+
+	void RedoScore()
+	{
+		CPlayer* p = &g_player[g_localP];
+		char msg[128];
+		sprintf(msg, "Score: %d", g_score);
+		g_GUI.getview("play")->gettext("score")->text = msg;
+	}
+
+	void RedoAmmo()
+	{
+		CPlayer* p = &g_player[g_localP];
+	    
+	    CloseView("shoot");
+	    CloseView("swing");
+	    CloseView("stab");
+	    CloseView("reload");
+	    
+		if(p->equipped < 0)
+		{
+			g_GUI.getview("play")->gettext("ammo")->text = "";
+			return;
+		}
+	    
+		CHold* h = &p->items[p->equipped];
+		CItemType* t = &g_itemType[h->type];
+	    
+		if(!IsAmmo(t->ammo))
+		{
+	        if(h->type == ITEM::BBAT)
+	            OpenAnotherView("swing");
+	        else if(h->type == ITEM::KNIFE)
+	            OpenAnotherView("stab");
+	        
+			g_GUI.getview("play")->gettext("ammo")->text = "";
+			return;
+		}
+	    
+		int clip = h->clip;
+		int ammo = 0;
+	    
+		for(int i=0; i<p->items.size(); i++)
+		{
+			h = &p->items[i];
+	        
+			if(h->type == t->ammo)
+				ammo += h->amount;
+		}
+	    
+		char msg[128];
+		sprintf(msg, "Ammo: %d / %d", clip, ammo);
+		g_GUI.getview("play")->gettext("ammo")->text = msg;
+	    OpenAnotherView("shoot");
+	    OpenAnotherView("reload");
 	}
 	
 	public CView getview(String n)
@@ -180,6 +360,8 @@ public class CGUI
 		button.Button(filepath, t, f, left, top, right, bottom, click, overf, out);
 		CView v = mView.get(last);
 		v.mWidget.add(button);
+		
+		System.out.println("addb " + t + " = " + button.tex);
 	}
 	
 	public void AddButton(String filepath, String t, int f, float left, float top, float right, float bottom, CFuncPtr click2, int parm)
@@ -247,7 +429,7 @@ public class CGUI
 			dropdown.scroll = 0;
 	}
 	
-	public void AddDpad(String n, String texf, float left, float top, float right, float bottom, CFuncPtr dpadf)
+	public void AddDPad(String n, String texf, float left, float top, float right, float bottom, CFuncPtr dpadf)
 	{
 		int last = mView.size()-1;
 		CView v = mView.get(last);

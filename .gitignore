@@ -45,4 +45,10 @@ Thumbs.db
 #assets/
 assets/maps/
 assets/models/
+assets/textures/
+assets/video/
+assets/effects/
+assets/billboards/
+assets/gui/
+assets/sounds/
 bin/classes/
