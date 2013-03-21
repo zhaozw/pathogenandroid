@@ -10,7 +10,8 @@ public class CEntity
 	public static final int ITEM = 4;
 	public static final int ENTITY_CATEGORIES = 5;
 
-	enum ENTITYSND{OPENSND, CLOSESND};
+	public static final int OPENSND = 0;
+	public static final int CLOSESND = 1;
 	
 	static final int STATE_NONE		= 0;
 	static final int STATE_OPENING	= 1;
@@ -44,7 +45,7 @@ public class CEntity
         clip = -1;
 	}
     
-	CVector3 TraceRay(CVector3 vLine[])
+	CVector3 TraceRay(CVector3 vLine[], MainActivity act)
 	{
 		CVector3 vTrace[2];
 		vTrace[0] = vLine[0];

@@ -197,7 +197,7 @@ public class CCamera
 	void CalcYaw()
 	{
 		CVector3 d = Math3D.Subtract(mView, mPosition);
-		mOrientation.y = GetYaw(d.x, d.z);
+		mOrientation.y = Math3D.GetYaw(d.x, d.z);
 	}
 	
 	void CalcPitch()
@@ -205,18 +205,6 @@ public class CCamera
 		CVector3 d = Math3D.Subtract(mView, mPosition);
 		float lateral = Math3D.Magnitude(new CVector3(d.x, 0, d.z));
 		mOrientation.x = Math3D.RADTODEG( (float)Math.atan2(d.y, lateral) );
-	}
-	
-	static float GetYaw(float dx, float dz)
-	{
-	    /*
-	    float yaw = atan2(dx, dz);
-	    
-	    if(yaw < 0.0f)
-	        yaw += DEGTORAD( 360.0f );
-	    
-		return yaw;*/
-		return (float)Math.atan2(dx, dz);
 	}
 	
 	void LimitHVel(float limit)

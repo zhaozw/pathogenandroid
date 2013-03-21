@@ -4,7 +4,8 @@ import java.util.Vector;
 
 public class CPlayer 
 {
-	enum ACTIVITY{NOACT, ONSIGHT};
+	static final int NOACT = 0;
+	static final int ONSIGHT = 1;
 	
 	boolean on;
     int ID;

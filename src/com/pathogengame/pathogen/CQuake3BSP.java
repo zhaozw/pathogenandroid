@@ -116,6 +116,11 @@ public class CQuake3BSP
 	Vector<CSpawn> mSpawn;
 	Vector<CSpawn> mSSpawn;
 	Vector<CSpawn> mZSpawn;
+	
+	Vector<CFuncMap> mFuncMap;
+	Vector<CFuncProxy> mFuncProxy;
+	
+	int mLastEnt = -1;
 
     CQuake3BSP()
     {
@@ -970,13 +975,300 @@ public class CQuake3BSP
     void RenderFace(int faceIndex);
     void RenderSkyFace(int faceIndex);
     
+    CVector3 ParseCVector3(String str)
+    {
+		CVector3 pos = new CVector3();
+		String values[] = str.split(" ");
+		pos.x = Float.parseFloat(values[0]);
+		pos.y = Float.parseFloat(values[1]);
+		pos.z = Float.parseFloat(values[2]);
+		return pos;
+    }
     
+    static void Swizzle(CVector3 v)
+    {
+    	float temp = v.z;
+    	v.z = -v.y;
+    	v.y = temp;
+    }
+
+    static void Swizzle(CVector3 vmin, CVector3 vmax)
+    {
+    	float temp = vmin.z;
+    	vmin.z = -vmin.y;
+    	vmin.y = temp;
+        
+    	temp = vmax.z;
+    	vmax.z = -vmax.y;
+    	vmax.y = temp;
+        
+    	float tempmin = Math.min(vmin.z, vmax.z);
+    	float tempmax = Math.max(vmin.z, vmax.z);
+    	vmin.z = tempmin;
+    	vmax.z = tempmax;
+    }
+    
+    void ReadEntity(String classname, String origin, String angle, String model, String size, String type, String sky, String count, String clip, String collider,
+    		String opensound, String closesound, String activity, String nolightvol, String bbmin, String bbmax, String map, String script)
+	{
+		boolean nolvol = false;
+		
+		if(nolightvol.equalsIgnoreCase("true"))
+			nolvol = true;
+		
+		int scrpt = -1;
+		if(!script.equalsIgnoreCase(""))
+			scrpt = Integer.parseInt(script);
+		
+		if(classname.equalsIgnoreCase("info_player_start"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			pos.y += 50.0f - 27.5f + 4.0f;
+			float ang = Float.parseFloat(angle);
+			CSpawn spawn = new CSpawn(pos, ang, -1, -1);
+			mSSpawn.add(spawn);
+		}
+		if(classname.equalsIgnoreCase("info_player_deathmatch"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			pos.y += 50.0f - 27.5f + 4.0f;
+			float ang;
+			ang = Float.parseFloat(angle);
+			CSpawn spawn = new CSpawn(pos, ang, -1, -1);
+			mSpawn.add(spawn);
+		}
+		else if(classname.equalsIgnoreCase("info_player_zombie"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			pos.y += 50.0f - 27.5f + 4.0f;
+			float ang;
+			ang = Float.parseFloat(angle);
+			//ang += DEGTORAD(180);
+			int act = CPlayer.ONSIGHT;
+		    
+			if(activity.equalsIgnoreCase("none"))
+				act = CPlayer.NOACT;
+			else if(activity.equalsIgnoreCase("onsight"))
+				act = CPlayer.ONSIGHT;
+		    
+			CSpawn spawn = new CSpawn(pos, ang, act, scrpt);
+			mZSpawn.add(spawn);
+		}
+		
+		else if(classname.equalsIgnoreCase("func_map"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+		    
+			CVector3 vmin = ParseCVector3(bbmin);
+			CVector3 vmax = ParseCVector3(bbmax);
+			Swizzle(vmin, vmax);
+		    
+			CFuncMap funcmap = new CFuncMap(pos, vmin, vmax, map);
+			mFuncMap.add(funcmap);
+		}
+		else if(classname.equalsIgnoreCase("func_proxy"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+		    
+			CVector3 vmin = ParseCVector3(bbmin);
+			CVector3 vmax = ParseCVector3(bbmax);
+			Swizzle(vmin, vmax);
+		    
+			CFuncProxy funcproxy = new CFuncProxy(pos, vmin, vmax, scrpt);
+			mFuncProxy.add(funcproxy);
+		}
+		else if(classname.equalsIgnoreCase("_entity"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+		    
+			int eid = mActivity.EntityID(model);
+		    
+			if(eid < 0)
+				eid = mActivity.Entity(CEntity.NOCAT, model, 1, -1);
+		    
+			float amt = 1;
+		    
+			mActivity.PlaceEntity(eid, -1, amt, -1, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("weapon_mp5"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+		    
+			float clp = 30;
+			if(!clip.equalsIgnoreCase(""))
+				clp = Float.parseFloat(clip);
+		    
+			int eid = mActivity.EntityID("mp5");
+		    
+			mActivity.PlaceEntity(eid, -1, 1, clp, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("weapon_mossberg500"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+		    
+			float clp = 6;
+			if(!clip.equalsIgnoreCase(""))
+				clp = Float.parseFloat(clip);
+		    
+			int eid = mActivity.EntityID("mossberg500");
+		    
+			mActivity.PlaceEntity(eid, -1, 1, clp, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("weapon_m1911"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+		    
+			float clp = 7;
+			if(!clip.equalsIgnoreCase(""))
+				clp = Float.parseFloat(clip);
+		    
+			int eid = mActivity.EntityID("m1911");
+		    
+			mActivity.PlaceEntity(eid, -1, 1, clp, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("weapon_bat"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+			float clp = 0;
+		    
+			int eid = mActivity.EntityID("bbat");
+		    
+			mActivity.PlaceEntity(eid, -1, 1, clp, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("weapon_knife"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+			float clp = 0;
+		    
+			int eid = mActivity.EntityID("knife");
+		    
+			mActivity.PlaceEntity(eid, -1, 1, clp, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("ammo_primary"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+			float amt = Float.parseFloat(count);
+		    
+			int eid = mActivity.EntityID("ammo1");
+		    
+			//if(eid < 0)
+			//	eid = Entity(ENTITY::ITEM, "mp5", 1);
+		    
+			mActivity.PlaceEntity(eid, -1, amt, -1, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("ammo_secondary"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+			float amt = Float.parseFloat(count);
+		    
+			int eid = mActivity.EntityID("ammo2");
+		    
+			//if(eid < 0)
+			//	eid = Entity(ENTITY::ITEM, "mp5", 1);
+		    
+			mActivity.PlaceEntity(eid, -1, amt, -1, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("ammo_tertiary"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+			float amt = Float.parseFloat(count);
+		    
+			int eid = mActivity.EntityID("ammo3");
+		    
+			//if(eid < 0)
+			//	eid = Entity(ENTITY::ITEM, "mp5", 1);
+		    
+			mActivity.PlaceEntity(eid, -1, amt, -1, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("fixed_entity"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+		    
+			int eid = mActivity.EntityID(model);
+		    
+			if(eid < 0)
+			{
+				int coli = -1;
+		        
+				if(!collider.equalsIgnoreCase(""))
+					coli = LoadModel(collider, new CVector3(1,1,1));
+		        
+				eid = Entity(CEntity.FIXEDENT, model.c_str(), 1, coli);
+			}
+		    
+			mActivity.PlaceEntity(eid, -1, -1, -1, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("func_door"))
+		{
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+			float ang = Float.parseFloat(angle);
+		    
+			int eid = mActivity.EntityID(model);
+		    
+			if(eid < 0)
+				eid = mActivity.Entity(CEntity.DOOR, model, 1, -1);
+		        //eid = Entity(ENTITY::FIXEDENT, model.c_str(), 1, -1);
+		    
+			mLastEnt = eid;
+		    
+			if(!opensound.equalsIgnoreCase(""))
+				mActivity.EntitySound(CEntity.OPENSND, opensound);
+		    
+			if(!closesound.equalsIgnoreCase(""))
+				mActivity.EntitySound(CEntity.CLOSESND, closesound);
+		    
+			mActivity.PlaceEntity(eid, -1, -1, -1, pos, ang, null, nolvol, scrpt);
+		}
+		else if(classname.equalsIgnoreCase("_billboard"))
+		{
+		    //void PlaceBillboard(const char* name, CVector3 pos, float size)
+			CVector3 pos = ParseCVector3(origin);
+			Swizzle(pos);
+		
+		    float sizef = Float.parseFloat(size);
+		    
+		    mActivity.PlaceBillboard(type, pos, sizef, -1, nolvol);
+		}
+		else if(classname.equalsIgnoreCase("worldspawn"))
+		{
+			if(!sky.equalsIgnoreCase(""))
+				LoadSkyBox(sky);
+		}
+	}
     
     void ReadEntities(String str)
     {
     	mSpawn = new Vector<CSpawn>();
     	mSSpawn = new Vector<CSpawn>();
     	mZSpawn = new Vector<CSpawn>();
+    	mFuncMap = new Vector<CFuncMap>();
+    	mFuncProxy = new Vector<CFuncProxy>();
         
     	String classname;
     	String origin;

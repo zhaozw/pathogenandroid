@@ -136,6 +136,99 @@ public class MainActivity extends Activity
 	    return -1;
 	}
 	
+	int NewEntity()
+	{
+		for(int i=0; i<ENTITIES; i++)
+			if(!mEntity[i].on)
+				return i;
+	    
+		return -1;
+	}
+	
+	int EntityID(String lmodel)
+    {
+        String raw = CFile.StripPathExtension(lmodel);
+        for(int i=0; i<mEntityType.size(); i++)
+            if(raw.equalsIgnoreCase(mEntityType.get(i).lmodel))
+                return i;
+        
+        return -1;
+    }
+	
+	int Entity(int category, const char* lowermodel, float animrate, int collider)
+	{
+		g_entityType.push_back(CEntityType());
+		int i = g_entityType.size() - 1;
+		CEntityType* t = &g_entityType[i];
+	    
+		char raw[32];
+		StripPathExtension(lowermodel, raw);
+		t->lmodel = [NSString stringWithCString:raw encoding:NSASCIIStringEncoding];
+		t->model[BODY_LOWER] = LoadModel(raw, CVector3(1,1,1));
+		t->model[BODY_UPPER] = -1;
+	    
+	    //if(strstr(lowermodel, "bed"))
+	    if(false)
+	    {
+	        NSLog(@"=======");
+	        NSLog(@"entity raw = %s", raw);
+	        NSLog(@"t->lmodel = %@", t->lmodel);
+	        NSLog(@"entity lmodel = %d", t->model[BODY_LOWER]);
+	        
+	        NSLog(@"entity lmodel name = %@", g_model[t->model[BODY_LOWER]].name);
+	    }
+	    
+		t->category = category;
+		ModelMinMax(t->model[BODY_LOWER], &t->vMin, &t->vMax);
+		t->maxStep = 15;
+		t->speed = 200;
+		t->jump = 0;
+		t->crouch = 0;
+		t->animrate = animrate;
+		t->vCenterOff = (t->vMin + t->vMax)/2.0f;
+		t->collider = collider;
+	    
+		g_lastEnt = i;
+	    
+		return i;
+	}
+
+	void Entity(int category, int item, NSString* lowermodel, NSString* uppermodel, CVector3 scale, CVector3 translate, CVector3 vMin, CVector3 vMax, float maxStep, float speed, float jump, float crouch, float animrate)
+	{
+	    g_entityType.push_back(CEntityType());
+		int i = g_entityType.size() - 1;
+		CEntityType* t = &(g_entityType[i]);
+	    
+	    t->lmodel = lowermodel;
+	    
+	    if([lowermodel isEqualToString:@""])
+	        t->model[BODY_LOWER] = -1;
+	    else
+	    {
+	        NSString* raw = StripPathExtension(lowermodel);
+	        t->model[BODY_LOWER] = LoadModel(raw, scale);
+	    }
+	    
+	    if([uppermodel isEqualToString:@""])
+	        t->model[BODY_UPPER] = -1;
+	    else
+	    {
+	        NSString* raw = StripPathExtension(uppermodel);
+	        t->model[BODY_UPPER] = LoadModel(raw, scale);
+	    }
+
+		t->category = category;
+		t->item = item;
+	    t->vMin = vMin;
+		t->vMax = vMax;
+		t->maxStep = maxStep;
+		t->speed = speed;
+		t->jump = jump;
+		t->crouch = crouch;
+		t->animrate = animrate;
+	    t->collider = -1;
+	}
+	
 	boolean Unobstructed(CCamera zc, CVector3 pos, CEntity ignore1, CEntity ignore2)
 	{
 		CVector3 trace = mMap.TraceRay(zc.Position(), pos);
@@ -143,11 +236,11 @@ public class MainActivity extends Activity
 			return false;
 	    
 		CEntity e;
-		CVector3 vLine[2];
-		vLine[0] = zc->Position();
-		vLine[1] = pos;
-		int cluster = g_map.FindCluster(zc->Position());
-	    CEntityType* t;
+		CVector3 vLine[] = new CVector3[2];
+		vLine[0] = Math3D.Copy(zc.Position());
+		vLine[1] = Math3D.Copy(pos);
+		int cluster = mMap.FindCluster(zc.Position());
+	    CEntityType t;
 	    
 		for(int i=0; i<ENTITIES; i++)
 		{
@@ -163,15 +256,15 @@ public class MainActivity extends Activity
 			if(e == ignore2)
 				continue;*/
 	        
-			if(!mMap.IsClusterVisible(cluster, e->cluster))
+			if(!mMap.IsClusterVisible(cluster, e.cluster))
 				continue;
 	        
-	        t = mEntityType[e.type];
+	        t = mEntityType.get(e.type);
 	        
 	        if(t.category != ENTITY.DOOR)
 	            continue;
 	        
-			trace = e.TraceRay(vLine);
+			trace = e.TraceRay(vLine, this);
 	        
 			if(Math3D.Equals(trace, vLine[1]))
 				continue;
@@ -185,7 +278,7 @@ public class MainActivity extends Activity
 	boolean Visible(CCamera zc, CVector3 pos, CEntity ignore1, CEntity ignore2)
 	{
 		//check angle
-		if(!WithinAngle(zc, pos, Math3D.DEGTORAD(Z_FOV/2.0f)))
+		if(!Math3D.WithinAngle(zc, pos, Math3D.DEGTORAD(Z_FOV/2.0f)))
 			return false;
 	    
 		//check obstruction

@@ -199,4 +199,29 @@ public class Math3D
 		//return ( direction * act.mNear + act.mCamera.Strafe() * ratioX * Wnear/2.0f + act.mCamera.Up2() * ratioY * Hnear/2.0f );
 		return total;
 	}
+	
+	static float GetYaw(float dx, float dz)
+	{
+	    /*
+	    float yaw = atan2(dx, dz);
+	    
+	    if(yaw < 0.0f)
+	        yaw += DEGTORAD( 360.0f );
+	    
+		return yaw;*/
+		return (float)Math.atan2(dx, dz);
+	}
+	
+	static boolean WithinAngle(CCamera c, CVector3 p, float angle)
+	{
+		CVector3 d = Math3D.Subtract(p, c.Position());
+		float yaw = GetYaw(d.x, d.z);
+		float yaw2 = yaw - DEGTORAD(360.0f);
+		float yaw3 = yaw + DEGTORAD(360.0f);
+	    
+		if(Math.abs(c.Yaw() - yaw) <= angle || Math.abs(c.Yaw() - yaw2) <= angle || Math.abs(c.Yaw() - yaw3) <= angle)
+			return true;
+	    
+		return false;
+	}
 }
