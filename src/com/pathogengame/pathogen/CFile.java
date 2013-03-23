@@ -33,6 +33,19 @@ public class CFile
     	return s2;
     }
     
+    static String StripExtension(String s1)
+    {
+    	int dot = s1.lastIndexOf('.');
+    	String s2;
+
+    	if (dot != -1)
+    		s2 = s1.substring(0, dot);
+    	else
+    		s2 = s1;
+    	
+    	return s2;
+    }
+    
 	static int ReadInt(InputStream iS, int offset)
 	{
 		byte[] bucket = ReadBytes(iS, offset, 4);

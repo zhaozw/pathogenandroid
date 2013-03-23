@@ -23,7 +23,7 @@ public class CEntity
 	static final float MID_HEIGHT_OFFSET = 13.49f;   //-15.0f
 
 	boolean on;
-    float frame[] = new float[2];
+    CFloat frame[] = new CFloat[2];
 	int type;
 	int controller;
 	CCamera camera = new CCamera();
@@ -39,8 +39,8 @@ public class CEntity
 	{
 		on = false;
 		controller = -1;
-        frame[BODY_LOWER] = 0;
-        frame[BODY_UPPER] = 0;
+        frame[BODY_LOWER] = new CFloat();
+        frame[BODY_UPPER] = new CFloat();
         amount = -1;
         clip = -1;
 	}

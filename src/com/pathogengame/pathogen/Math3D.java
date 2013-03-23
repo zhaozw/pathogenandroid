@@ -224,4 +224,227 @@ public class Math3D
 	    
 		return false;
 	}
+	
+	static CVector3 VMin(float minf, CVector3 v)
+	{
+		v.x = Math.min(minf, v.x);
+		v.y = Math.min(minf, v.y);
+		v.z = Math.min(minf, v.z);
+		return v;
+	}
+	
+	static boolean IntersectedPlane(CVector3 vPoly[], CVector3 vLine[], CVector3 vNormal, float originDistance)
+	{
+		float distance1=0, distance2=0;						// The distances from the 2 points of the line from the plane
+	    
+		CVector3 vTemp = Normal(vPoly);
+		vNormal.x = vTemp.x;
+		vNormal.y = vTemp.y;
+		vNormal.z = vTemp.z;
+	    
+		// Let's find the distance our plane is from the origin.  We can find this value
+		// from the normal to the plane (polygon) and any point that lies on that plane (Any vertice)
+		originDistance = PlaneDistance(vNormal, vPoly[0]);
+	    
+		// Get the distance from point1 from the plane using: Ax + By + Cz + D = (The distance from the plane)
+	    
+		distance1 = ((vNormal.x * vLine[0].x)  +					// Ax +
+			         (vNormal.y * vLine[0].y)  +					// Bx +
+					 (vNormal.z * vLine[0].z)) + originDistance;	// Cz + D
+	    
+		// Get the distance from point2 from the plane using Ax + By + Cz + D = (The distance from the plane)
+	    
+		distance2 = ((vNormal.x * vLine[1].x)  +					// Ax +
+			         (vNormal.y * vLine[1].y)  +					// Bx +
+					 (vNormal.z * vLine[1].z)) + originDistance;	// Cz + D
+	    
+		// Now that we have 2 distances from the plane, if we times them together we either
+		// get a positive or negative number.  If it's a negative number, that means we collided!
+		// This is because the 2 points must be on either side of the plane (IE. -1 * 1 = -1).
+	    
+		if(distance1 * distance2 >= 0)			// Check to see if both point's distances are both negative or both positive
+	        return false;
+	    
+		return true;
+	}
+	
+	static double AngleBetweenVectors(CVector3 Vector1, CVector3 Vector2)
+	{
+		float dotProduct = Dot(Vector1, Vector2);
+		float vectorsMagnitude = Magnitude(Vector1) * Magnitude(Vector2) ;
+		double angle = Math.acos( dotProduct / vectorsMagnitude );
+	    
+		if(Double.isNaN(angle))
+			return 0;
+	    
+		return( angle );
+	}
+	
+	static CVector3 IntersectionPoint(CVector3 vNormal, CVector3 vLine[], double distance)
+	{
+		CVector3 vPoint = new CVector3();
+		CVector3 vLineDir;
+		double Numerator = 0.0, Denominator = 0.0, dist = 0.0;
+	    
+		// Here comes the confusing part.  We need to find the 3D point that is actually
+		// on the plane.  Here are some steps to do that:
+	    
+		// 1)  First we need to get the vector of our line, Then normalize it so it's a length of 1
+		vLineDir = Vector(vLine[1], vLine[0]);		// Get the Vector of the line
+		vLineDir = Normalize(vLineDir);				// Normalize the lines vector
+	    
+	    
+		// 2) Use the plane equation (distance = Ax + By + Cz + D) to find the distance from one of our points to the plane.
+		//    Here I just chose a arbitrary point as the point to find that distance.  You notice we negate that
+		//    distance.  We negate the distance because we want to eventually go BACKWARDS from our point to the plane.
+		//    By doing this is will basically bring us back to the plane to find our intersection point.
+		Numerator = - (vNormal.x * vLine[0].x +		// Use the plane equation with the normal and the line
+					   vNormal.y * vLine[0].y +
+					   vNormal.z * vLine[0].z + distance);
+	    
+		// 3) If we take the dot product between our line vector and the normal of the polygon,
+		//    this will give us the cosine of the angle between the 2 (since they are both normalized - length 1).
+		//    We will then divide our Numerator by this value to find the offset towards the plane from our arbitrary point.
+		Denominator = Dot(vNormal, vLineDir);		// Get the dot product of the line's vector and the normal of the plane
+	    
+		// Since we are using division, we need to make sure we don't get a divide by zero error
+		// If we do get a 0, that means that there are INFINATE points because the the line is
+		// on the plane (the normal is perpendicular to the line - (Normal.Vector = 0)).
+		// In this case, we should just return any point on the line.
+	    
+		if( Denominator == 0.0)						// Check so we don't divide by zero
+			return vLine[0];						// Return an arbitrary point on the line
+	    
+		// We divide the (distance from the point to the plane) by (the dot product)
+		// to get the distance (dist) that we need to move from our arbitrary point.  We need
+		// to then times this distance (dist) by our line's vector (direction).  When you times
+		// a scalar (single number) by a vector you move along that vector.  That is what we are
+		// doing.  We are moving from our arbitrary point we chose from the line BACK to the plane
+		// along the lines vector.  It seems logical to just get the numerator, which is the distance
+		// from the point to the line, and then just move back that much along the line's vector.
+		// Well, the distance from the plane means the SHORTEST distance.  What about in the case that
+		// the line is almost parallel with the polygon, but doesn't actually intersect it until half
+		// way down the line's length.  The distance from the plane is short, but the distance from
+		// the actual intersection point is pretty long.  If we divide the distance by the dot product
+		// of our line vector and the normal of the plane, we get the correct length.  Cool huh?
+	    
+		dist = Numerator / Denominator;				// Divide to get the multiplying (percentage) factor
+	    
+		// Now, like we said above, we times the dist by the vector, then add our arbitrary point.
+		// This essentially moves the point along the vector to a certain distance.  This now gives
+		// us the intersection point.  Yay!
+	    
+		vPoint.x = (float)(vLine[0].x + (vLineDir.x * dist));
+		vPoint.y = (float)(vLine[0].y + (vLineDir.y * dist));
+		vPoint.z = (float)(vLine[0].z + (vLineDir.z * dist));
+	    
+		return vPoint;								// Return the intersection point
+	}
+	
+	static final double MATCH_FACTOR = 0.9999;		// Used to cover up the error in floating point
+	
+	static boolean InsidePolygon(CVector3 vIntersection, CVector3 Poly[], int verticeCount)
+	{
+		//const double MATCH_FACTOR = 0.9999;		// Used to cover up the error in floating point
+		double Angle = 0.0;						// Initialize the angle
+		CVector3 vA, vB;						// Create temp vectors
+	    
+		// Just because we intersected the plane, doesn't mean we were anywhere near the polygon.
+		// This functions checks our intersection point to make sure it is inside of the polygon.
+		// This is another tough function to grasp at first, but let me try and explain.
+		// It's a brilliant method really, what it does is create triangles within the polygon
+		// from the intersection point.  It then adds up the inner angle of each of those triangles.
+		// If the angles together add up to 360 degrees (or 2 * PI in radians) then we are inside!
+		// If the angle is under that value, we must be outside of polygon.  To further
+		// understand why this works, take a pencil and draw a perfect triangle.  Draw a dot in
+		// the middle of the triangle.  Now, from that dot, draw a line to each of the vertices.
+		// Now, we have 3 triangles within that triangle right?  Now, we know that if we add up
+		// all of the angles in a triangle we get 180° right?  Well, that is kinda what we are doing,
+		// but the inverse of that.  Say your triangle is an equilateral triangle, so add up the angles
+		// and you will get 180° degree angles.  60 + 60 + 60 is 360°.
+	    
+		for (int i = 0; i < verticeCount; i++)		// Go in a circle to each vertex and get the angle between
+		{
+			vA = Vector(Poly[i], vIntersection);	// Subtract the intersection point from the current vertex
+	        // Subtract the point from the next vertex
+			vB = Vector(Poly[(i + 1) % verticeCount], vIntersection);
+	        
+			Angle += AngleBetweenVectors(vA, vB);	// Find the angle between the 2 vectors and add them all up as we go along
+		}
+	    
+		// Now that we have the total angles added up, we need to check if they add up to 360 degrees.
+		// Since we are using the dot product, we are working in radians, so we check if the angles
+		// equals 2*PI.  We defined PI in 3DMath.h.  You will notice that we use a MATCH_FACTOR
+		// in conjunction with our desired degree.  This is because of the inaccuracy when working
+		// with floating point numbers.  It usually won't always be perfectly 2 * PI, so we need
+		// to use a little twiddling.  I use .9999, but you can change this to fit your own desired accuracy.
+	    
+		if(Angle >= (MATCH_FACTOR * (2.0 * Math.PI)) )	// If the angle is greater than 2 PI, (360 degrees)
+			return true;							// The point is inside of the polygon
+	    
+		return false;								// If you get here, it obviously wasn't inside the polygon, so Return FALSE
+	}
+	
+	static boolean IntersectedPolygon(CVector3 vPoly[], CVector3 vLine[], int verticeCount, CVector3 vIntersection)
+	{
+		CVector3 vNormal = new CVector3();// = {0};
+		float originDistance = 0;
+	    
+		// First we check to see if our line intersected the plane.  If this isn't true
+		// there is no need to go on, so return false immediately.
+		// We pass in address of vNormal and originDistance so we only calculate it once
+	    
+	    // Reference   // Reference
+		if(!IntersectedPlane(vPoly, vLine,   vNormal,   originDistance))
+			return false;
+	    
+		// Now that we have our normal and distance passed back from IntersectedPlane(),
+		// we can use it to calculate the intersection point.  The intersection point
+		// is the point that actually is ON the plane.  It is between the line.  We need
+		// this point test next, if we are inside the polygon.  To get the I-Point, we
+		// give our function the normal of the plan, the points of the line, and the originDistance.
+	    
+		CVector3 vTemp = IntersectionPoint(vNormal, vLine, originDistance);
+	    
+		// Now that we have the intersection point, we need to test if it's inside the polygon.
+		// To do this, we pass in :
+		// (our intersection point, the polygon, and the number of vertices our polygon has)
+	    
+		if(InsidePolygon(vTemp, vPoly, verticeCount))
+		{
+			if(vIntersection != null)
+			{
+				//vIntersection = vTemp;
+				vIntersection.x = vTemp.x;
+				vIntersection.y = vTemp.y;
+				vIntersection.z = vTemp.z;
+			}
+	        
+			return true;
+		}
+	    
+		return false;
+	}
+	
+	static float DYaw(CCamera c, CVector3 p)
+	{
+		CVector3 d = Subtract(p, c.Position());
+		float yaw = GetYaw(d.x, d.z);
+		float yaw2 = yaw - DEGTORAD(360.0f);
+		float yaw3 = yaw + DEGTORAD(360.0f);
+	    
+		float dyaw = yaw - c.Yaw();
+		float dyaw2 = yaw2 - c.Yaw();
+		float dyaw3 = yaw3 - c.Yaw();
+	    
+		float mindyaw = dyaw;
+	    
+		if(Math.abs(dyaw2) < Math.abs(mindyaw))
+			mindyaw = dyaw2;
+	    
+		if(Math.abs(dyaw3) < Math.abs(mindyaw))
+			mindyaw = dyaw3;
+	    
+		return mindyaw;
+	}
 }

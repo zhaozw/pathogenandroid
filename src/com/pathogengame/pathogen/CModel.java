@@ -508,4 +508,27 @@ public class CModel
         
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, numverts);
     }
+    
+    static boolean PlayAnimation(CFloat frame, int first, int last, boolean loop, float rate)
+    {
+        if(frame.value < first || frame.value > last)
+        {
+            frame.value = first;
+            return false;
+        }
+        
+        frame.value += rate;
+        
+        if(frame.value > last)
+        {
+            if(loop)
+                frame.value = first;
+    		else
+    			frame.value = last;
+            
+            return true;
+        }
+        
+        return false;
+    }
 }

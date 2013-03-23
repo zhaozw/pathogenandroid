@@ -71,10 +71,16 @@ public class MainActivity extends Activity
 	int mTexWidth;
 	int mTexHeight;
 	
+	public static final int MODELS = 128;
+	CModel mModel[] = new CModel[MODELS];
+	
 	CQuake3BSP mMap;
 	int mScore = 0;
 	boolean mArrest = false;
 	CCamera mCamera;
+	CFrustum mFrustum;
+	
+	long mTicks = 0;
 	
 	int mLocalP = 0;
 	
@@ -92,6 +98,15 @@ public class MainActivity extends Activity
 	Vector<CSpawn> g_zspawn = new Vector<CSpawn>(); //zombie spawn
 	
 	CFuncPtr DialogContinue = null;
+	
+	int mLastEnt = -1;
+	
+
+	Vector<CSound> mZDeathSnd = new Vector<CSound>();
+	Vector<CSound> mZGraspSnd = new Vector<CSound>();
+	Vector<CSound> mZPainSnd = new Vector<CSound>();
+	CSound mDoorKnock = new CSound();
+	CSound mStaticSound = new CSound();
 	
 	//int rotational;
 	
@@ -145,6 +160,49 @@ public class MainActivity extends Activity
 		return -1;
 	}
 	
+	boolean PlaceEntity(int type, int controller, float amount, float clip, CVector3 pos, float yaw, Integer ID, boolean nolightvol, int script)
+	{
+		int i = NewEntity();
+		if(i < 0)
+			return false;
+	    
+	    CEntity e = mEntity[i];
+
+		e.on = true;
+		e.frame[CEntity.BODY_LOWER].value = 0;
+		e.frame[CEntity.BODY_UPPER].value = 0;
+		e.type = type;
+		e.controller = controller;
+		e.amount = amount;
+		e.clip = clip;
+		e.state = CEntity.STATE_NONE;
+		e.nolightvol = nolightvol;
+		e.script = script;
+	    
+	    CCamera c = e.camera;
+	    
+		c.PositionCamera(pos.x, pos.y, pos.z, pos.x+1, pos.y, pos.z, 0, 1, 0);
+		c.RotateView(Math3D.DEGTORAD(yaw), 0, 1, 0);
+	    
+		CEntityType t = mEntityType.get(type);
+		e.cluster = mMap.FindCluster(Math3D.Add(c.Position(), t.vCenterOff));
+	    
+		CPlayer p = null;
+		if(controller >= 0)
+		{
+			mPlayer[controller].entity = i;
+			p = mPlayer[controller];
+		}
+	    
+		if(ID != null)
+			ID = i;
+	    
+		if(controller >= 0)
+			p.goal = pos;
+	    
+	    return true;
+	}
+	
 	int EntityID(String lmodel)
     {
         String raw = CFile.StripPathExtension(lmodel);
@@ -155,78 +213,198 @@ public class MainActivity extends Activity
         return -1;
     }
 	
-	int Entity(int category, const char* lowermodel, float animrate, int collider)
+	boolean CheckEntitySound(Vector<CSound> vec, String file)
 	{
-		g_entityType.push_back(CEntityType());
-		int i = g_entityType.size() - 1;
-		CEntityType* t = &g_entityType[i];
+		for(int i=0; i<(vec).size(); i++)
+			if(!(vec).get(i).file.equalsIgnoreCase(file))
+				return true;
 	    
-		char raw[32];
-		StripPathExtension(lowermodel, raw);
-		t->lmodel = [NSString stringWithCString:raw encoding:NSASCIIStringEncoding];
-		t->model[BODY_LOWER] = LoadModel(raw, CVector3(1,1,1));
-		t->model[BODY_UPPER] = -1;
+		return false;
+	}
+
+	void EntitySound(int category, String file)
+	{
+		CEntityType t = mEntityType.get(mLastEnt);
+		Vector<CSound> vec;
 	    
-	    //if(strstr(lowermodel, "bed"))
-	    if(false)
-	    {
-	        NSLog(@"=======");
-	        NSLog(@"entity raw = %s", raw);
-	        NSLog(@"t->lmodel = %@", t->lmodel);
-	        NSLog(@"entity lmodel = %d", t->model[BODY_LOWER]);
-	        
-	        NSLog(@"entity lmodel name = %@", g_model[t->model[BODY_LOWER]].name);
-	    }
+		if(category == CEntity.CLOSESND)
+			vec = t.closeSound;
+		else if(category == CEntity.OPENSND)
+			vec = t.openSound;
 	    
-		t->category = category;
-		ModelMinMax(t->model[BODY_LOWER], &t->vMin, &t->vMax);
-		t->maxStep = 15;
-		t->speed = 200;
-		t->jump = 0;
-		t->crouch = 0;
-		t->animrate = animrate;
-		t->vCenterOff = (t->vMin + t->vMax)/2.0f;
-		t->collider = collider;
+		String raw = CFile.StripPathExtension(file);
+		String filepath = "/sounds/" + raw + ".wav";
 	    
-		g_lastEnt = i;
+		if(CheckEntitySound(vec, filepath))
+			return;
+	    
+		(vec).add(new CSound(this, raw));
+	}
+	
+	int Entity(int category, String lowermodel, float animrate, int collider)
+	{
+		mEntityType.add(new CEntityType());
+		int i = mEntityType.size() - 1;
+		CEntityType t = mEntityType.get(i);
+	    
+		String raw = CFile.StripPathExtension(lowermodel);
+		t.lmodel = raw;
+		t.model[CEntity.BODY_LOWER] = LoadModel(raw, new CVector3(1,1,1));
+		t.model[CEntity.BODY_UPPER] = -1;
+	    
+		t.category = category;
+		ModelMinMax(t.model[CEntity.BODY_LOWER], t.vMin, t.vMax);
+		t.maxStep = 15;
+		t.speed = 200;
+		t.jump = 0;
+		t.crouch = 0;
+		t.animrate = animrate;
+		t.vCenterOff = Math3D.Divide(Math3D.Add(t.vMin, t.vMax), 2.0f);
+		t.collider = collider;
+	    
+		mLastEnt = i;
 	    
 		return i;
 	}
 
-	void Entity(int category, int item, NSString* lowermodel, NSString* uppermodel, CVector3 scale, CVector3 translate, CVector3 vMin, CVector3 vMax, float maxStep, float speed, float jump, float crouch, float animrate)
+	void Entity(int category, int item, String lowermodel, String uppermodel, CVector3 scale, CVector3 translate, CVector3 vMin, CVector3 vMax, float maxStep, float speed, float jump, float crouch, float animrate)
 	{
-	    g_entityType.push_back(CEntityType());
-		int i = g_entityType.size() - 1;
-		CEntityType* t = &(g_entityType[i]);
+	    mEntityType.add(new CEntityType());
+		int i = mEntityType.size() - 1;
+		CEntityType t = mEntityType.get(i);
 	    
-	    t->lmodel = lowermodel;
+	    t.lmodel = lowermodel;
 	    
-	    if([lowermodel isEqualToString:@""])
-	        t->model[BODY_LOWER] = -1;
+	    if(lowermodel.equals(""))
+	        t.model[CEntity.BODY_LOWER] = -1;
 	    else
 	    {
-	        NSString* raw = StripPathExtension(lowermodel);
-	        t->model[BODY_LOWER] = LoadModel(raw, scale);
+	        String raw = CFile.StripPathExtension(lowermodel);
+	        t.model[CEntity.BODY_LOWER] = LoadModel(raw, scale);
 	    }
 	    
-	    if([uppermodel isEqualToString:@""])
-	        t->model[BODY_UPPER] = -1;
+	    if(uppermodel.equals(""))
+	        t.model[CEntity.BODY_UPPER] = -1;
 	    else
 	    {
-	        NSString* raw = StripPathExtension(uppermodel);
-	        t->model[BODY_UPPER] = LoadModel(raw, scale);
+	        String raw = CFile.StripPathExtension(uppermodel);
+	        t.model[CEntity.BODY_UPPER] = LoadModel(raw, scale);
 	    }
 
-		t->category = category;
-		t->item = item;
-	    t->vMin = vMin;
-		t->vMax = vMax;
-		t->maxStep = maxStep;
-		t->speed = speed;
-		t->jump = jump;
-		t->crouch = crouch;
-		t->animrate = animrate;
-	    t->collider = -1;
+		t.category = category;
+		t.item = item;
+	    t.vMin = vMin;
+		t.vMax = vMax;
+		t.maxStep = maxStep;
+		t.speed = speed;
+		t.jump = jump;
+		t.crouch = crouch;
+		t.animrate = animrate;
+	    t.collider = -1;
+	}
+	
+	int NewModel()
+	{
+	    for(int i=0; i<MODELS; i++)
+	        if(!mModel[i].on)
+	            return i;
+	    
+	    return -1;
+	}
+
+	int FindModel(String raw)
+	{
+		for(int i=0; i<MODELS; i++)
+		{
+			if(!mModel[i].on)
+				continue;
+	        
+			if(mModel[i].name.equalsIgnoreCase(raw))
+				return i;
+		}
+	    
+		return -1;
+	}
+
+	int LoadModel(String name, CVector3 scale)
+	{
+		String raw = CFile.StripPathExtension(name);
+		int i = FindModel(raw);
+		if(i >= 0)
+			return i;
+	    
+	    i = NewModel();
+	    if(i < 0)
+	        return -1;
+	    
+	    mModel[i].Load(raw, scale, this);
+	    
+	    return i;
+	}
+
+	void ModelMinMax(int model, CVector3 vMin, CVector3 vMax)
+	{
+		//(*vMin) = CVector3(0, 0, 0);
+		//(*vMax) = CVector3(0, 0, 0);
+		vMin.x = vMin.y = vMin.z = 0;
+		vMax.x = vMax.y = vMax.z = 0;
+	    
+		CModel m = mModel[model];
+		CVertexArray va;
+		
+		int v;
+		for(int f=0; f<m.header.num_frames; f++)
+	        //for(int f=0; f<1; f++)
+		{
+			va = m.vertexArrays[f];
+			for(v=0; v<va.numverts; v++)
+			{
+				if(va.vertices[v].x < vMin.x)
+					vMin.x = va.vertices[v].x;
+				if(va.vertices[v].y < vMin.y)
+					vMin.y = va.vertices[v].y;
+				if(va.vertices[v].z < vMin.z)
+					vMin.z = va.vertices[v].z;
+				if(va.vertices[v].x > vMax.x)
+					vMax.x = va.vertices[v].x;
+				if(va.vertices[v].y > vMax.y)
+					vMax.y = va.vertices[v].y;
+				if(va.vertices[v].z > vMax.z)
+					vMax.z = va.vertices[v].z;
+			}
+		}
+	    
+	    float maxextent = Math.max(Math.max(Math.abs(vMin.x), Math.abs(vMin.z)), Math.max(Math.abs(vMax.x), Math.abs(vMax.z)));
+	    
+		/*
+	     vMin->x = min(vMin->x, vMin->z);
+	     vMin->z = vMin->x;
+	     vMax->x = max(vMax->x, vMax->z);
+	     vMax->z = vMax->x;*/
+		vMin.x = vMin.z = -maxextent;
+		vMax.x = vMax.z = maxextent;
+	}
+
+	CVector3 ModelFront(int model, int from, int to)
+	{
+		CVector3 vFront = new CVector3(0, 0, -99999);
+	    
+		CModel m = mModel[model];
+		CVertexArray va;
+	    
+		for(int f=from; f<to; f++)
+		{
+			va = m.vertexArrays[f];
+			for(int v=0; v<va.numverts; v++)
+			{
+				if(va.vertices[v].z < vFront.z)
+					continue;
+	            
+				vFront = va.vertices[v];
+			}
+		}
+	    
+		return Math3D.Copy(vFront);
 	}
 	
 	boolean Unobstructed(CCamera zc, CVector3 pos, CEntity ignore1, CEntity ignore2)
@@ -261,7 +439,7 @@ public class MainActivity extends Activity
 	        
 	        t = mEntityType.get(e.type);
 	        
-	        if(t.category != ENTITY.DOOR)
+	        if(t.category != CEntity.DOOR)
 	            continue;
 	        
 			trace = e.TraceRay(vLine, this);
@@ -361,7 +539,7 @@ public class MainActivity extends Activity
 	        
 	        c = e.camera;
 	        
-	        D2 = Magnitude2(Math3D.Subtract(c.Position(), zc.Position()));
+	        D2 = Math3D.Magnitude2(Math3D.Subtract(c.Position(), zc.Position()));
 	        
 			//check distance
 	        if(D2 > nearestD2)
@@ -370,7 +548,7 @@ public class MainActivity extends Activity
 			if(!Visible(zc, c.Position(), e, ze))
 				continue;
 	        
-			t = mEntityType[e.type];
+			t = mEntityType.get(e.type);
 			light = mMap.LightVol(Math3D.Add(c.Position(), t.vCenterOff));
 	        
 			//check lighting
@@ -397,19 +575,42 @@ public class MainActivity extends Activity
 	{
 		p.forward = false;
 	}
+	
+	void UpdateTicks()
+	{
+		mTicks += (1000/FRAME_RATE);
+	}
+	
+	long GetTickCount()
+	{
+		return mTicks;
+	}
 
+	void Grasp(CPlayer zom, CEntity zE, CPlayer hum)
+	{
+		if(GetTickCount() - zom.last < Z_ATTACK_DELAY)
+			return;
+	    
+		zom.last = GetTickCount();
+		zE.frame[CEntity.BODY_UPPER] = Animation.ANIM_ZGRASP_S;
+		Damage(hum, Z_DAMAGE, false);
+	    
+		if(mZGraspSnd.size() > 0)
+			mZGraspSnd.get( Math.round(Math.random()*mZGraspSnd.size()) ).Play();
+	}
+	
 	void UpdateAI(CPlayer p)
 	{
 	    if(p.entity < 0)
 	        return;
 	    
-		if(p.activity == ACTIVITY.NOACT)
+		if(p.activity == CPlayer.NOACT)
 			return;
 	    
 	    CEntity e = mEntity[p.entity];
 	    CCamera c = e.camera;
 	    
-		if(p.activity == ACTIVITY.ONSIGHT && !HumanVisible(c, e))
+		if(p.activity == CPlayer.ONSIGHT && !HumanVisible(c, e))
 		{
 			NoAct(p);
 			return;
@@ -430,46 +631,46 @@ public class MainActivity extends Activity
 		if(target < 0)
 			target = NearestVisHuman(c, e);
 	    
-		p->target = target;
+		p.target = target;
 		float dyaw;
 	    
 	    //return;
 	    
 	    if(target < 0)
 	    {
-			CVector3 d = c->Position() - p->goal;
+			CVector3 d = Math3D.Subtract(c.Position(), p.goal);
 			d.y = 0;
-			if(Magnitude2(d) < 100)
+			if(Math3D.Magnitude2(d) < 100)
 				NewGoal(p);
 	        
-			if(WithinAngle(c, p->goal, DEGTORAD(Z_TURN_RATE*2.0f)))
-				p->forward = true;
+			if(Math3D.WithinAngle(c, p.goal, Math3D.DEGTORAD(Z_TURN_RATE*2.0f)))
+				p.forward = true;
 			else
-				p->forward = false;
+				p.forward = false;
 	        
-			dyaw = DYaw(c, p->goal);
+			dyaw = Math3D.DYaw(c, p.goal);
 	    }
 		else
 		{
-			CPlayer* p2 = &g_player[target];
-			CEntity* e2 = &g_entity[p2->entity];
-			CCamera* c2 = &e2->camera;
+			CPlayer p2 = mPlayer[target];
+			CEntity e2 = mEntity[p2.entity];
+			CCamera c2 = e2.camera;
 	        
-			p->goal = c2->Position();
-			p->forward = true;
+			p.goal = c2.Position();
+			p.forward = true;
 	        
-			dyaw = DYaw(c, c2->Position());
+			dyaw = Math3D.DYaw(c, c2.Position());
 	        
-			if(Visible(c, c2->Position(), e2, e) && Magnitude2(c->Position() - c2->Position()) <= GRASP_D * GRASP_D)
+			if(Visible(c, c2.Position(), e2, e) && Math3D.Magnitude2(Math3D.Subtract(c.Position(), c2.Position())) <= GRASP_D * GRASP_D)
 				Grasp(p, e, p2);
 		}
 	    
-		if(fabs(dyaw) < DEGTORAD(Z_TURN_RATE*2.0f))
-			c->View(p->goal);
+		if(Math.abs(dyaw) < Math3D.DEGTORAD(Z_TURN_RATE*2.0f))
+			c.View(p.goal);
 		else if(dyaw < 0.0f)
-			c->RotateView(-DEGTORAD(Z_TURN_RATE), 0, 1, 0);
+			c.RotateView(-Math3D.DEGTORAD(Z_TURN_RATE), 0, 1, 0);
 		else if(dyaw > 0.0f)
-			c->RotateView(DEGTORAD(Z_TURN_RATE), 0, 1, 0);
+			c.RotateView(Math3D.DEGTORAD(Z_TURN_RATE), 0, 1, 0);
 	}
 
 	void UpdateAI()
@@ -794,6 +995,14 @@ public class MainActivity extends Activity
     	for(int i=0; i<TEXTURES; i++)
     		mTexture[i] = new CTexture();
     	
+    	for(int i=0; i<MODELS; i++)
+    		mModel[i] = new CModel();
+    	
+    	for(int i=0; i<ENTITIES; i++)
+    		mEntity[i] = new CEntity();
+    	
+    	mFrustum = new CFrustum();
+    	
     	mRenderer.mTriangle = new Triangle();
     	//mRenderer.mTriangle.mTextureDataHandle = CreateTexture("textures/texture", true);
     	//rotational = CreateTexture("gui/rotational", true);
@@ -809,9 +1018,9 @@ public class MainActivity extends Activity
     	mWidth = display.getWidth();
     	mHeight = display.getHeight();
     	
-    	//if(mHeight > 320)
-    	//	mRetinaScale = 2.0f;
-    	mRetinaScale = Math.max(1, (int)(mHeight/320));
+    	if(mHeight > 320)
+    		mRetinaScale = 2.0f;
+    	//mRetinaScale = Math.max(1, (int)(mHeight/320));
     	
     	System.out.println("w,h = " + mWidth + "," + mHeight);
     	System.out.println("sc = " + mRetinaScale);
@@ -1040,6 +1249,36 @@ public class MainActivity extends Activity
     		
     		GLES20.glDeleteTextures(1, mTexture[i].tex, 0);
     	}
+    }
+    
+    void FreeTexture(String name)
+    {
+    	//String nameStripped = CFile.StripExtension(name);
+    	//String typed = FindTextureExtension(nameStripped);
+    	String typed = FindTextureExtension(name);
+        //NSString* fullName = [[NSString alloc] initWithFormat:@"%@.%@", nameStripped, type];
+        
+    	for(int i=0; i<TEXTURES; i++)
+        {
+            if(!mTexture[i].on)
+                continue;
+            
+            //NSLog(@"Test %d", i);
+            //NSLog(@"Testing texture %s / %s", filepath, [g_texture[i].filepath UTF8String]);
+    		//if(g_texture[i].on && stricmp([g_texture[i].filepath UTF8String], filepath) == 0)
+            if(typed.equalsIgnoreCase(mTexture[i].filepath))
+    		{
+                
+                //NSLog(@"Freeing texture %s / %s", filepath, [g_texture[i].filepath UTF8String]);
+                
+    			mTexture[i].on = false;
+    			GLES20.glDeleteTextures(1, mTexture[i].tex);
+    			//g_log<<"Found texture "<<filepath<<" ("<<texture<<")"<<endl;
+    			return;
+    		}
+        }
+        
+        //NSLog(@"Couldn't free texture %s / %@", filepath, fullName);
     }
     
     /** Called when the user clicks the Send button */

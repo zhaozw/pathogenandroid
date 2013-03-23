@@ -2,6 +2,7 @@ package com.pathogengame.pathogen;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.Vector;
 
 import android.opengl.GLES20;
@@ -120,10 +121,27 @@ public class CQuake3BSP
 	Vector<CFuncMap> mFuncMap;
 	Vector<CFuncProxy> mFuncProxy;
 	
-	int mLastEnt = -1;
+	//int mLastEnt = -1;
+	
+	public static final float SKYBOX_SIZE = 16.0f;
 
-    CQuake3BSP()
+	public static final float SKY_TEX_0	= 0.002f;
+	public static final float SKY_TEX_1	= 0.998f;
+
+	public static final float SKY_TOP_0	= 0.002f;
+	public static final float SKY_TOP_1	= 0.998f;
+
+	int mFront;
+	int mLeft;
+	int mRight;
+	int mBottom;
+	int mTop;
+	int mBack;
+
+    CQuake3BSP(MainActivity act)
     {
+    	mActivity = act;
+    	
     	m_gridSize = new CVector3(64.0f, 128.0f, 64.0f);
         
         m_pVertexBuffers = null;
@@ -190,10 +208,8 @@ public class CQuake3BSP
         m_grate         = null;
     }
 
-    boolean LoadBSP(String name, MainActivity act)
+    boolean LoadBSP(String name)
     {
-    	mActivity = act;
-        
     	int i = 0;
         
     	String raw = CFile.StripPathExtension(name);
@@ -886,15 +902,331 @@ public class CQuake3BSP
     	return true;
     }
     
-    void RenderLevel(const CVector3 &vPos);
-    void SortFaces(const CVector3 &vPos);
-    void RenderLevel2(const CVector3 &vPos);
-    void RenderSky();
+    void RenderLevel(CVector3 vPos)
+    {
+    	tBSPLeaf pLeaf;
+    	int faceCount;
+    	int faceIndex;
+        
+    	m_FacesDrawn.ClearAll();
+        
+    	int leafIndex = FindLeaf(vPos);
+        
+    	int cluster = m_pLeafs[leafIndex].cluster;
+    	int i = m_numOfLeafs;
+        
+    	while(i > 0)
+    	{
+    		i--;
+    		
+    		pLeaf = m_pLeafs[i];
+            
+    		if(!IsClusterVisible(cluster, pLeaf.cluster))
+    			continue;
+            
+    		if(mActivity.mFrustum.BoxInFrustum((float)pLeaf.min.x, (float)pLeaf.min.y, (float)pLeaf.min.z,
+    		  	 				       (float)pLeaf.max.x, (float)pLeaf.max.y, (float)pLeaf.max.z))
+    			continue;
+            
+    		faceCount = pLeaf.numOfLeafFaces;
+            
+    		while(faceCount > 0)
+    		{
+    			faceCount--;
+    			
+    			faceIndex = m_pLeafFaces[pLeaf.leafface + faceCount];
+                
+    			if(m_pFaces[faceIndex].type != FACE_POLYGON) continue;
+                
+    			if(m_sky[m_pFaces[faceIndex].textureID]) continue;
+    			if(m_transparent[m_pFaces[faceIndex].textureID]) continue;
+    			if(m_brokenFace[faceIndex]) continue;
+                
+    			if(m_FacesDrawn.On(faceIndex) >= 1)
+    				continue;
+                
+    			m_FacesDrawn.Set(faceIndex);
+    			RenderFace(faceIndex);
+    		}
+        }
+        
+        /*
+    	glClientActiveTextureARB(GL_TEXTURE1_ARB);
+    	glActiveTextureARB(GL_TEXTURE1_ARB);
+    	glDisable(GL_TEXTURE_2D);
+    	glClientActiveTextureARB(GL_TEXTURE0_ARB);
+    	glActiveTextureARB(GL_TEXTURE0_ARB);*/
+    }
+    
+    void SwitchSortFaces(int i, int j)
+    {
+    	CSortFace temp = new CSortFace();
+    	CSortFace isf = m_sortFaces.get(i);
+    	CSortFace jsf = m_sortFaces.get(j);
+    	
+    	temp.dist = isf.dist;
+    	temp.faceIndex = isf.faceIndex;
+    	temp.pos = Math3D.Copy(isf.pos);
+    	
+    	isf.dist = jsf.dist;
+    	isf.faceIndex = jsf.faceIndex;
+    	isf.pos = Math3D.Copy(jsf.pos);
+    	
+    	jsf.dist = temp.dist;
+    	jsf.faceIndex = temp.faceIndex;
+    	jsf.pos = Math3D.Copy(temp.pos);
+    }
+    
+    void SortFaces(CVector3 vPos)
+    {
+    	tBSPLeaf pLeaf;
+    	int faceCount;
+    	int faceIndex;
+        
+    	int leafIndex = FindLeaf(vPos);
+        
+    	int cluster = m_pLeafs[leafIndex].cluster;
+    	int i = m_numOfLeafs;
+        
+    	while(i > 0)
+    	{
+    		i--;
+    		
+    		pLeaf = m_pLeafs[i];
+            
+    		if(!IsClusterVisible(cluster, pLeaf.cluster))
+    			continue;
+            
+    		if(!mActivity.mFrustum.BoxInFrustum((float)pLeaf.min.x, (float)pLeaf.min.y, (float)pLeaf.min.z,
+    		  	 				       (float)pLeaf.max.x, (float)pLeaf.max.y, (float)pLeaf.max.z))
+    			continue;
+            
+    		faceCount = pLeaf.numOfLeafFaces;
+            
+    		while(faceCount > 0)
+    		{
+    			faceCount--;
+    			
+    			faceIndex = m_pLeafFaces[pLeaf.leafface + faceCount];
+                
+    			if(m_pFaces[faceIndex].type != FACE_POLYGON) continue;
+                
+    			if(!m_transparent[m_pFaces[faceIndex].textureID]) continue;
+                
+    			//if(m_FacesDrawn.On(faceIndex))
+    			//	continue;
+                
+    			m_FacesDrawn.Set(faceIndex);
+    		}
+    	}
+        
+    	CSortFace sf;
+    	for(i=0; i<m_sortFaces.size(); i++)
+    	{
+    		sf = m_sortFaces.get(i);
+    		faceIndex = sf.faceIndex;
+            
+    		if(m_FacesDrawn.On(faceIndex) < 1)
+    			continue;
+            
+    		sf.dist = Math3D.Magnitude2(Math3D.Subtract(sf.pos, vPos));
+    	}
+        
+    	CSortFace temp;
+    	int leftoff = 0;
+    	boolean backtracking = false;
+        
+    	for(i=1; i<m_sortFaces.size(); i++)
+    	{
+    		sf = m_sortFaces.get(i);
+    		faceIndex = sf.faceIndex;
+            
+    		//if(!m_FacesDrawn.On(faceIndex))
+    		//	continue;
+            
+    		if(i > 0)
+    		{
+    			if(sf.dist > sf.dist)
+    			{
+    				if(!backtracking)
+    				{
+    					leftoff = i;
+    					backtracking = true;
+    				}
+    				//temp = m_sortFaces[i];
+    				//m_sortFaces[i] = m_sortFaces[i-1];
+    				//m_sortFaces[i-1] = temp;
+    				SwitchSortFaces(i, i-1);
+    				i-=2;
+    			}
+    			else
+    			{
+    				if(backtracking)
+    				{
+    					backtracking = false;
+    					i = leftoff;
+    				}
+    			}
+    		}
+    		else
+    			backtracking = false;
+    	}
+    }
 
-    CVector3 TraceRay(CVector3 vStart, CVector3 vEnd);
-    CVector3 TraceSphere(CVector3 vStart, CVector3 vEnd, float radius, float maxStep);
-    CVector3 TraceBox(CVector3 vStart, CVector3 vEnd, CVector3 vMin, CVector3 vMax, float maxStep);
-	bool BreakFaces(CVector3 vStart, CVector3 vEnd);
+    void RenderLevel2(CVector3 vPos)
+    {
+    	//glFrontFace(GL_CW);
+    	int faceIndex;
+        
+        /*
+        char msg[128];
+        sprintf(msg, "sort faces %d", (int)m_sortFaces.size());
+        Chat(msg);*/
+        
+    	CSortFace sf;
+    	//for(int i=m_sortFaces.size()-1; i>=0; i--)
+    	for(int i=0; i<m_sortFaces.size(); i++)
+    	{
+    		sf = m_sortFaces.get(i);
+    		faceIndex = sf.faceIndex;
+            
+    		if(m_brokenFace[faceIndex]) continue;
+            
+    		if(m_FacesDrawn.On(faceIndex) < 1)
+    			continue;
+            
+            RenderFace(faceIndex);
+    	}
+        
+        /*
+    	glClientActiveTextureARB(GL_TEXTURE1_ARB);
+    	glActiveTextureARB(GL_TEXTURE1_ARB);
+    	glDisable(GL_TEXTURE_2D);
+    	glClientActiveTextureARB(GL_TEXTURE0_ARB);
+    	glActiveTextureARB(GL_TEXTURE0_ARB);
+    	glFrontFace(GL_CCW);*/
+    }
+    
+    //void RenderSky();
+
+    CVector3 TraceRay(CVector3 vStart, CVector3 vEnd)
+    {
+    	// We don't use this function, but we set it up to allow us to just check a
+    	// ray with the BSP tree brushes.  We do so by setting the trace type to TYPE_RAY.
+    	m_traceType = TYPE_RAY;
+        
+    	m_vStart = vStart;
+    	m_vEnd = vEnd;
+        
+    	// Run the normal Trace() function with our start and end
+    	// position and return a new position
+    	return Trace(vStart, vEnd);
+    }
+    
+    CVector3 TraceSphere(CVector3 vStart, CVector3 vEnd, float radius, float maxStep)
+    {
+    	m_traceType = TYPE_SPHERE;
+    	m_bCollided = false;
+        
+    	m_vStart = vStart;
+    	m_vEnd = vEnd;
+        
+    	m_bTryStep = false;
+    	m_bGrounded = false;
+        
+    	m_traceRadius = radius;
+        
+    	CVector3 vNewPosition = Trace(vStart, vEnd);
+        
+    	if(m_bCollided && m_bTryStep)
+    		vNewPosition = TryToStep(vNewPosition, vEnd, maxStep);
+        
+    	return vNewPosition;
+    }
+    
+    CVector3 TraceBox(CVector3 vStart, CVector3 vEnd, CVector3 vMin, CVector3 vMax, float maxStep)
+    {
+    	m_traceType = TYPE_BOX;
+    	m_vTraceMaxs = vMax;
+    	m_vTraceMins = vMin;
+    	m_bCollided = false;
+        
+    	m_vStart = vStart;
+    	m_vEnd = vEnd;
+        
+    	m_bTryStep = false;
+    	m_bGrounded = false;
+    	m_bLadder = false;
+        
+    	// Grab the extend of our box (the largest size for each x, y, z axis)
+    	m_vExtents = new CVector3(-m_vTraceMins.x > m_vTraceMaxs.x ? -m_vTraceMins.x : m_vTraceMaxs.x,
+    						  -m_vTraceMins.y > m_vTraceMaxs.y ? -m_vTraceMins.y : m_vTraceMaxs.y,
+    						  -m_vTraceMins.z > m_vTraceMaxs.z ? -m_vTraceMins.z : m_vTraceMaxs.z);
+        
+    	CVector3 vNewPosition = Trace(vStart, vEnd);
+        
+    	if(m_bCollided && m_bTryStep)
+    		vNewPosition = TryToStep(vNewPosition, vEnd, maxStep);
+        
+    	m_bStuck = false;
+        
+    	vNewPosition = Trace(vNewPosition, vNewPosition);
+        
+    	if(m_bStuck)
+    		return vStart;
+        
+    	return vNewPosition;
+    }
+    
+	boolean BreakFaces(CVector3 vStart, CVector3 vEnd)
+	{
+		m_traceType = TYPE_RAY;
+		m_bBroke = false;
+	    
+		m_vStart = vStart;
+		m_vEnd = vEnd;
+	    
+		Break(vStart, vEnd);
+	    
+		int leafIndex = FindLeaf(vStart);
+	    
+		int cluster = m_pLeafs[leafIndex].cluster;
+		int i = m_numOfLeafs;
+		int faceCount;
+		int faceIndex;
+		tBSPLeaf pLeaf;
+	    
+		while(i > 0)
+		{
+			i--;
+			pLeaf = m_pLeafs[i];
+	        
+			if(!IsClusterVisible(cluster, pLeaf.cluster))
+				continue;
+	        
+			if(!mActivity.mFrustum.BoxInFrustum((float)pLeaf.min.x, (float)pLeaf.min.y, (float)pLeaf.min.z,
+			  	 				       (float)pLeaf.max.x, (float)pLeaf.max.y, (float)pLeaf.max.z))
+				continue;
+	        
+			faceCount = pLeaf.numOfLeafFaces;
+	        
+			while(faceCount > 0)
+			{
+				faceCount--;
+				
+				faceIndex = m_pLeafFaces[pLeaf.leafface + faceCount];
+	            
+				if(m_pFaces[faceIndex].type != FACE_POLYGON) continue;
+	            
+				if(!m_breakable[m_pFaces[faceIndex].textureID]) continue;
+				if(m_brokenFace[faceIndex]) continue;
+	            
+				BreakFace(faceIndex, vStart, vEnd);
+			}
+		}
+	    
+		return m_bBroke;
+	}
 
     boolean IsOnGround()   {   return m_bGrounded; }
     boolean Collided()     {   return m_bCollided; }
@@ -902,12 +1234,356 @@ public class CQuake3BSP
     boolean Ladder()		{   return m_bLadder;	}
 	CVector3 CollisionNormal()		{ return m_vCollisionNormal;		}
 
-    void Destroy(boolean delTex=true);
+    void Destroy(boolean delTex)
+    {
+    	IntBuffer ib = IntBuffer.allocate(m_numOfFaces);
+    	ib.put(m_pVertexBuffers);
+        GLES20.glDeleteBuffers(m_numOfFaces, ib);
+        ib = IntBuffer.allocate(m_numOfFaces);
+    	ib.put(m_pIndexBuffers);
+        GLES20.glDeleteBuffers(m_numOfFaces, ib);
+        m_numOfFaces = 0;
+        
+        if(m_pVertexBuffers != null)
+        {
+            m_pVertexBuffers = null;
+        }
+        
+        if(m_pIndexBuffers != null)
+        {
+            m_pIndexBuffers = null;
+        }
+        
+    	if(m_brokenFace != null)
+    	{
+    		m_brokenFace = null;
+    	}
+        
+    	if(m_brokenBrush != null)
+    	{
+    		m_brokenBrush = null;
+    	}
+        
+    	if(m_pVerts != null)
+    	{
+    		m_pVerts = null;
+    	}
+        
+    	if(m_pFaces != null)
+    	{
+    		m_pFaces = null;
+    	}
+        
+    	if(m_pIndices != null)
+    	{
+    		m_pIndices = null;
+    	}
+        
+    	if(m_pNodes != null)
+    	{
+    		m_pNodes = null;
+    	}
+        
+    	if(m_pLeafs != null)
+    	{
+    		m_pLeafs = null;
+    	}
+        
+    	if(m_pLeafFaces != null)
+    	{
+    		m_pLeafFaces = null;
+    	}
+        
+    	if(m_pPlanes != null)
+    	{
+    		m_pPlanes = null;
+    	}
+        
+    	if(m_clusters.pBitsets != null)
+    	{
+    		m_clusters.pBitsets = null;
+    	}
+        
+    	if(m_pBrushes != null)
+    	{
+    		m_pBrushes = null;
+    	}
+        
+    	if(m_pBrushSides != null)
+    	{
+    		m_pBrushSides = null;
+    	}
+        
+    	if(m_pLeafBrushes != null)
+    	{
+    		m_pLeafBrushes = null;
+    	}
+        
+        if(delTex && m_pTextures != null)
+    	{
+    		//glDeleteTextures(m_numOfTextures, m_textures);
+            
+    		for(int i=0; i<m_numOfTextures; i++)
+    		{
+    			mActivity.FreeTexture(m_pTextures[i].strName);
+    		}
+    	}
+        
+    	if(m_pTextures != null)
+    	{
+    		m_pTextures = null;
+    	}
+        
+    	if(m_pLightmaps != null)
+    	{
+    		m_pLightmaps = null;
+    	}
+        
+    	if(m_pModels != null)
+    	{
+    		m_pModels = null;
+    	}
+        
+    	if(m_pLightVols != null)
+    	{
+    		m_pLightVols = null;
+    	}
+        
+    	m_sortFaces.clear();
+        
+    	//glDeleteTextures(m_numOfTextures, m_textures);
+        if(m_numOfLightmaps > 0)
+        {
+        	ib = IntBuffer.allocate(m_numOfLightmaps);
+        	ib.put(m_lightmaps);
+            GLES20.glDeleteTextures(m_numOfLightmaps, ib);
+            //m_numOfTextures = 0;
+            m_numOfLightmaps = 0;
+        }
+        
+        if(m_textures != null)
+    	{
+    		m_textures = null;
+    	}
+        
+    	if(m_lightmaps != null)
+    	{
+    		m_lightmaps = null;
+    	}
+        
+    	if(m_passable != null)
+    	{
+    		m_passable = null;
+    	}
+        
+    	if(m_sky != null)
+    	{
+    		m_sky = null;
+    	}
+        
+    	if(m_transparent != null)
+    	{
+    		m_transparent = null;
+    	}
+        
+    	if(m_water != null)
+    	{
+    		m_water = null;
+    	}
+        
+    	if(m_breakable != null)
+    	{
+    		m_breakable = null;
+    	}
+        
+    	if(m_ladder != null)
+    	{
+    		m_ladder = null;
+    	}
+        
+    	if(m_grate != null)
+    	{
+    		m_grate = null;
+    	}
+    	
+    	System.gc();
+    }
     
-    int IsClusterVisible(int current, int test);
-	int FindLeaf(const CVector3 &vPos);
-	int FindCluster(const CVector3 &vPos);
-	CVector3  LightVol(CVector3 vPos);
+    boolean IsClusterVisible(int current, int test)
+    {
+    	// Make sure we have valid memory and that the current cluster is > 0.
+    	// If we don't have any memory or a negative cluster, return a visibility (1).
+    	if(m_clusters.pBitsets == null || current < 0) return true;
+        
+    	// Use binary math to get the 8 bit visibility set for the current cluster
+    	byte visSet = m_clusters.pBitsets[(current*m_clusters.bytesPerCluster) + (test / 8)];
+        
+    	// Now that we have our vector (bitset), do some bit shifting to find if
+    	// the "test" cluster is visible from the "current" cluster, according to the bitset.
+    	int result = visSet & (1 << ((test) & 7));
+        
+    	// Return the result ( either 1 (visible) or 0 (not visible) )
+    	return result == 1;
+    }
+    
+	int FindLeaf(CVector3 vPos)
+	{
+		int i = 0;
+		float distance = 0.0f;
+	    
+		// Continue looping until we find a negative index
+		while(i >= 0)
+		{
+			// Get the current node, then find the slitter plane from that
+			// node's plane index.  Notice that we use a constant reference
+			// to store the plane and node so we get some optimization.
+			tBSPNode  node = m_pNodes[i];
+			tBSPPlane plane = m_pPlanes[node.plane];
+	        
+			// Use the Plane Equation (Ax + by + Cz + D = 0) to find if the
+			// camera is in front of or behind the current splitter plane.
+	        distance =	plane.vNormal.x * vPos.x +
+	        plane.vNormal.y * vPos.y +
+	        plane.vNormal.z * vPos.z - plane.d;
+	        
+			// If the camera is in front of the plane
+	        if(distance >= 0)
+			{
+				// Assign the current node to the node in front of itself
+	            i = node.front;
+	        }
+			// Else if the camera is behind the plane
+	        else
+			{
+				// Assign the current node to the node behind itself
+	            i = node.back;
+	        }
+	    }
+	    
+		// Return the leaf index (same thing as saying:  return -(i + 1)).
+	    return ~i;  // Binary operation
+	}
+	
+	int FindCluster(CVector3 vPos)
+	{
+		int leaf = FindLeaf(vPos);
+		return m_pLeafs[leaf].cluster;
+	}
+	
+	CVector3 trilinear(float tx, float ty, float tz, CVector3 p[])
+	{
+		float tx2=1.0f-tx;
+		float ty2=1.0f-ty;
+		float tz2=1.0f-tz;
+	    
+		CVector3 np;
+		np = Math3D.Add(
+				Math3D.Add(
+						Math3D.Add(
+								Math3D.Multiply(p[0], (tx2*ty2*tz2)), 
+								Math3D.Multiply(p[1], (tx*ty2*tz2))), 
+						Math3D.Add(
+								Math3D.Multiply(p[2], (tx2*ty2*tz)), 
+								Math3D.Multiply(p[3], (tx*ty2*tz)))),
+				Math3D.Add(
+						Math3D.Add(
+								Math3D.Multiply(p[4], (tx2*tz2*ty)), 
+								Math3D.Multiply(p[5], (tx*ty*tz2))), 
+						Math3D.Add(
+								Math3D.Multiply(p[6], (tx2*ty*tz)), 
+								Math3D.Multiply(p[7], (tx*ty*tz))))
+				);
+		return np;
+	}
+
+	CVector3 trilinear2(float tx, float ty, float tz, CVector3 p0, CVector3 p1, CVector3 p2, CVector3 p3, CVector3 p4, CVector3 p5, CVector3 p6, CVector3 p7)
+	{
+		float tx2=1.0f-tx;
+		float ty2=1.0f-ty;
+		float tz2=1.0f-tz;
+	    
+		CVector3 np;
+		np = Math3D.Add(
+				Math3D.Add(
+						Math3D.Add(
+								Math3D.Multiply(p0, (tx2*ty2*tz2)), 
+								Math3D.Multiply(p1, (tx*ty2*tz2))), 
+						Math3D.Add(
+								Math3D.Multiply(p2, (tx2*ty2*tz)), 
+								Math3D.Multiply(p3, (tx*ty2*tz)))),
+				Math3D.Add(
+						Math3D.Add(
+								Math3D.Multiply(p4, (tx2*tz2*ty)), 
+								Math3D.Multiply(p5, (tx*ty*tz2))), 
+						Math3D.Add(
+								Math3D.Multiply(p6, (tx2*ty*tz)), 
+								Math3D.Multiply(p7, (tx*ty*tz))))
+				);
+		return np;
+	}
+
+	CVector3 LightVol(CVector3 vPos)
+	{
+		CVector3 color = new CVector3();
+	    
+		if(m_numOfLightVols <= 0)
+		{
+			color.x = 1;
+			color.y = 1;
+			color.z = 1;
+	        
+			return color;
+		}
+	    
+		vPos.x = vPos.x - m_bbox.min.x;
+		vPos.y = vPos.y - m_bbox.min.y;
+		vPos.z = vPos.z - m_bbox.min.z;
+	    
+		float px = vPos.x / m_gridSize.x;
+		float py = vPos.y / m_gridSize.y;
+		float pz = vPos.z / m_gridSize.z;
+	    
+		long lx = (long)px;
+		//unsigned int lx = num_lightvols.x - (unsigned int)px;
+		//unsigned int ly = (unsigned int)(py-1);
+		long ly = (long)(py);
+		//unsigned int ly = num_lightvols.y - (unsigned int)(py);
+		long lz = (long)(num_lightvols.z - pz);
+		//unsigned int lz = (unsigned int)(num_lightvols.y - pz);
+		//unsigned int lz = (unsigned int)pz;
+	    
+		//if(lx > num_lightvols.x - 2 || ly > num_lightvols.y - 2 || lz > num_lightvols.z - 2)
+		if(lx > num_lightvols.x - 1 || ly > num_lightvols.y - 1 || lz > num_lightvols.z - 1
+				|| lx < 0 || ly < 0 || lz < 0)
+		{
+			color.x = 0;
+			color.y = 0;
+			color.z = 0;
+			return color;
+		}
+	    
+		px = px - (float)Math.floor(px);
+		py = py - (float)Math.floor(py);
+		pz = pz - (float)Math.floor(pz);
+	    
+		int elem1 = (int)(ly*num_lightvols.z*num_lightvols.x + lz*num_lightvols.x + lx);
+		int elem2 = (int)(elem1 - num_lightvols.x);
+		int elem3 = (int)(elem2 + num_lightvols.x*num_lightvols.z);
+		int elem4 = (int)(elem3 + num_lightvols.x);
+	    
+		CVector3 temp[] = new CVector3[8];
+		temp[0] = Math3D.Add(m_pLightVols[elem1].ambient, m_pLightVols[elem1].directional);
+		temp[1] = Math3D.Add(m_pLightVols[elem1+1].ambient, m_pLightVols[elem1+1].directional);
+		temp[2] = Math3D.Add(m_pLightVols[elem2].ambient, m_pLightVols[elem2].directional);
+		temp[3] = Math3D.Add(m_pLightVols[elem2+1].ambient, m_pLightVols[elem2+1].directional);
+		temp[4] = Math3D.Add(m_pLightVols[elem4].ambient, m_pLightVols[elem4].directional);
+		temp[5] = Math3D.Add(m_pLightVols[elem4+1].ambient, m_pLightVols[elem4+1].directional);
+		temp[6] = Math3D.Add(m_pLightVols[elem3].ambient, m_pLightVols[elem3].directional);
+		temp[7] = Math3D.Add(m_pLightVols[elem3+1].ambient, m_pLightVols[elem3+1].directional);
+		color = Math3D.Divide(Math3D.VMin(255, trilinear(px, py, pz, temp)), 255.0f);
+	    
+		return color;
+	}
 
     void ChangeGamma(byte pImage[], int size, float factor)
     {
@@ -961,19 +1637,736 @@ public class CQuake3BSP
         return texture[0];
     }
 
-    CVector3 TryToStep(CVector3 vStart, CVector3 vEnd, float maxStep);
+    CVector3 TryToStep(CVector3 vStart, CVector3 vEnd, float maxStep)
+    {
+    	// In this function we loop until we either found a reasonable height
+    	// that we can step over, or find out that we can't step over anything.
+    	// We check 10 times, each time increasing the step size to check for
+    	// a collision.  If we don't collide, then we climb over the step.
+        
+    	// Go through and check different heights to step up
+    	for(float height = 1.0f; height <= maxStep; height++)
+            //float height = 15;
+    	{
+    		// Reset our variables for each loop interation
+    		m_bCollided = false;
+    		m_bTryStep = false;
+            
+    		// Here we add the current height to our y position of a new start and end.
+    		// If these 2 new start and end positions are okay, we can step up.
+    		CVector3 vStepStart = new CVector3(vStart.x, vStart.y + height, vStart.z);
+    		CVector3 vStepEnd   = new CVector3(vEnd.x, vStart.y + height, vEnd.z);
+            
+    		// Test to see if the new position we are trying to step collides or not
+    		CVector3 vStepPosition = Trace(vStepStart, vStepEnd);
+            
+    		// If we didn't collide, we can step!
+    		if(!m_bCollided)
+    		{
+    			// Here we get the current view, then increase the y value by the current height.
+    			// This makes it so when we are walking up the stairs, our view follows our step
+    			// height and doesn't sag down as we walk up the stairs.
+    			//CVector3 vNewView = g_camera->View();
+    			//g_camera->SetView(CVector3(vNewView.x, vNewView.y + height, vNewView.z));
+                
+    			// Return the current position since we stepped up somewhere
+    			return vStepPosition;
+    		}
+    	}
+        
+    	// If we can't step, then we just return the original position of the collision
+    	return vStart;
+    }
 
-    CVector3 Trace(CVector3 vStart, CVector3 vEnd);
-	void Break(CVector3 vStart, CVector3 vEnd);
-	void BreakFace(int faceIndex, CVector3 vStart, CVector3 vEnd);
+    CVector3 Trace(CVector3 vStart, CVector3 vEnd)
+    {
+    	// Initially we set our trace ratio to 1.0f, which means that we don't have
+    	// a collision or intersection point, so we can move freely.
+    	m_traceRatio = 1.0f;
+        
+    	// We start out with the first node (0), setting our start and end ratio to 0 and 1.
+    	// We will recursively go through all of the nodes to see which brushes we should check.
+        CheckNode(0, vStart, vEnd);
+        
+    	// If the traceRatio is STILL 1.0f, then we never collided and just return our end position
+    	if(m_traceRatio == 1.0f)
+    	{
+    		return vEnd;
+    	}
+    	else	// Else COLLISION!!!!
+    	{
+    		// Set our new position to a position that is right up to the brush we collided with
+    		CVector3 vNewPosition = Math3D.Add(vStart, Math3D.Multiply(Math3D.Subtract(vEnd, vStart), m_traceRatio));
+            
+            if(m_traceType == TYPE_RAY)
+                return vNewPosition;
+            
+    		// Get the distance from the end point to the new position we just got
+    		CVector3 vMove = Math3D.Subtract(vEnd, vNewPosition);
+            
+    		// Get the distance we need to travel backwards to the new slide position.
+    		// This is the distance of course along the normal of the plane we collided with.
+    		float distance = Math3D.Dot(vMove, m_vCollisionNormal);
+            
+    		// Get the new end position that we will end up (the slide position).
+    		CVector3 vEndPosition = Math3D.Subtract(vEnd, Math3D.Multiply(m_vCollisionNormal, distance));
+            
+    		// Since we got a new position for our sliding vector, we need to check
+    		// to make sure that new sliding position doesn't collide with anything else.
+    		vNewPosition = Trace(vNewPosition, vEndPosition);
+            
+    		if(m_vCollisionNormal.y > 0.2f || m_bGrounded)
+    			m_bGrounded = true;
+    		else
+    			m_bGrounded = false;
+            
+    		// Return the new position to be used by our camera (or player)
+    		return vNewPosition;
+    	}
+    }
+    
+	void Break(CVector3 vStart, CVector3 vEnd)
+	{
+		// Initially we set our trace ratio to 1.0f, which means that we don't have
+		// a collision or intersection point, so we can move freely.
+		m_traceRatio = 1.0f;
+	    
+		// We start out with the first node (0), setting our start and end ratio to 0 and 1.
+		// We will recursively go through all of the nodes to see which brushes we should check.
+		BreakNode(0, vStart, vEnd);
+	}
+	
+	void BreakFace(int faceIndex, CVector3 vStart, CVector3 vEnd)
+	{
+		int vIndex;
+		tBSPFace pFace = m_pFaces[faceIndex];
+		CVector3 vPoly[];
+		vPoly = new CVector3[pFace.numOfIndices];
+	    
+		for(int i=0; i<pFace.numOfIndices; i++)
+		{
+			vIndex = m_pIndices[pFace.startIndex+i] + pFace.startVertIndex;
+			vPoly[i] = m_pVerts[vIndex].vPosition;
+		}
+	    
+		CVector3 vLine[] = new CVector3[2];
+		vLine[0] = Math3D.Copy(vStart);
+		vLine[1] = Math3D.Copy(vEnd);
+	    
+		if(Math3D.IntersectedPolygon(vPoly, vLine, pFace.numOfIndices, null))
+		{
+			m_bBroke = true;
+			m_brokenFace[faceIndex] = true;
+		}
+	    
+		//delete [] vPoly;
+	}
 
-    void CheckNode(int nodeIndex, CVector3 vStart, CVector3 vEnd);
-    void CheckBrush(tBSPBrush *pBrush, CVector3 vStart, CVector3 vEnd);
-	void BreakNode(int nodeIndex, CVector3 vStart, CVector3 vEnd);
-	void BreakBrush(int brushIndex, tBSPBrush *pBrush, CVector3 vStart, CVector3 vEnd);
+    void CheckNode(int nodeIndex, CVector3 vStart, CVector3 vEnd)
+    {
+    	int brushIndex;
+        
+    	// Check if the next node is a leaf
+    	if(nodeIndex < 0)
+    	{
+    		// If this node in the BSP is a leaf, we need to negate and add 1 to offset
+    		// the real node index into the m_pLeafs[] array.  You could also do [~nodeIndex].
+    		tBSPLeaf pLeaf = m_pLeafs[-(nodeIndex + 1)];
+            
+    		// We have a leaf, so let's go through all of the brushes for that leaf
+    		for(int i = 0; i < pLeaf.numOfLeafBrushes; i++)
+    		{
+                brushIndex = m_pLeafBrushes[pLeaf.leafBrush + i];
+                
+    			// Get the current brush that we going to check
+    			tBSPBrush pBrush = m_pBrushes[brushIndex];
+                
+    			if(m_passable[pBrush.textureID])
+    				continue;
+                
+    			if(m_traceType == TYPE_RAY && m_grate[pBrush.textureID])
+    				continue;
+                
+    			if(m_brokenBrush[brushIndex])
+    				continue;
+                
+    			// Check if we have brush sides and the current brush is solid and collidable
+    			if((pBrush.numOfBrushSides > 0) && ((m_pTextures[pBrush.textureID].textureType & 1) >= 1))
+    			{
+    				// Now we delve into the dark depths of the real calculations for collision.
+    				// We can now check the movement vector against our brush planes.
+    				CheckBrush(pBrush, vStart, vEnd);
+    			}
+    		}
+            
+    		// Since we found the brushes, we can go back up and stop recursing at this level
+    		return;
+    	}
+        
+    	// Grad the next node to work with and grab this node's plane data
+    	tBSPNode pNode = m_pNodes[nodeIndex];
+    	tBSPPlane pPlane = m_pPlanes[pNode.plane];
+        
+    	// Here we use the plane equation to find out where our initial start position is
+    	// according the the node that we are checking.  We then grab the same info for the end pos.
+    	float startDistance = Math3D.Dot(vStart, pPlane.vNormal) - pPlane.d;
+    	float endDistance = Math3D.Dot(vEnd, pPlane.vNormal) - pPlane.d;
+    	float offset = 0.0f;
+        
+    	// If we are doing sphere collision, include an offset for our collision tests below
+    	if(m_traceType == TYPE_SPHERE)
+    		offset = m_traceRadius;
+        
+    	// Here we check to see if we are working with a BOX or not
+    	else if(m_traceType == TYPE_BOX)
+    	{
+    		// Get the distance our AABB is from the current splitter plane
+    		offset = (float)(Math.abs( m_vExtents.x * pPlane.vNormal.x ) +
+    						 Math.abs( m_vExtents.y * pPlane.vNormal.y ) +
+                             Math.abs( m_vExtents.z * pPlane.vNormal.z ) );
+    	}
+        
+    	// Here we check to see if the start and end point are both in front of the current node.
+    	// If so, we want to check all of the nodes in front of this current splitter plane.
+    	if(startDistance >= offset && endDistance >= offset)
+    	{
+    		// Traverse the BSP tree on all the nodes in front of this current splitter plane
+    		CheckNode(pNode.front, vStart, vEnd);
+    	}
+    	// If both points are behind the current splitter plane, traverse down the back nodes
+    	else if(startDistance < -offset && endDistance < -offset)
+    	{
+    		// Traverse the BSP tree on all the nodes in back of this current splitter plane
+    		CheckNode(pNode.back, vStart, vEnd);
+    	}
+    	else
+    	{
+    		// If we get here, then our ray needs to be split in half to check the nodes
+    		// on both sides of the current splitter plane.  Thus we create 2 ratios.
+    		float Ratio1 = 1.0f, Ratio2 = 0.0f;	//, middleRatio = 0.0f;
+    		CVector3 vMiddle;	// This stores the middle point for our split ray
+            
+    		// Start of the side as the front side to check
+    		int side = pNode.front;
+            
+    		// Here we check to see if the start point is in back of the plane (negative)
+    		if(startDistance < endDistance)
+    		{
+    			// Since the start position is in back, let's check the back nodes
+    			side = pNode.back;
+                
+    			// Here we create 2 ratios that hold a distance from the start to the
+    			// extent closest to the start (take into account a sphere and epsilon).
+    			float inverseDistance = 1.0f / (startDistance - endDistance);
+    			Ratio1 = (startDistance - offset - EPSILON) * inverseDistance;
+    			Ratio2 = (startDistance + offset + EPSILON) * inverseDistance;
+    		}
+    		// Check if the starting point is greater than the end point (positive)
+    		else if(startDistance > endDistance)
+    		{
+    			// This means that we are going to recurse down the front nodes first.
+    			// We do the same thing as above and get 2 ratios for split ray.
+    			float inverseDistance = 1.0f / (startDistance - endDistance);
+    			Ratio1 = (startDistance + offset + EPSILON) * inverseDistance;
+    			Ratio2 = (startDistance - offset - EPSILON) * inverseDistance;
+    		}
+            
+    		// Make sure that we have valid numbers and not some weird float problems.
+    		// This ensures that we have a value from 0 to 1 as a good ratio should be :)
+    		if (Ratio1 < 0.0f) Ratio1 = 0.0f;
+            else if (Ratio1 > 1.0f) Ratio1 = 1.0f;
+            
+            if (Ratio2 < 0.0f) Ratio2 = 0.0f;
+            else if (Ratio2 > 1.0f) Ratio2 = 1.0f;
+            
+    		// Just like we do in the Trace() function, we find the desired middle
+    		// point on the ray, but instead of a point we get a middleRatio percentage.
+    		//middleRatio = startRatio + ((endRatio - startRatio) * Ratio1);
+    		vMiddle = Math3D.Add(vStart, Math3D.Multiply(Math3D.Subtract(vEnd, vStart), Ratio1));
+            
+    		// Now we recurse on the current side with only the first half of the ray
+    		CheckNode(side, vStart, vMiddle);
+            
+    		// Now we need to make a middle point and ratio for the other side of the node
+    		//middleRatio = startRatio + ((endRatio - startRatio) * Ratio2);
+    		vMiddle = Math3D.Add(vStart, Math3D.Multiply(Math3D.Subtract(vEnd, vStart), Ratio2));
+            
+    		// Depending on which side should go last, traverse the bsp with the
+    		// other side of the split ray (movement vector).
+    		if(side == pNode.back)
+    			CheckNode(pNode.front, vMiddle, vEnd);
+    		else
+    			CheckNode(pNode.back, vMiddle, vEnd);
+    	}
+    }
+    
+    void CheckBrush(tBSPBrush pBrush, CVector3 vStart, CVector3 vEnd)
+    {
+    	float startRatio = -1.0f;		// Like in BrushCollision.htm, start a ratio at -1
+        float endRatio = 1.0f;			// Set the end ratio to 1
+        boolean startsOut = false;			// This tells us if we starting outside the brush
+    	//CVector3 vCollisionNormal;
+    	//tBSPPlane *pColPlane;
+        
+    	// Go through all of the brush sides and check collision against each plane
+    	for(int i = 0; i < pBrush.numOfBrushSides; i++)
+    	{
+    		// Here we grab the current brush side and plane in this brush
+    		tBSPBrushSide pBrushSide = m_pBrushSides[pBrush.brushSide + i];
+    		tBSPPlane pPlane = m_pPlanes[pBrushSide.plane];
+            
+    		// Let's store a variable for the offset (like for sphere collision)
+    		float offset = 0.0f;
+            
+    		// If we are testing sphere collision we need to add the sphere radius
+    		if(m_traceType == TYPE_SPHERE)
+    			offset = m_traceRadius;
+            
+    		// Test the start and end points against the current plane of the brush side.
+    		// Notice that we add an offset to the distance from the origin, which makes
+    		// our sphere collision work.
+    		float startDistance = Math3D.Dot(m_vStart, pPlane.vNormal) - (pPlane.d + offset);
+    		float endDistance = Math3D.Dot(m_vEnd, pPlane.vNormal) - (pPlane.d + offset);
+            
+    		// Store the offset that we will check against the plane
+    		CVector3 vOffset = new CVector3(0, 0, 0);
+            
+    		// If we are using AABB collision
+    		if(m_traceType == TYPE_BOX)
+    		{
+    			// Grab the closest corner (x, y, or z value) that is closest to the plane
+                vOffset.x = (pPlane.vNormal.x < 0)	? m_vTraceMaxs.x : m_vTraceMins.x;
+    			vOffset.y = (pPlane.vNormal.y < 0)	? m_vTraceMaxs.y : m_vTraceMins.y;
+    			vOffset.z = (pPlane.vNormal.z < 0)	? m_vTraceMaxs.z : m_vTraceMins.z;
+                
+    			// Use the plane equation to grab the distance our start position is from the plane.
+                startDistance = Math3D.Dot(Math3D.Add(vStart, vOffset), pPlane.vNormal) - pPlane.d;
+                
+    			// Get the distance our end position is from this current brush plane
+                endDistance   = Math3D.Dot(Math3D.Add(vEnd, vOffset), pPlane.vNormal) - pPlane.d;
+            }
+            
+    		// Make sure we start outside of the brush's volume
+    		if(startDistance > 0)	startsOut = true;
+            
+    		// Stop checking since both the start and end position are in front of the plane
+    		if(startDistance > 0 && endDistance > 0)
+    			return;
+            
+    		// Continue on to the next brush side if both points are behind or on the plane
+    		if(startDistance <= 0 && endDistance <= 0)
+    			continue;
+            
+    		// If the distance of the start point is greater than the end point, we have a collision!
+    		if(startDistance > endDistance)
+    		{
+    			// This gets a ratio from our starting point to the approximate collision spot
+    			float Ratio1 = (startDistance - EPSILON) / (startDistance - endDistance);
+                
+    			// If this is the first time coming here, then this will always be true,
+    			if(Ratio1 > startRatio)
+    			{
+    				// Set the startRatio (currently the closest collision distance from start)
+    				startRatio = Ratio1;
+    				//m_bCollided = true;		// Let us know we collided!	// BUG FIX - Denis
+                    
+    				// Store the normal of plane that we collided with for sliding calculations
+    				///vCollisionNormal = pPlane->vNormal;
+    				//pColPlane = pPlane;
+                    
+    				m_vCollisionNormal = Math3D.Copy(pPlane.vNormal);
+                    
+    				// This checks first tests if we actually moved along the x or z-axis,
+    				// meaning that we went in a direction somewhere.  The next check makes
+    				// sure that we don't always check to step every time we collide.  If
+    				// the normal of the plane has a Y value of 1, that means it's just the
+    				// flat ground and we don't need to check if we can step over it, it's flat!
+    				if((vStart.x != vEnd.x || vStart.z != vEnd.z) && pPlane.vNormal.y != 1 && pPlane.vNormal.y >= 0.0f)
+    				{
+    					// We can try and step over the wall we collided with
+    					m_bTryStep = true;
+    				}
+                    
+    				// Here we make sure that we don't slide slowly down walls when we
+    				// jump and collide into them.  We only want to say that we are on
+    				// the ground if we actually have stopped from falling.  A wall wouldn't
+    				// have a high y value for the normal, it would most likely be 0.
+    				if(m_vCollisionNormal.y >= 0.2f)
+    					m_bGrounded = true;
+    			}
+    		}
+    		else
+    		{
+    			// Get the ratio of the current brush side for the endRatio
+    			float Ratio = (startDistance + EPSILON) / (startDistance - endDistance);
+                
+    			// If the ratio is less than the current endRatio, assign a new endRatio.
+    			// This will usually always be true when starting out.
+    			if(Ratio < endRatio)
+    				endRatio = Ratio;
+    		}
+    	}
+        
+    	m_bCollided = true;	// BUG FIX - Denis
+        
+    	if(m_ladder[pBrush.textureID])
+    		m_bLadder = true;
+        
+    	/*
+         m_vCollisionNormal = vCollisionNormal;
+         
+         // This checks first tests if we actually moved along the x or z-axis,
+         // meaning that we went in a direction somewhere.  The next check makes
+         // sure that we don't always check to step every time we collide.  If
+         // the normal of the plane has a Y value of 1, that means it's just the
+         // flat ground and we don't need to check if we can step over it, it's flat!
+         if((vStart.x != vEnd.x || vStart.z != vEnd.z) && pColPlane->vNormal.y != 1 && pColPlane->vNormal.y >= 0.0f)
+         {
+         // We can try and step over the wall we collided with
+         m_bTryStep = true;
+         }
+         
+         // Here we make sure that we don't slide slowly down walls when we
+         // jump and collide into them.  We only want to say that we are on
+         // the ground if we actually have stopped from falling.  A wall wouldn't
+         // have a high y value for the normal, it would most likely be 0.
+         if(m_vCollisionNormal.y >= 0.2f)
+         m_bGrounded = true;
+         */
+        
+    	// If we didn't start outside of the brush we don't want to count this collision - return;
+    	if(startsOut == false)
+    	{
+    		m_bStuck = true;
+    		//UnstuckBrush(pBrush, m_vTrace);
+    		return;
+    	}
+        
+    	// If our startRatio is less than the endRatio there was a collision!!!
+    	if(startRatio < endRatio)
+    	{
+    		// Make sure the startRatio moved from the start and check if the collision
+    		// ratio we just got is less than the current ratio stored in m_traceRatio.
+    		// We want the closest collision to our original starting position.
+    		if(startRatio > -1 && startRatio < m_traceRatio)
+                //if(startRatio < m_traceRatio)
+    		{
+    			// If the startRatio is less than 0, just set it to 0
+    			//if(startRatio < 0)
+    			//	startRatio = 0;
+                
+    			// Store the new ratio in our member variable for later
+    			m_traceRatio = startRatio;
+    		}
+    	}
+    }
+    
+	void BreakNode(int nodeIndex, CVector3 vStart, CVector3 vEnd)
+	{
+		int brushIndex;
+	    
+		// Check if the next node is a leaf
+		if(nodeIndex < 0)
+		{
+			// If this node in the BSP is a leaf, we need to negate and add 1 to offset
+			// the real node index into the m_pLeafs[] array.  You could also do [~nodeIndex].
+			tBSPLeaf pLeaf = m_pLeafs[-(nodeIndex + 1)];
+	        
+			// We have a leaf, so let's go through all of the brushes for that leaf
+			for(int i = 0; i < pLeaf.numOfLeafBrushes; i++)
+			{
+				brushIndex = m_pLeafBrushes[pLeaf.leafBrush + i];
+	            
+				// Get the current brush that we going to check
+				tBSPBrush pBrush = m_pBrushes[brushIndex];
+	            
+				if(!m_breakable[pBrush.textureID])
+					continue;
+	            
+				if(m_brokenBrush[brushIndex])
+					continue;
+	            
+				// Check if we have brush sides and the current brush is solid and collidable
+				if((pBrush.numOfBrushSides > 0) && ((m_pTextures[pBrush.textureID].textureType & 1) >= 1))
+				{
+					// Now we delve into the dark depths of the real calculations for collision.
+					// We can now check the movement vector against our brush planes.
+					BreakBrush(brushIndex, pBrush, vStart, vEnd);
+				}
+			}
+	        
+			// Since we found the brushes, we can go back up and stop recursing at this level
+			return;
+		}
+	    
+		// Grad the next node to work with and grab this node's plane data
+		tBSPNode pNode = m_pNodes[nodeIndex];
+		tBSPPlane pPlane = m_pPlanes[pNode.plane];
+	    
+		// Here we use the plane equation to find out where our initial start position is
+		// according the the node that we are checking.  We then grab the same info for the end pos.
+		float startDistance = Math3D.Dot(vStart, pPlane.vNormal) - pPlane.d;
+		float endDistance = Math3D.Dot(vEnd, pPlane.vNormal) - pPlane.d;
+		float offset = 0.0f;
+	    
+		// If we are doing sphere collision, include an offset for our collision tests below
+		if(m_traceType == TYPE_SPHERE)
+			offset = m_traceRadius;
+	    
+		// Here we check to see if we are working with a BOX or not
+		else if(m_traceType == TYPE_BOX)
+		{
+			// Get the distance our AABB is from the current splitter plane
+			offset = (float)(Math.abs( m_vExtents.x * pPlane.vNormal.x ) +
+							 Math.abs( m_vExtents.y * pPlane.vNormal.y ) +
+	                         Math.abs( m_vExtents.z * pPlane.vNormal.z ) );
+		}
+	    
+		// Here we check to see if the start and end point are both in front of the current node.
+		// If so, we want to check all of the nodes in front of this current splitter plane.
+		if(startDistance >= offset && endDistance >= offset)
+		{
+			// Traverse the BSP tree on all the nodes in front of this current splitter plane
+			BreakNode(pNode.front, vStart, vEnd);
+		}
+		// If both points are behind the current splitter plane, traverse down the back nodes
+		else if(startDistance < -offset && endDistance < -offset)
+		{
+			// Traverse the BSP tree on all the nodes in back of this current splitter plane
+			BreakNode(pNode.back, vStart, vEnd);
+		}
+		else
+		{
+			// If we get here, then our ray needs to be split in half to check the nodes
+			// on both sides of the current splitter plane.  Thus we create 2 ratios.
+			float Ratio1 = 1.0f, Ratio2 = 0.0f;	//, middleRatio = 0.0f;
+			CVector3 vMiddle;	// This stores the middle point for our split ray
+	        
+			// Start of the side as the front side to check
+			int side = pNode.front;
+	        
+			// Here we check to see if the start point is in back of the plane (negative)
+			if(startDistance < endDistance)
+			{
+				// Since the start position is in back, let's check the back nodes
+				side = pNode.back;
+	            
+				// Here we create 2 ratios that hold a distance from the start to the
+				// extent closest to the start (take into account a sphere and epsilon).
+				float inverseDistance = 1.0f / (startDistance - endDistance);
+				Ratio1 = (startDistance - offset - EPSILON) * inverseDistance;
+				Ratio2 = (startDistance + offset + EPSILON) * inverseDistance;
+			}
+			// Check if the starting point is greater than the end point (positive)
+			else if(startDistance > endDistance)
+			{
+				// This means that we are going to recurse down the front nodes first.
+				// We do the same thing as above and get 2 ratios for split ray.
+				float inverseDistance = 1.0f / (startDistance - endDistance);
+				Ratio1 = (startDistance + offset + EPSILON) * inverseDistance;
+				Ratio2 = (startDistance - offset - EPSILON) * inverseDistance;
+			}
+	        
+			// Make sure that we have valid numbers and not some weird float problems.
+			// This ensures that we have a value from 0 to 1 as a good ratio should be :)
+			if (Ratio1 < 0.0f) Ratio1 = 0.0f;
+	        else if (Ratio1 > 1.0f) Ratio1 = 1.0f;
+	        
+	        if (Ratio2 < 0.0f) Ratio2 = 0.0f;
+	        else if (Ratio2 > 1.0f) Ratio2 = 1.0f;
+	        
+			// Just like we do in the Trace() function, we find the desired middle
+			// point on the ray, but instead of a point we get a middleRatio percentage.
+			//middleRatio = startRatio + ((endRatio - startRatio) * Ratio1);
+			vMiddle = Math3D.Add(vStart, Math3D.Multiply(Math3D.Subtract(vEnd, vStart), Ratio1));
+	        
+			// Now we recurse on the current side with only the first half of the ray
+			BreakNode(side, vStart, vMiddle);
+	        
+			// Now we need to make a middle point and ratio for the other side of the node
+			//middleRatio = startRatio + ((endRatio - startRatio) * Ratio2);
+			vMiddle = Math3D.Add(vStart, Math3D.Multiply(Math3D.Subtract(vEnd, vStart), Ratio2));
+	        
+			// Depending on which side should go last, traverse the bsp with the
+			// other side of the split ray (movement vector).
+			if(side == pNode.back)
+				BreakNode(pNode.front, vMiddle, vEnd);
+			else
+				BreakNode(pNode.back, vMiddle, vEnd);
+		}
+	}
+	
+	void BreakBrush(int brushIndex, tBSPBrush pBrush, CVector3 vStart, CVector3 vEnd)
+	{
+		float startRatio = -1.0f;		// Like in BrushCollision.htm, start a ratio at -1
+	    float endRatio = 1.0f;			// Set the end ratio to 1
+	    boolean startsOut = false;			// This tells us if we starting outside the brush
+		//CVector3 vCollisionNormal;
+		//tBSPPlane *pColPlane;
+	    
+		// Go through all of the brush sides and check collision against each plane
+		for(int i = 0; i < pBrush.numOfBrushSides; i++)
+		{
+			// Here we grab the current brush side and plane in this brush
+			tBSPBrushSide pBrushSide = m_pBrushSides[pBrush.brushSide + i];
+			tBSPPlane pPlane = m_pPlanes[pBrushSide.plane];
+	        
+			// Let's store a variable for the offset (like for sphere collision)
+			float offset = 0.0f;
+	        
+			// If we are testing sphere collision we need to add the sphere radius
+			if(m_traceType == TYPE_SPHERE)
+				offset = m_traceRadius;
+	        
+			// Test the start and end points against the current plane of the brush side.
+			// Notice that we add an offset to the distance from the origin, which makes
+			// our sphere collision work.
+			//float startDistance = Dot(vStart, pPlane->vNormal) - (pPlane->d + offset);
+			//float endDistance = Dot(vEnd, pPlane->vNormal) - (pPlane->d + offset);
+			float startDistance = Math3D.Dot(m_vStart, pPlane.vNormal) - (pPlane.d + offset);
+			float endDistance = Math3D.Dot(m_vEnd, pPlane.vNormal) - (pPlane.d + offset);
+	        
+			// Store the offset that we will check against the plane
+			CVector3 vOffset = new CVector3(0, 0, 0);
+	        
+			// If we are using AABB collision
+			if(m_traceType == TYPE_BOX)
+			{
+				// Grab the closest corner (x, y, or z value) that is closest to the plane
+	            vOffset.x = (pPlane.vNormal.x < 0)	? m_vTraceMaxs.x : m_vTraceMins.x;
+				vOffset.y = (pPlane.vNormal.y < 0)	? m_vTraceMaxs.y : m_vTraceMins.y;
+				vOffset.z = (pPlane.vNormal.z < 0)	? m_vTraceMaxs.z : m_vTraceMins.z;
+	            
+				// Use the plane equation to grab the distance our start position is from the plane.
+	            //startDistance = Dot(vStart + vOffset, pPlane->vNormal) - pPlane->d;
+	            startDistance = Math3D.Dot(Math3D.Add(vStart, vOffset), pPlane.vNormal) - pPlane.d;
+	            
+				// Get the distance our end position is from this current brush plane
+	            //endDistance   = Dot(vEnd + vOffset, pPlane->vNormal) - pPlane->d;
+	            endDistance   = Math3D.Dot(Math3D.Add(vEnd, vOffset), pPlane.vNormal) - pPlane.d;
+	        }
+	        
+			// Make sure we start outside of the brush's volume
+			if(startDistance > 0)	startsOut = true;
+	        
+			// Stop checking since both the start and end position are in front of the plane
+			if(startDistance > 0 && endDistance > 0)
+				return;
+	        
+			// Continue on to the next brush side if both points are behind or on the plane
+			if(startDistance <= 0 && endDistance <= 0)
+				continue;
+	        
+			// If the distance of the start point is greater than the end point, we have a collision!
+			if(startDistance > endDistance)
+			{
+				// This gets a ratio from our starting point to the approximate collision spot
+				float Ratio1 = (startDistance - EPSILON) / (startDistance - endDistance);
+				//float Ratio1 = startDistance / (startDistance - endDistance);
+	            
+				// If this is the first time coming here, then this will always be true,
+				if(Ratio1 > startRatio)
+				{
+					// Set the startRatio (currently the closest collision distance from start)
+					startRatio = Ratio1;
+				}
+			}
+			else
+			{
+				// Get the ratio of the current brush side for the endRatio
+				float Ratio = (startDistance + EPSILON) / (startDistance - endDistance);
+	            
+				// If the ratio is less than the current endRatio, assign a new endRatio.
+				// This will usually always be true when starting out.
+				if(Ratio < endRatio)
+					endRatio = Ratio;
+			}
+		}
+	    
+		m_bBroke = true;
+		m_brokenBrush[brushIndex] = true;
+	    
+		/*
+	     m_vCollisionNormal = vCollisionNormal;
+	     
+	     // This checks first tests if we actually moved along the x or z-axis,
+	     // meaning that we went in a direction somewhere.  The next check makes
+	     // sure that we don't always check to step every time we collide.  If
+	     // the normal of the plane has a Y value of 1, that means it's just the
+	     // flat ground and we don't need to check if we can step over it, it's flat!
+	     if((vStart.x != vEnd.x || vStart.z != vEnd.z) && pColPlane->vNormal.y != 1 && pColPlane->vNormal.y >= 0.0f)
+	     {
+	     // We can try and step over the wall we collided with
+	     m_bTryStep = true;
+	     }
+	     
+	     // Here we make sure that we don't slide slowly down walls when we
+	     // jump and collide into them.  We only want to say that we are on
+	     // the ground if we actually have stopped from falling.  A wall wouldn't
+	     // have a high y value for the normal, it would most likely be 0.
+	     if(m_vCollisionNormal.y >= 0.2f)
+	     m_bGrounded = true;
+	     */
+	    
+		// If our startRatio is less than the endRatio there was a collision!!!
+		if(startRatio < endRatio)
+		{
+			// Make sure the startRatio moved from the start and check if the collision
+			// ratio we just got is less than the current ratio stored in m_traceRatio.
+			// We want the closest collision to our original starting position.
+			if(startRatio > -1 && startRatio < m_traceRatio)
+	            //if(startRatio > -1 && startRatio < relativeRatio)
+	            //if(startRatio < m_traceRatio)
+			{
+				// If the startRatio is less than 0, just set it to 0
+				//if(startRatio < 0)
+				//	startRatio = 0;
+	            
+				// Store the new ratio in our member variable for later
+				m_traceRatio = startRatio;
+			}
+		}
+	}
 
-    void RenderFace(int faceIndex);
-    void RenderSkyFace(int faceIndex);
+    void RenderFace(int faceIndex)
+    {
+    	tBSPFace pFace = m_pFaces[faceIndex];
+        
+    	CShader s = mActivity.mShader[CShader.MAP];
+    	
+    	/*
+	    CVector3 vPosition;
+	    CVector2 vTextureCoord;
+	    CVector2 vLightmapCoord;
+	    CVector3 vNormal;
+	    byte color[4];
+	    */
+    	
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, m_pVertexBuffers[faceIndex]);
+        //GLES20.glVertexAttribPointer(s.slot[CShader.POSITION], 3, GLES20.GL_FLOAT, false, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vPosition));
+        GLES20.glVertexAttribPointer(s.slot[CShader.POSITION], 3, GLES20.GL_FLOAT, false, (3*4 + 2*4 + 2*4 + 3*4 + 4), 0);
+        
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, m_textures[pFace.textureID]);
+        GLES20.glUniform1i(s.slot[CShader.TEXTURE], 0);
+
+        //GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD], 2, GLES20.GL_FLOAT, false, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vTextureCoord));
+        GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD], 2, GLES20.GL_FLOAT, false, (3*4 + 2*4 + 2*4 + 3*4 + 4), 3*4);
+        
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+        GLES20.glEnable(GLES20.GL_TEXTURE_2D);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, m_lightmaps[pFace.lightmapID]);
+        GLES20.glUniform1i(s.slot[CShader.TEXTURE2], 1);
+
+        //GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD2], 2, GLES20.GL_FLOAT, false, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vLightmapCoord));
+        GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD2], 2, GLES20.GL_FLOAT, false, (3*4 + 2*4 + 2*4 + 3*4 + 4), 3*4 + 2*4);
+        
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, m_pIndexBuffers[faceIndex]);
+        //GLES20.glDrawElements(GLES20.GL_TRIANGLES, pFace.numOfIndices, GLES20.GL_UNSIGNED_INT, (void*)0);
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, pFace.numOfIndices, GLES20.GL_UNSIGNED_INT, 0);
+    }
+    
+    //void RenderSkyFace(int faceIndex);
     
     CVector3 ParseCVector3(String str)
     {
@@ -1235,7 +2628,7 @@ public class CQuake3BSP
 				eid = mActivity.Entity(CEntity.DOOR, model, 1, -1);
 		        //eid = Entity(ENTITY::FIXEDENT, model.c_str(), 1, -1);
 		    
-			mLastEnt = eid;
+			mActivity.mLastEnt = eid;
 		    
 			if(!opensound.equalsIgnoreCase(""))
 				mActivity.EntitySound(CEntity.OPENSND, opensound);
@@ -1419,4 +2812,112 @@ public class CQuake3BSP
     		ReadEntity(classname, origin, angle, model, size, type, sky, count, clip, collider, opensound, closesound, activity, nolightvol, bbmin, bbmax, map, script);
     	}
     }
+    
+    void LoadSkyBox(String basename)
+    {
+    	String front;
+    	String left;
+    	String right;
+    	String bottom;
+    	String top;
+    	String back;
+        
+    	front = "/textures/" + basename + "ft^";
+    	left = "/textures/" + basename + "lf^";
+    	right = "/textures/" + basename + "rt^";
+    	bottom = "/textures/" + basename + "dn^";
+    	top = "/textures/" + basename + "up^";
+    	back = "/textures/" + basename + "bk^";
+        
+    	mFront = mActivity.CreateTexture(front, true);
+    	mLeft = mActivity.CreateTexture(left, true);
+    	mRight = mActivity.CreateTexture(right, true);
+    	mBottom = mActivity.CreateTexture(bottom, true);
+    	mTop = mActivity.CreateTexture(top, true);
+    	mBack = mActivity.CreateTexture(back, true);
+    }
+    
+    void DrawQuad(int tex, CVector3 a, CVector2 ta, CVector3 b, CVector2 tb, CVector3 c, CVector2 tc, CVector3 d, CVector2 td)
+    {
+    	CShader s = mActivity.mShader[CShader.SKY];
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex);
+        GLES20.glUniform1i(s.slot[CShader.TEXTURE], 0);
+        
+        float vertices[] =
+        {
+            //posx, posy posz   texx, texy
+            a.x, a.y, a.z,          ta.x, ta.y,
+            b.x, b.y, b.z,          tb.x, tb.y,
+            c.x, c.y, c.z,          tc.x, tc.y,
+            
+            c.x, c.y, c.z,          tc.x, tc.y,
+            d.x, d.y, d.z,          td.x, td.y,
+            a.x, a.y, a.z,          ta.x, ta.y
+        };
+        
+        FloatBuffer fb = FloatBuffer.allocate( (3 + 2) * 6 );
+        fb.put(vertices);
+        
+        fb.position(0);
+        GLES20.glVertexAttribPointer(s.slot[CShader.POSITION], 3, GLES20.GL_FLOAT, false, (3+2)*4, fb);
+        fb.position(3);
+        GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD], 2, GLES20.GL_FLOAT, false, (3+2)*4, fb);
+        //GLES20.glVertexAttribPointer(s.slot[CShader.POSITION], 3, GLES20.GL_FLOAT, false, (3+2)*4, 0*4);
+        //GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD], 2, GLES20.GL_FLOAT, false, (3+2)*4, 3*4);
+        
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+    }
+    
+    void DrawSkyBox(CVector3 pos)
+    {
+    	GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+        
+        //GLKMatrix4 modelmat = GLKMatrix4MakeTranslation(pos.x, pos.y, pos.z);
+    	CMatrix modelmat;
+    	modelmat.setTranslation(pos);
+    	CShader s = mActivity.mShader[CShader.SKY];
+    	FloatBuffer fb = FloatBuffer.allocate( 16 );
+    	fb.put(modelmat.getMatrix());
+    	GLES20.glUniformMatrix4fv(s.slot[CShader.MODELMAT], 1, false, fb);
+        
+        DrawQuad(mRight,
+                 new CVector3(-SKYBOX_SIZE, SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_0),
+                 new CVector3(SKYBOX_SIZE, SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_0),
+                 new CVector3(SKYBOX_SIZE, -SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_1),
+                 new CVector3(-SKYBOX_SIZE, -SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_1));
+        
+        DrawQuad(mLeft,
+        		new CVector3(-SKYBOX_SIZE, SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_0),
+                 new CVector3(-SKYBOX_SIZE, -SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_1),
+                 new CVector3(SKYBOX_SIZE, -SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_1),
+                 new CVector3(SKYBOX_SIZE, SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_0));
+        
+        DrawQuad(mFront,
+        		new CVector3(SKYBOX_SIZE, SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_0),
+        		new CVector3(SKYBOX_SIZE, SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_0),
+        		new CVector3(SKYBOX_SIZE, -SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_1),
+        		new CVector3(SKYBOX_SIZE, -SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_1));
+        
+        DrawQuad(mBack,
+        		new CVector3(-SKYBOX_SIZE, SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_0),
+                 new CVector3(-SKYBOX_SIZE, -SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_1),
+                 new CVector3(-SKYBOX_SIZE, -SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_1),
+                 new CVector3(-SKYBOX_SIZE, SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_0));
+        
+        DrawQuad(mBottom,
+        		new CVector3(SKYBOX_SIZE, -SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_0),
+        		new CVector3(SKYBOX_SIZE, -SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_1, SKY_TEX_1),
+                 new CVector3(-SKYBOX_SIZE, -SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_1),
+                 new CVector3(-SKYBOX_SIZE, -SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TEX_0, SKY_TEX_0));
+        
+        DrawQuad(mTop,
+        		new CVector3(SKYBOX_SIZE, SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TOP_1, SKY_TOP_1),
+        		new CVector3(-SKYBOX_SIZE, SKYBOX_SIZE, -SKYBOX_SIZE), new CVector2(SKY_TOP_0, SKY_TOP_1),
+        		new CVector3(-SKYBOX_SIZE, SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TOP_0, SKY_TOP_0),
+        		new CVector3(SKYBOX_SIZE, SKYBOX_SIZE, SKYBOX_SIZE), new CVector2(SKY_TOP_1, SKY_TOP_0));
+        
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+    }
+    
 }
