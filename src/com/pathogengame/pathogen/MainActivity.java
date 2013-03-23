@@ -101,6 +101,7 @@ public class MainActivity extends Activity
 	
 	int mLastEnt = -1;
 	
+	float mReddening = 0;
 
 	Vector<CSound> mZDeathSnd = new Vector<CSound>();
 	Vector<CSound> mZGraspSnd = new Vector<CSound>();
@@ -108,7 +109,46 @@ public class MainActivity extends Activity
 	CSound mDoorKnock = new CSound();
 	CSound mStaticSound = new CSound();
 	
+	static final int SCRIPT_FUNCS = 10;
+	CFuncPtr mScriptFunc[] = new CFuncPtr[SCRIPT_FUNCS];
+	
 	//int rotational;
+	
+	void NoMove()
+	{
+		CPlayer p = mPlayer[mLocalP];
+		p.forward = false;
+		p.backward = false;
+		p.left = false;
+		p.right = false;
+		p.run = false;
+		p.jump = false;
+	}
+	
+	void DoScriptFunc(int script)
+	{
+		//char msg[128];
+		//sprintf(msg, "func_proxy #%d", script);
+		//Chat(msg);
+	    
+		NoMove();
+	    
+		mScriptFunc[script].func();
+	}
+	
+	void ScriptFuncs()
+	{
+		mScriptFunc[0] = new Script0(this);
+		mScriptFunc[1] = new Script1(this);
+		mScriptFunc[2] = new Script2(this);
+		mScriptFunc[3] = new Script3(this);
+		mScriptFunc[4] = new Script4(this);
+		mScriptFunc[5] = new Script5(this);
+		mScriptFunc[6] = new Script6(this);
+		mScriptFunc[7] = new Script7(this);
+		mScriptFunc[8] = new Script8(this);
+		mScriptFunc[9] = new Script0(this);
+	}
 	
 	boolean IsHuman(int type)
 	{
@@ -586,17 +626,102 @@ public class MainActivity extends Activity
 		return mTicks;
 	}
 
+	void GameOver()
+	{
+	    mArrest = true;
+	    mGUI.OpenAnotherView("game over", 0);
+	    mViewMode = VIEWMODE.THIRDPERSON;
+	    
+	    mGUI.CloseView("shoot");
+	    mGUI.CloseView("swing");
+	    mGUI.CloseView("stab");
+	    mGUI.CloseView("open door");
+	    mGUI.CloseView("close door");
+	    mGUI.CloseView("reload");
+	    mGUI.CloseView("switch item");
+	    mGUI.CloseView("switch view");
+	    mGUI.CloseView("jump");
+	    mGUI.CloseView("crouch");
+	    mGUI.CloseView("run");
+	}
+	
+	void Reddening()
+	{
+		mReddening = 1.0f;
+		mGUI.RedoHP();
+	}
+
+	void Damage(CPlayer p, float damage, boolean shot)
+	{
+		p.hp -= damage;
+	    
+		if(p == mPlayer[mLocalP])
+			Reddening();
+	    
+		if(p.hp <= 0.0f)
+		{
+			CEntity e = mEntity[p.entity];
+	        
+			if((int)(Math.round(Math.random()*2)) == 1)
+			{
+				e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_UDEATHFW_S;
+				e.frame[CEntity.BODY_LOWER].value = Animation.ANIM_LDEATHFW_S;
+			}
+			else
+			{
+				e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_UDEATHBW_S;
+				e.frame[CEntity.BODY_LOWER].value = Animation.ANIM_LDEATHBW_S;
+			}
+	        
+			p.forward = false;
+			p.backward = false;
+			p.left = false;
+			p.right = false;
+			p.crouched = false;
+			p.crouching = false;
+			p.jump = false;
+	        
+			CCamera c = e.camera;
+			c.Pitch(0);
+	        
+			if(p == mPlayer[mLocalP])
+			{
+				GameOver();
+			}
+	        
+			if(IsZombie(e.type))
+			{
+	            mScore += 50;
+	            mGUI.RedoScore();
+	            
+				if(e.script > 0)
+				{
+					DoScriptFunc(e.script);
+					e.script = -1;
+				}
+	            
+				p.ticksleft = 2 * FRAME_RATE;
+	            
+				if(mZDeathSnd.size() > 0)
+					mZDeathSnd.get( (int)Math.round(Math.random()*mZDeathSnd.size()) ).Play();
+			}
+		}
+		else if(shot)
+			p.pain = true;
+	}
+
+	
 	void Grasp(CPlayer zom, CEntity zE, CPlayer hum)
 	{
 		if(GetTickCount() - zom.last < Z_ATTACK_DELAY)
 			return;
 	    
 		zom.last = GetTickCount();
-		zE.frame[CEntity.BODY_UPPER] = Animation.ANIM_ZGRASP_S;
+		zE.frame[CEntity.BODY_UPPER].value = Animation.ANIM_ZGRASP_S;
 		Damage(hum, Z_DAMAGE, false);
 	    
 		if(mZGraspSnd.size() > 0)
-			mZGraspSnd.get( Math.round(Math.random()*mZGraspSnd.size()) ).Play();
+			mZGraspSnd.get( (int)Math.round(Math.random()*mZGraspSnd.size()) ).Play();
 	}
 	
 	void UpdateAI(CPlayer p)
@@ -904,84 +1029,6 @@ public class MainActivity extends Activity
 			}
 	    }
 	}
-
-	void GameOver()
-	{
-	    g_arrest = true;
-	    mGUI.OpenAnotherView("game over");
-	    g_viewmode = THIRDPERSON;
-	    
-	    mGUI.CloseView("shoot");
-	    mGUI.CloseView("swing");
-	    mGUI.CloseView("stab");
-	    mGUI.CloseView("open door");
-	    mGUI.CloseView("close door");
-	    mGUI.CloseView("reload");
-	    mGUI.CloseView("switch item");
-	    mGUI.CloseView("switch view");
-	    mGUI.CloseView("jump");
-	    mGUI.CloseView("crouch");
-	    mGUI.CloseView("run");
-	}
-
-	void Damage(CPlayer* p, float damage, bool shot)
-	{
-		p->hp -= damage;
-	    
-		if(p == &g_player[g_localP])
-			Reddening();
-	    
-		if(p->hp <= 0.0f)
-		{
-			CEntity* e = &g_entity[p->entity];
-	        
-			if(rand()%2 == 1)
-			{
-				e->frame[BODY_UPPER] = ANIM_UDEATHFW_S;
-				e->frame[BODY_LOWER] = ANIM_LDEATHFW_S;
-			}
-			else
-			{
-				e->frame[BODY_UPPER] = ANIM_UDEATHBW_S;
-				e->frame[BODY_LOWER] = ANIM_LDEATHBW_S;
-			}
-	        
-			p->forward = false;
-			p->backward = false;
-			p->left = false;
-			p->right = false;
-			p->crouched = false;
-			p->crouching = false;
-			p->jump = false;
-	        
-			CCamera* c = &e->camera;
-			c->Pitch(0);
-	        
-			if(p == &g_player[g_localP])
-			{
-				GameOver();
-			}
-	        
-			if(IsZombie(e->type))
-			{
-	            g_score += 50;
-	            RedoScore();
-	            
-				if(e->script > 0)
-				{
-					DoScriptFunc(e->script);
-					e->script = -1;
-				}
-	            
-				p->ticksleft = 2 * FRAME_RATE;
-	            
-				if(g_zdeathSnd.size() > 0)
-					g_zdeathSnd[ rand()%g_zdeathSnd.size() ].Play();
-			}
-		}
-		else if(shot)
-			p->pain = true;
-	}
 	
 	public void LoadFonts()
 	{
@@ -1002,6 +1049,9 @@ public class MainActivity extends Activity
     		mEntity[i] = new CEntity();
     	
     	mFrustum = new CFrustum();
+    	
+    	for(int i=0; i<SCRIPT_FUNCS; i++)
+    		mScriptFunc[i] = new CFuncPtr();
     	
     	mRenderer.mTriangle = new Triangle();
     	//mRenderer.mTriangle.mTextureDataHandle = CreateTexture("textures/texture", true);
