@@ -368,6 +368,25 @@ public class CWidget
 		return false;
 	}
 
+	// Touch frame
+	
+	boolean DPad_touchframe(float x, float y)
+	{
+	    if(x >= pos[0] && x <= pos[2] && y >= pos[1] && y <= pos[3])
+	    {
+	        if(dpadfunc != null)
+	        {
+	            float dx = x - (pos[0] + pos[2])/2.0f;
+	            float dy = y - (pos[1] + pos[3])/2.0f;
+	            dpadfunc.func(dx, dy);
+	        }
+	        
+	        return true;
+	    }
+	    
+	    return false;
+	}
+	
 	// L button down
 	
 	public boolean Button_lbuttondown(float x, float y)
@@ -528,7 +547,7 @@ public class CWidget
 		mousedowny = (int)y;
 	}
 	
-	// Mouse update
+	/*// Mouse update
 	
 	public boolean DPad_mouseupdate(float x, float y)
 	{
@@ -545,7 +564,7 @@ public class CWidget
 		}
 		
 		return false;
-	}
+	}*/
 	
 	// Misc.
 	
@@ -582,6 +601,15 @@ public class CWidget
 	
 	// Common
 	
+	boolean touchframe(float x, float y)
+    {
+        switch(type)
+        {
+            case DPAD: return DPad_touchframe(x, y);
+            default: return false;
+        }
+    }
+	
 	public boolean lbuttonup(float x, float y)
 	{
 		switch(type)
@@ -615,6 +643,7 @@ public class CWidget
 		}
 	}
 	
+	/*
 	public boolean mouseupdate(float x, float y)
 	{
 		switch(type)
@@ -622,7 +651,7 @@ public class CWidget
 		case DPAD: return DPad_mouseupdate(x, y);
 		default: return false;
 		}
-	}
+	}*/
 	
 	public void draw()
 	{

@@ -395,7 +395,7 @@ public class Math3D
 		return new CVector3(a.x/num, a.y/num, a.z/num);
 	}
 	
-	float Clip(float n, float lower, float upper)
+	static float Clip(float n, float lower, float upper)
 	{
 	    return Math.max(lower, Math.min(n, upper));
 	}

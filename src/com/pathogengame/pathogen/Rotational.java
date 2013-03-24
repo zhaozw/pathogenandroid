@@ -21,6 +21,6 @@ public class Rotational extends CFuncPtr
 	    if(Math3D.Magnitude2(dx, dy) < mActivity.MOV_THRESH*mActivity.MOV_THRESH*mActivity.mRetinaScale*mActivity.mRetinaScale)
 	       return;
 	    
-	    mActivity.mCamera.SetViewByMouse(-dx/(float)mActivity.MOV_THRESH*mActivity.mRetinaScale, -dy/(float)mActivity.MOV_THRESH*mActivity.mRetinaScale);
+	    mActivity.mCamera.SetViewByMouse(-dx/(float)(mActivity.MOV_THRESH*mActivity.mRetinaScale), -dy/(float)(mActivity.MOV_THRESH*mActivity.mRetinaScale));
 	}
 }

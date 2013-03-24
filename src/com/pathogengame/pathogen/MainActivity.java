@@ -13,6 +13,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
 import android.content.res.AssetManager;
+import android.graphics.Point;
 import android.view.Menu;
 import java.io.InputStream;
 import java.nio.IntBuffer;
@@ -56,9 +57,13 @@ public class MainActivity extends Activity
     public CFont mFont[] = new CFont[ CFont.FONTS ];
     public CGUI mGUI;
 
-	private float[] mViewMatrix = new float[16];
-	private float[] mProjMatrix = new float[16];
-	private float[] mModelMatrix = new float[16];
+	//private float[] mViewMatrix = new float[16];
+	//private float[] mProjMatrix = new float[16];
+	//private float[] mModelMatrix = new float[16];
+    
+	CMatrix mViewMatrix = new CMatrix();
+	CMatrix mProjMatrix = new CMatrix();
+	CMatrix mModelMatrix = new CMatrix();
 
 	int mWidth = 1;
 	int mHeight = 1;
@@ -103,6 +108,7 @@ public class MainActivity extends Activity
 	boolean mShowDialog = true;
 	
 	int mLastEnt = -1;
+	int mLastItem = -1;
 	
 	float mReddening = 0;
 
@@ -130,6 +136,7 @@ public class MainActivity extends Activity
 	CDecal mDecal[] = new CDecal[DECALS];
 	
 	//int rotational;
+	int mStage = 0;
 	
 	void FreeEntities()
 	{
@@ -1939,6 +1946,128 @@ public class MainActivity extends Activity
 		mFont[CFont.MSUIGOTHIC16] = new CFont(this, "fonts/msuigothic16");
 	}
 	
+	void Entities()
+	{
+	    CVector3 charMin = new CVector3(-10, -50, -10);
+	    CVector3 charMax = new CVector3(10, 5, 10);
+	    float crouch = 14.29f;
+	    
+		Entity(CEntity.HUMAN, -1, "human2lower", "human2upper", new CVector3(1, 1, 1), new CVector3(0, 0, 0), charMin, charMax, 15, 100, 100, crouch, 3.0f);
+		Entity(CEntity.ZOMBIE, -1, "zombie2lower", "zombie2upper", new CVector3(1, 1, 1), new CVector3(0, 0, 0), charMin, charMax, 15, 50, 100, crouch, 1.5f);
+		Entity(CEntity.ZOMBIE, -1, "zombie3lower", "zombie3upper", new CVector3(1, 1, 1), new CVector3(0, 0, 0), charMin, charMax, 15, 50, 100, crouch, 1.5f);
+	    
+	    //void Entity(int category, int item, NSString* lowermodel, NSString* uppermodel, CVector3 scale, CVector3 translate, CVector3 vMin, CVector3 vMax, float maxStep, float speed, float jump, float crouch, float animrate)
+	    
+		Entity(CEntity.ITEM, CItemType.MP5, "mp5", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-10, 0, -10), new CVector3(10, 10, 10), 15, 200, 100, crouch, 1.0f);
+		Entity(CEntity.ITEM, CItemType.PRIMARYAMMO, "ammo1", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-4.2f, 0, -4.2f), new CVector3(4.2f, 2.3f, 4.2f), 15, 200, 100, crouch, 1.0f);
+	    
+		Entity(CEntity.ITEM, CItemType.MOSSBERG500, "mossberg500", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-10, 0, -10), new CVector3(10, 10, 10), 15, 200, 100, crouch, 1.0f);
+		Entity(CEntity.ITEM, CItemType.M1911, "m1911", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-10, 0, -10), new CVector3(10, 10, 10), 15, 200, 100, crouch, 1.0f);
+		Entity(CEntity.ITEM, CItemType.SECONDARYAMMO, "ammo2", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-4.2f, 0, -4.2f), new CVector3(4.2f, 2.3f, 4.2f), 15, 200, 100, crouch, 1.0f);
+		Entity(CEntity.ITEM, CItemType.TERTAMMO, "ammo3", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-4.2f, 0, -4.2f), new CVector3(4.2f, 2.3f, 4.2f), 15, 200, 100, crouch, 1.0f);
+		Entity(CEntity.ITEM, CItemType.BBAT, "bbat", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-4.2f, 0, -4.2f), new CVector3(4.2f, 2.3f, 4.2f), 15, 200, 100, crouch, 1.0f);
+		Entity(CEntity.ITEM, CItemType.KNIFE, "knife", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-4.2f, 0, -4.2f), new CVector3(4.2f, 2.3f, 4.2f), 15, 200, 100, crouch, 1.0f);
+		Entity(CEntity.ITEM, CItemType.WTALKIE, "wtalkie", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-4.2f, 0, -4.2f), new CVector3(4.2f, 2.3f, 4.2f), 15, 200, 100, crouch, 1.0f);
+	    
+		Entity(CEntity.NOCAT, -1, "washmchn", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-17.24f, -17.24f, -17.24f), new CVector3(17.24f, 17.24f, 17.24f), 15, 200, 100, crouch, 1.0f);
+		Entity(CEntity.NOCAT, -1, "dryer", "", new CVector3(1, 1, 1), new CVector3(0, 0, 0), new CVector3(-17.24f, -17.24f, -17.24f), new CVector3(17.24f, 17.24f, 17.24f),  15, 200, 100, crouch, 1.0f);
+	}
+	
+	void Item(int i, String model, String icon, boolean equip, int delay, int ammo, int clip, int reloadrate, float damage, float range, int split, float inacc)
+	{
+		mLastItem = i;
+		CItemType t = mItemType[i];
+	    
+		t.model = LoadModel(model, new CVector3(1, 1, 1));
+		if(equip)
+		{
+			if(ammo == CItemType.PRIMARYAMMO)
+				t.front = ModelFront(t.model, Animation.ANIM_SHOTSHOULDER_S, Animation.ANIM_SHOTSHOULDER_S+4);
+			else if(ammo == CItemType.SECONDARYAMMO)
+				t.front = ModelFront(t.model, Animation.ANIM_SHOTGUNSHOT_S, Animation.ANIM_SHOTGUNSHOT_S+4);
+			else if(ammo == CItemType.TERTAMMO)
+				t.front = ModelFront(t.model, Animation.ANIM_PISTOLSHOT_S, Animation.ANIM_PISTOLSHOT_S+4);
+		}
+		t.equip = equip;
+		t.icon = CreateTexture(icon, true);
+		t.delay = delay;
+		t.ammo = ammo;
+		t.clip = clip;
+		t.reloadrate = reloadrate;
+		t.damage = damage;
+		t.range = range;
+		t.split = split;
+		t.inacc = inacc;
+	}
+
+	void ItemSound(int type, String filepath)
+	{
+		int i = mLastItem;
+		CItemType t = mItemType[i];
+	    
+		if(type == CSound.DRYSHOT)
+			t.dryShotSound.add(new CSound(this, filepath));
+		else if(type == CSound.SHOT)
+			t.shotSound.add(new CSound(this, filepath));
+		else if(type == CSound.RELOAD)
+			t.reloadSound.add(new CSound(this, filepath));
+		else if(type == CSound.COCK)
+			t.cockSound.add(new CSound(this, filepath));
+		else if(type == CSound.DRYFIRE)
+			t.dryFireSound.add(new CSound(this, filepath));
+		else if(type == CSound.HIT)
+			t.hitSound.add(new CSound(this, filepath));
+	    
+	    /*
+	    if(i == ITEM::M1911 && type == ITEMSOUND::RELOAD)
+	    {
+	        NSLog(@"Added size = %d", (int)t->reloadSound.size());
+	        NSLog(@"Added size = %d", (int)t->reloadSound.size());
+	        NSLog(@"Added size = %d", (int)t->reloadSound.size());
+	        NSLog(@"Added size = %d", (int)t->reloadSound.size());
+	        NSLog(@"Added size = %d", (int)t->reloadSound.size());
+	        NSLog(@"Added size = %d", (int)t->reloadSound.size());
+	        
+	        t->reloadSound[0].Play();
+	    }*/
+	}
+	
+	void Items()
+	{
+		//Item(int i, char* model, char* icon, bool equip, int delay, int ammo, int clip, int reloadrate, float damage, float range, int split, float inacc)
+		Item(CItemType.MP5, "mp5", "mp5icon", true, 75, CItemType.PRIMARYAMMO, 30, 30, 10.0f, 1000.0f, 1, 50.0f);	// 800 RPM = 13.33 RPS -> 1000 / 13.33 = 75 ms
+		ItemSound(CSound.SHOT, "mp5shot1");
+		ItemSound(CSound.SHOT, "mp5shot2");
+		ItemSound(CSound.SHOT, "mp5shot3");
+		ItemSound(CSound.SHOT, "mp5shot4");
+		ItemSound(CSound.RELOAD, "mp5reload");
+		ItemSound(CSound.DRYFIRE, "dryfire");
+		Item(CItemType.MOSSBERG500, "mossberg500", "mossberg500icon", true, 1000, CItemType.SECONDARYAMMO, 6, 1, 30.0f, 500.0f, 8, 150.0f);
+		ItemSound(CSound.SHOT, "moss500shotcock");
+		ItemSound(CSound.RELOAD, "moss500load");
+		ItemSound(CSound.COCK, "moss500cock");
+		ItemSound(CSound.DRYFIRE, "dryfire");
+		Item(CItemType.M1911, "m1911", "m1911icon", true, 0, CItemType.TERTAMMO, 7, 7, 30.0f, 1000.0f, 1, 0.0f);
+		ItemSound(CSound.SHOT, "gun_pistol1");
+		ItemSound(CSound.RELOAD, "pistolreload");
+		ItemSound(CSound.DRYFIRE, "dryfire");
+		Item(CItemType.PRIMARYAMMO, "ammo1", "ammo1icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+		Item(CItemType.SECONDARYAMMO, "ammo2", "ammo2icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+		Item(CItemType.TERTAMMO, "ammo3", "ammo3icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+		Item(CItemType.BBAT, "bbat", "bbaticon", true, 0, CItemType.NOAMMO, -1, -1, 45.0f, INTERACTION_D, 1, 0.0f);
+		ItemSound(CSound.HIT, "thud");
+		Item(CItemType.KNIFE, "knife", "knifeicon", true, 0, CItemType.NOAMMO, -1, -1, 30.0f, INTERACTION_D, 1, 0.0f);
+		ItemSound(CSound.HIT, "stab");
+		Item(CItemType.WTALKIE, "wtalkie", "wtalkieicon", false, 0, CItemType.NOAMMO, -1, -1, 0.0f, 0.0f, 0, 0.0f);
+	    
+	    //NSLog(@"1 reld sz = %d", (int)g_itemType[ITEM::M1911].reloadSound.size());
+	}
+	
+	void Keymap()
+	{
+	    mGUI.AssignLButton(new LDown(this), new LUp(this));
+	}
+	
     public void Init()
     {
     	for(int i=0; i<TEXTURES; i++)
@@ -1986,7 +2115,28 @@ public class MainActivity extends Activity
     	System.out.println("w,h = " + mWidth + "," + mHeight);
     	System.out.println("sc = " + mRetinaScale);
     	
+    	/*
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CW);
+    	*/
+    	
     	LoadFonts();
+        Entities();
+        Items();
+        Effects();
+        Particles();
+        Decals();
+        Keymap();
+        LoadSounds();
+        //InitNet();
+        ScriptFuncs();
+        
+        //PlayIntro();
     	
     	mGUI = new CGUI(this);
     }
@@ -1994,6 +2144,719 @@ public class MainActivity extends Activity
     public void Deinit()
     {
     	FreeTextures();
+    }
+    
+    void Forward()
+    {
+        mPlayer[mLocalP].forward = true;
+    }
+
+    void Unforward()
+    {
+    	mPlayer[mLocalP].forward = false;
+    }
+
+    void Back()
+    {
+    	mPlayer[mLocalP].backward = true;
+    }
+
+    void Unback()
+    {
+    	mPlayer[mLocalP].backward = false;
+    }
+
+    void Left()
+    {
+    	mPlayer[mLocalP].left = true;
+    }
+
+    void Unleft()
+    {
+    	mPlayer[mLocalP].left = false;
+    }
+
+    void Right()
+    {
+    	mPlayer[mLocalP].right = true;
+    }
+
+    void Unright()
+    {
+    	mPlayer[mLocalP].right = false;
+    }
+    
+    CVector3 EMin(CEntity e, CEntityType t)
+    {
+    	CVector3 vMin = Math3D.Copy(t.vMin);
+        
+    	if(e.controller >= 0)
+    	{
+    		CPlayer p = mPlayer[e.controller];
+            
+    		if(p.crouched)
+    			vMin.y += t.crouch;
+    	}
+        
+    	return vMin;
+    }
+    
+    // Test AABB against other AABB's and trimeshes
+    int Collides(int i, CVector3 prev)
+    {
+        CEntity e = mEntity[i];
+        CCamera c = e.camera;
+        CEntityType t = mEntityType.get(e.type);
+        CVector3 vMin = EMin(e, t);
+        
+        CVector3 prevcenter = Math3D.Add(Math3D.Divide(Math3D.Add(c.Position(), prev), 2.0f), Math3D.Divide(Math3D.Add(vMin, t.vMax), 2.0f));
+        CVector3 center = Math3D.Add(c.Position(), Math3D.Divide(Math3D.Add(vMin, t.vMax), 2.0f));
+        CVector3 radius = Math3D.Divide(Math3D.Subtract(t.vMax, vMin), 2.0f);
+        
+    	CVector3 scaledown = new CVector3();
+    	scaledown.x = 1.0f / radius.x;
+    	scaledown.y = 1.0f / radius.y;
+    	scaledown.z = 1.0f / radius.z;
+        
+        CEntity e2;
+        CCamera c2;
+        CEntityType t2;
+        CVector3 center2;
+        CVector3 radius2;
+        CVector3 vMin2;
+        CPlayer p;
+        
+        for(int j=0; j<ENTITIES; j++)
+        {
+            if(i == j)
+                continue;
+            
+            e2 = mEntity[j];
+            if(!e2.on)
+                continue;
+            
+    		if(!mMap.IsClusterVisible(e.cluster, e2.cluster) && !mMap.IsClusterVisible(e2.cluster, e.cluster))
+    			continue;
+            
+            c2 = e2.camera;
+            t2 = mEntityType.get(e2.type);
+            vMin = EMin(e2, t2);
+            
+            if(e2.controller >= 0)
+            {
+                p = mPlayer[e2.controller];
+                
+    			if(p.hp <= 0.0f)
+    				continue;
+            }
+            
+            center2 = Math3D.Add(c2.Position(), Math3D.Divide(Math3D.Add(vMin, t2.vMax), 2.0f));
+            radius2 = Math3D.Divide(Math3D.Subtract(t2.vMax, vMin), 2.0f);
+            
+            if((Math.abs(center.x-center2.x) < radius.x+radius2.x &&
+            	Math.abs(center.y-center2.y) < radius.y+radius2.y &&
+            	Math.abs(center.z-center2.z) < radius.z+radius2.z)
+                ||
+                (Math.abs(prevcenter.x-center2.x) < radius.x+radius2.x &&
+                Math.abs(prevcenter.y-center2.y) < radius.y+radius2.y &&
+                Math.abs(prevcenter.z-center2.z) < radius.z+radius2.z))
+            {
+                // AABB-to-polygon collision detection
+                if(t2.category == CEntity.DOOR || t2.category == CEntity.FIXEDENT)
+                {
+                    if(e2.Collision(scaledown, center))
+                        return j;
+                    else if(e2.Collision(scaledown, prevcenter))
+                        return j;
+                    else
+                        continue;
+                }
+                
+                return j;
+            }
+        }
+        
+        return -1;
+    }
+
+    // Test trimesh against non-fixed AABB's only
+    // Only checks BODY_LOWER model
+    int Collides2(int i)
+    {
+    	CEntity e = mEntity[i];
+    	CEntityType t = mEntityType.get(e.type);
+    	CModel m = mModel[t.model[CEntity.BODY_LOWER]];
+    	CVertexArray va = m.vertexArrays[(int)e.frame[CEntity.BODY_LOWER].value];
+    	CTriangle tris[] = new CTriangle[ m.numverts/3 ];
+    	CCamera c = e.camera;
+        
+    	int j;
+    	int tri = 0;
+    	for(j=0; j<va.numverts; j+=3)
+    	{
+    		tris[tri] = new CTriangle();
+    		tris[tri].a = Math3D.Add(c.Position(), Math3D.Rotate(va.vertices[j+0], c.Yaw(), 0, 1, 0));
+    		tris[tri].b = Math3D.Add(c.Position(), Math3D.Rotate(va.vertices[j+1], c.Yaw(), 0, 1, 0));
+    		tris[tri].c = Math3D.Add(c.Position(), Math3D.Rotate(va.vertices[j+2], c.Yaw(), 0, 1, 0));
+    		tri++;
+    	}
+        
+    	CEntity e2;
+    	CEntityType t2;
+    	CCamera c2;
+    	CVector3 center;
+    	CVector3 radius;
+    	CVector3 scaledown = new CVector3();
+    	CVector3 vMin;
+    	int k;
+        
+    	for(j=0; j<ENTITIES; j++)
+    	{
+    		if(j == i)
+    			continue;
+            
+    		e2 = mEntity[j];
+            
+    		if(!e2.on)
+    			continue;
+            
+    		if(mMap.IsClusterVisible(e.cluster, e2.cluster) && mMap.IsClusterVisible(e2.cluster, e.cluster))
+    			continue;
+            
+    		c2 = e2.camera;
+    		t2 = mEntityType.get(e2.type);
+            
+    		if(t2.category == CEntity.FIXEDENT)
+    			continue;
+            
+    		if(t2.category == CEntity.DOOR)
+    			continue;
+            
+            vMin = EMin(e2, t2);
+            
+    		center = Math3D.Add(c2.Position(), Math3D.Divide(Math3D.Add(vMin, t2.vMax), 2.0f));
+    		radius = Math3D.Divide(Math3D.Subtract(t2.vMax, vMin), 2.0f);
+            
+    		scaledown.x = 1.0f / radius.x;
+    		scaledown.y = 1.0f / radius.y;
+    		scaledown.z = 1.0f / radius.z;
+            
+    		for(k=0; k<tri; k++)
+    			if(Math3D.TriBoxOverlap2(scaledown, center, tris[k]))
+    			{
+    				//delete [] tris;
+    				return j;
+    			}
+    	}
+        
+    	//delete [] tris;
+    	return -1;
+    }
+
+    void Bump(CEntity e, int j)
+    {
+        CEntity e2 = mEntity[j];
+    	CEntityType t2 = mEntityType.get(e2.type);
+        
+    	if(t2.category == CEntity.DOOR || t2.category == CEntity.FIXEDENT)
+    	{
+    		//e->camera.Velocity( CVector3(0, 0, 0) );
+    		return;
+    	}
+        
+        CVector3 temp = e.camera.Velocity();
+        e.camera.Velocity( e2.camera.Velocity() );
+        e2.camera.Velocity( temp );
+    }
+    
+    void AddItem(CPlayer p, int item, float amount, float clip)
+    {
+    	if(amount <= 0.0f)
+    		return;
+        
+    	CHold hold;
+    	int added = -1;
+        
+    	for(int i=0; i<p.items.size(); i++)
+    	{
+    		hold = p.items.get(i);
+            
+    		if(hold.type != item)
+    			continue;
+            
+    		hold.amount += amount;
+    		added = i;
+    		break;
+    	}
+        
+    	if(added < 0)
+    	{
+    		CHold h = new CHold(item, amount, clip);
+    		p.items.add(h);
+    		added = p.items.size() - 1;
+    	}
+        
+    	CItemType t = mItemType[item];
+        
+    	if(p.equipped < 0 && t.equip)
+    		Equip(p, added, t);
+        
+    	if(mPlayer[mLocalP] != p)
+    		return;
+        
+        int equippable = 0;
+        CItemType hT;
+        for(int i=0; i<p.items.size(); i++)
+    	{
+    		hold = p.items.get(i);
+            hT = mItemType[hold.type];
+            if(hT.equip)
+                equippable ++;
+        }
+        
+        if(equippable > 1)
+            mGUI.OpenAnotherView("switch item", 0);
+        
+        //g_viewmode = FIRSTPERSON;
+        
+    	mGUI.RedoAmmo();
+        
+    	String msg = "+" + (int)amount;
+    	mGUI.ItemIcon(t.icon, msg);
+    }
+
+    
+    boolean CheckItem(CEntity e, int j)
+    {
+    	CEntityType t = mEntityType.get(e.type);
+    	CEntity e2 = mEntity[j];
+    	CEntityType t2 = mEntityType.get(e2.type);
+        
+    	CEntity item;
+    	CEntity hum;
+    	CEntityType itemT;
+        
+    	if(t.category == CEntity.HUMAN && t2.category == CEntity.ITEM)
+    	{
+    		hum = e;
+    		item = e2;
+    		itemT = t2;
+    	}
+    	else if(t.category == CEntity.ITEM && t2.category == CEntity.HUMAN)
+    	{
+    		hum = e2;
+    		item = e;
+    		itemT = t;
+    	}
+    	else
+    		return false;
+        
+    	if(item.script > 0 && hum.controller == mLocalP)
+    	{
+    		DoScriptFunc(item.script);
+    		item.script = -1;
+    	}
+        
+    	CPlayer p = mPlayer[hum.controller];
+    	AddItem(p, itemT.item, item.amount, item.clip);
+    	item.on = false;
+        
+    	return true;
+    }
+    
+    boolean CheckZombie(int i, int j)
+    {
+        CEntity a = mEntity[i];
+        CEntity b = mEntity[j];
+        
+        CEntity hum;
+        CEntity zom;
+        
+        if(IsHuman(a.type) && IsZombie(b.type))
+        {
+            hum = a;
+            zom = b;
+        }
+        else if(IsHuman(b.type) && IsZombie(a.type))
+        {
+            hum = b;
+            zom = a;
+        }
+        else
+            return false;
+
+        
+        CPlayer p;
+        
+    	if(zom.controller >= 0)
+    	{
+    		p = mPlayer[zom.controller];
+    		if(p.hp <= 0.0f)
+    			return false;
+    	}
+        
+        if(hum.controller >= 0)
+        {
+            p = mPlayer[hum.controller];
+            
+    		if(p.hp <= 0.0f)
+    			return false;
+            
+    		//Damage(p, 5.0f, false);
+        }
+        
+        /*
+        p = &g_player[g_localP];
+        CEntity* e = &g_entity[p->entity];
+        
+        if(hum == e)
+        {
+            g_reddening = 1.0f;
+            RedoHP();
+        }*/
+        
+        return true;
+    }
+    
+    boolean CollisionResponse(int i, CEntity e, CCamera c, CPlayer p, CVector3 prev)
+    {
+    	int j = Collides(i, prev);
+        
+    	if(j >= 0 && !CheckItem(e, j))
+    	{
+    		c.MoveTo(prev);
+    		Bump(e, j);
+    		e.cluster = mMap.FindCluster(c.Position());
+    		boolean z = CheckZombie(i, j);
+            
+    		if(e.controller >= 0 && !z)
+    			if(p.ai && p.target < 0)
+    				NewGoal(p);
+            
+    		return true;
+    	}
+        
+    	return false;
+    }
+    
+    void Physics()
+    {
+    	CEntity e;
+    	CEntityType t;
+    	CCamera c;
+    	CPlayer p = new CPlayer();
+    	CVector3 old;
+    	CVector3 trace;
+    	CVector3 vMin;
+    	float speed;
+        
+    	for(int i=0; i<ENTITIES; i++)
+    	{
+    		e = mEntity[i];
+            
+    		if(!e.on)
+    			continue;
+            
+    		t = mEntityType.get(e.type);
+            
+    		if(t.category == CEntity.DOOR || t.category == CEntity.FIXEDENT)
+    			continue;
+            
+    		c = e.camera;
+    		speed = t.speed;
+            
+    		vMin = EMin(e, t);
+    		old = c.Position();
+            
+    		if(e.controller >= 0)
+    		{
+    			p = mPlayer[e.controller];
+                
+    			if(p.forward)
+    				c.Move(speed);
+    			if(p.backward)
+    				c.Move(-speed);
+    			if(p.left)
+    				c.Strafe(-speed);
+    			if(p.right)
+    				c.Strafe(speed);
+    			if(p.jump && c.Grounded())
+    				c.Rise(t.jump);
+                //c->Rise(GRAVITY + 0.5f);
+    			if(p.crouching && !p.crouched)
+    			{
+    				if(c.Grounded())
+    				{
+    					old.y -= t.crouch;
+    					c.MoveTo(old);
+    				}
+                    
+    				p.crouched = true;
+    				p.run = false;
+    			}
+    			if(p.crouched)
+    				speed /= 2.0f;
+    			else if(p.run && p.stamina > 0.0f)
+    				speed *= 2.0f;
+    		}
+            
+    		c.LimitHVel(speed);
+    		c.Step();
+            
+    		trace = mMap.TraceBox(old, c.Position(), vMin, t.vMax, t.maxStep);
+            
+    		if(mMap.Ladder())
+    		{
+    			CVector3 v = c.Velocity();
+    			v.y += (c.View().y - c.Position().y) * 50.0f;
+    			//v.y += 50.0f;
+    			v.y = Math3D.Clip(v.y, -speed/3.0f, speed/3.0f);
+    			c.Velocity(v);
+    		}
+            
+    		if(e.controller >= 0 && (trace.x != c.Position().x || trace.z != c.Position().z))
+    			if(p.ai && p.target < 0)
+    				NewGoal(p);
+            
+    		c.MoveTo(trace);
+            
+    		e.cluster = mMap.FindCluster(Math3D.Add(c.Position(), t.vCenterOff));
+            
+    		if(CollisionResponse(i, e, c, p, old))
+    			continue;
+            
+    		c.Grounded( mMap.IsOnGround() );
+            
+    		if(!c.Grounded() && !mMap.Ladder())
+    			c.Rise(-GRAVITY);
+    		//else
+    		c.Friction();
+            
+    		if(e.controller >= 0)
+    		{
+    			if(!p.crouching && p.crouched)
+    			{
+    				CVector3 newP = Math3D.Add(trace, new CVector3(0, t.crouch, 0));
+    				newP = mMap.TraceBox(newP, newP, t.vMin, t.vMax, t.maxStep);
+                    
+    				if(!mMap.Collided() && !mMap.Stuck())
+    				{
+    					c.MoveTo(newP);
+    					p.crouched = false;
+                        
+    					if(CollisionResponse(i, e, c, p, trace))
+    						continue;
+                        
+    					c.Grounded( mMap.IsOnGround() );
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    // Check if a door is in crosshair or something
+    void ProjectAction()
+    {
+        mGUI.CloseView("open door");
+        mGUI.CloseView("close door");
+        
+    	if(mArrest)
+    		return;
+        
+    	CPlayer p = mPlayer[mLocalP];
+    	CEntity e = mEntity[p.entity];
+    	CCamera c = e.camera;
+        
+    	CVector3 vLine[] = new CVector3[2];
+    	vLine[0] = c.Position();
+    	CVector3 d = Math3D.Normalize(Math3D.Subtract(c.View(), c.Position()));
+    	vLine[1] = Math3D.Add(c.Position(), Math3D.Multiply(d, INTERACTION_D));
+    	vLine[1] = mMap.TraceRay(vLine[0], vLine[1]);
+        
+        CEntity e2;
+    	int hit = -1;
+    	CVector3 trace;
+        CEntityType t;
+        
+    	for(int i=0; i<ENTITIES; i++)
+    	{
+    		e2 = mEntity[i];
+            
+    		if(!e2.on)
+    			continue;
+            
+    		if(i == p.entity)
+    			continue;
+            
+            t = mEntityType.get(e2.type);
+            
+            if(t.category != CEntity.DOOR)
+                continue;
+            
+            if(!mMap.IsClusterVisible(e.cluster, e2.cluster) && !mMap.IsClusterVisible(e2.cluster, e.cluster))
+                continue;
+            
+    		trace = e2.TraceRay(vLine);
+            
+    		if(Math3D.Equals(trace, vLine[1]))
+    			continue;
+            
+    		hit = i;
+    		vLine[1] = trace;
+    	}
+        
+    	if(hit < 0)
+    		return;
+        
+        e2 = mEntity[hit];
+    	t = mEntityType.get(e2.type);
+        
+    	if(t.category == CEntity.DOOR)
+    	{
+    		if(e2.state == CEntity.STATE_OPENING)
+    		{
+    			mGUI.OpenAnotherView("close door", 0);
+    		}
+    		else
+    		{
+    			mGUI.OpenAnotherView("open door", 0);
+    		}
+    	}
+    }
+    
+    void UpdateDoor(CEntity e, int i)
+    {
+    	if(e.state == CEntity.STATE_OPENING)
+    	{
+    		if(e.frame[CEntity.BODY_LOWER].value >= Animation.ANIM_OPENING_E)
+    		{
+    			if(e.script > 0)
+    			{
+    				DoScriptFunc(e.script);
+    				e.script = -1;
+    			}
+                
+    			return;
+    		}
+            
+    		e.frame[CEntity.BODY_LOWER].value += 1;
+            
+    		if(Collides2(i) >= 0)
+    			e.frame[CEntity.BODY_LOWER].value -= 1;
+    	}
+    	else if(e.state == CEntity.STATE_CLOSING)
+    	{
+    		if(e.frame[CEntity.BODY_LOWER].value <= Animation.ANIM_OPENING_S)
+    			return;
+            
+    		e.frame[CEntity.BODY_LOWER].value -= 1;
+            
+    		if(Collides2(i) >= 0)
+    			e.frame[CEntity.BODY_LOWER].value += 1;
+    	}
+    }
+
+    void UpdateObjects()
+    {
+    	CEntity e;
+    	CEntityType t;
+        
+    	for(int i=0; i<ENTITIES; i++)
+    	{
+    		e = mEntity[i];
+    		if(!e.on)
+    			continue;
+            
+    		t = mEntityType.get(e.type);
+            
+    		if(t.category == CEntity.DOOR)
+    			UpdateDoor(e, i);
+    	}
+    }
+    
+    void GoToMap(int funcmap)
+    {
+    	CFuncMap f = mMap.mFuncMap.get(funcmap);
+    	//g_log<<"unloading map"<<endl;
+    	//g_log.flush();
+    	//g_log<<"loading bsp "<<f->map<<endl;
+    	//g_log.flush();
+        String map = CFile.StripPathExtension(f.map);
+        
+        if(map.equalsIgnoreCase("testmap"))
+            return;
+        
+    	UnloadMap();
+    	mMap.LoadBSP(map);
+    	//g_log<<"spawning players"<<endl;
+    	//g_log.flush();
+    	SpawnPlayer();
+    	//g_log<<"spawning zombies"<<endl;
+    	//g_log.flush();
+    	SpawnZombies();
+    	//g_log<<"GoToMap done"<<endl;
+    	//g_log.flush();
+    	//g_debug3 = true;
+        
+        CPlayer p = mPlayer[mLocalP];
+        if(p.equipped >= 0)
+        {
+            CHold h = p.items.get( p.equipped );
+            CItemType t = mItemType[h.type];
+            EquipFrame(p, p.equipped, t);
+        }
+    }
+    
+    void CheckFuncs()
+    {
+    	CPlayer p = mPlayer[mLocalP];
+    	CEntity e = mEntity[p.entity];
+    	CCamera c = e.camera;
+        CEntityType t = mEntityType.get(e.type);
+        CVector3 vMin = EMin(e, t);
+        CVector3 center = Math3D.Add(c.Position(), Math3D.Divide(Math3D.Add(vMin, t.vMax), 2.0f));
+        CVector3 radius = Math3D.Divide(Math3D.Subtract(t.vMax, vMin), 2.0f);
+        
+        CVector3 center2;
+        CVector3 radius2;
+        
+    	CFuncMap funcmap;
+    	for(int i=0; i<mMap.mFuncMap.size(); i++)
+    	{
+    		funcmap = mMap.mFuncMap.get(i);
+    		center2 = Math3D.Add(funcmap.pos, Math3D.Divide(Math3D.Add(funcmap.vmin, funcmap.vmax), 2.0f));
+    		radius2 = Math3D.Divide(Math3D.Subtract(funcmap.vmax, funcmap.vmin), 2.0f);
+            
+    		if(Math.abs(center.x-center2.x) < radius.x+radius2.x &&
+               Math.abs(center.y-center2.y) < radius.y+radius2.y &&
+               Math.abs(center.z-center2.z) < radius.z+radius2.z)
+    		{
+    			GoToMap(i);
+    			return;
+    		}
+    	}
+        
+    	CFuncProxy funcproxy;
+    	for(int i=0; i<mMap.mFuncProxy.size(); i++)
+    	{
+    		funcproxy = mMap.mFuncProxy.get(i);
+    		center2 = Math3D.Add(funcproxy.pos, Math3D.Divide(Math3D.Add(funcproxy.vmin, funcproxy.vmax), 2.0f));
+    		radius2 = Math3D.Divide(Math3D.Subtract(funcproxy.vmax, funcproxy.vmin), 2.0f);
+            
+    		if(Math.abs(center.x-center2.x) < radius.x+radius2.x &&
+               Math.abs(center.y-center2.y) < radius.y+radius2.y &&
+               Math.abs(center.z-center2.z) < radius.z+radius2.z)
+    		{
+                int script = funcproxy.script;
+                
+                mMap.mFuncProxy.remove( i );
+                i--;
+                
+    			DoScriptFunc(script);
+                
+    			return;
+    		}
+    	}
     }
     
     void UpdateGameState()
@@ -2005,9 +2868,9 @@ public class MainActivity extends Activity
         Unleft();
         Unright();
         
-        for(int i=0; i<mTouch.size(); i++)
+        for(int i=0; i<mGLView.mTouch.size(); i++)
         {
-            CGPoint* touch = &g_touch[i];
+            Point touch = mGLView.mTouch.get(i);
             mGUI.touchframe(touch.x, touch.y);
         }
         
@@ -2017,15 +2880,73 @@ public class MainActivity extends Activity
         Physics();
         UpdateParticles();
         UpdateDecals();
-        UpdateGUI();
+        mGUI.UpdateGUI();
         ProjectAction();
         UpdateObjects();
         CheckFuncs();
     }
     
-    void Update()
+    void SkipIntro()
     {
+        //stop video
     	
+        mMode = GAMEMODE.MENU;
+        mGUI.OpenSoleView("main", 0);
+    }
+    
+    void PlayIntro()
+    {
+        mMode = GAMEMODE.INTRO;
+        /*
+        g_mode = MENU;
+        OpenSoleView("main");
+        //SkipIntro();
+        return;*/
+        
+        //play video
+        SkipIntro();
+    }
+    
+    void SkipLogo()
+    {
+        if(mMode != GAMEMODE.LOGO)
+            return;
+        
+        //g_mode = MENU;
+        //OpenSoleView("main");
+        PlayIntro();
+    }
+    
+    void UpdateLogo()
+    {
+    	if(mStage < 60)
+    	{
+    		float a = (float)mStage / 60.0f;
+    		mGUI.getview("logo").mWidget.get(0).rgba[3] = a;
+    	}
+    	else if(mStage < 120)
+    	{
+    		float a = 1.0f - (float)(mStage-60) / 60.0f;
+    		mGUI.getview("logo").mWidget.get(0).rgba[3] = a;
+    	}
+    	else
+    	{
+    		mStage = 0;
+            SkipLogo();
+            return;
+    	}
+        
+    	mStage++;
+    }
+    
+    void Update()
+    {    
+    	if(mMode == GAMEMODE.PLAY)
+    		UpdateGameState();
+    	if(mMode == GAMEMODE.LOGO)
+    		UpdateLogo();
+    
+    	//ResendPackets();
     }
     
     public void Draw()
@@ -2072,7 +2993,128 @@ public class MainActivity extends Activity
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         */
         
+        if(g_mode == PLAY)
+        {
+            float aspect = fabsf(g_width / g_height);
+            GLKMatrix4 projection = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(g_fov), aspect, g_near, g_far);
+            
+            GLKMatrix4 modelmat = GLKMatrix4MakeTranslation(0.0f, 0.0f, 0.0f);
+            
+            CVector3 viewvec = g_camera->View();
+            CVector3 posvec = g_camera->Position();
+            CVector3 posvec2 = g_camera->LookPos();
+            CVector3 upvec = g_camera->UpVector();
+            
+            CMatrix viewmat = gluLookAt(posvec2.x, posvec2.y, posvec2.z,
+                                        viewvec.x, viewvec.y, viewvec.z,
+                                        upvec.x, upvec.y, upvec.z);
+            
+            CMatrix modelview;
+            modelview.set(modelmat.m);
+            modelview.postMultiply(viewmat);
+            
+            g_frustum.CalculateFrustum(projection.m, modelview.getMatrix());
+            
+            float color[] = {1,1,1,1};
+            
+            if(g_reddening > 0.0f)
+            {
+                color[1] = 1.0f - g_reddening;
+                color[2] = 1.0f - g_reddening;
+                
+                g_reddening -= g_FrameInterval;
+            }
+            
+            glUseProgram(g_program[SKY]);
+            glUniformMatrix4fv(g_slots[SKY][PROJECTION], 1, 0, projection.m);
+            //glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.m);
+            glUniformMatrix4fv(g_slots[SKY][VIEWMAT], 1, 0, viewmat.getMatrix());
+            glUniform4f(g_slots[SKY][COLOR], color[0], color[1], color[2], color[3]);
+            glEnableVertexAttribArray(g_slots[SKY][POSITION]);
+            glEnableVertexAttribArray(g_slots[SKY][TEXCOORD]);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            //g_map.RenderSky();
+            DrawSkyBox(posvec2);
+            
+            glUseProgram(g_program[MAP]);
+            glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.m);
+            glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.m);
+            glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
+            glUniform4f(g_slots[MAP][COLOR], color[0], color[1], color[2], color[3]);
+            glEnableVertexAttribArray(g_slots[MAP][POSITION]);
+            glEnableVertexAttribArray(g_slots[MAP][TEXCOORD]);
+            glEnableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
+            g_map.RenderLevel(posvec);
+            
+            glUseProgram(g_program[MODEL]);
+            glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
+            //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
+            glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+            glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+            glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
+            glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+            SortEntities();
+            DrawEntities(false);
+            DrawEntities(true);
+            
+            glUseProgram(g_program[MAP]);
+            glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.m);
+            glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.m);
+            glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
+            glUniform4f(g_slots[MAP][COLOR], color[0], color[1], color[2], color[3]);
+            glEnableVertexAttribArray(g_slots[MAP][POSITION]);
+            glEnableVertexAttribArray(g_slots[MAP][TEXCOORD]);
+            glEnableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
+            g_map.SortFaces(posvec);
+            g_map.RenderLevel2(posvec);
+            
+            glUseProgram(g_program[MODEL]);
+            glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
+            glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
+            glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+            //glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+            glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
+            glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            DrawDecals();
+            
+            glUseProgram(g_program[BILLBOARD]);
+            glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.m);
+            glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.m);
+            glUniformMatrix4fv(g_slots[BILLBOARD][VIEWMAT], 1, 0, viewmat.getMatrix());
+            //glUniform3f(g_slots[BILLBOARD][CAMERAPOS], posvec.x, posvec.y, posvec.z);
+            glUniform4f(g_slots[BILLBOARD][COLOR], color[0], color[1], color[2], color[3]);
+            glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
+            glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            SortBillboards();
+            DrawBillboards();
+            
+            glUseProgram(g_program[MODEL]);
+            glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
+            //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
+            glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+            glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+            glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
+            glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+            DrawHands();
+        }
         
+        glDisable(GL_DEPTH_TEST);
+        glUseProgram(g_program[ORTHO]);
+        glUniform1f(g_slots[ORTHO][WIDTH], (float)g_width);
+        glUniform1f(g_slots[ORTHO][HEIGHT], (float)g_height);
+        glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
+        glEnableVertexAttribArray(g_slots[ORTHO][POSITION]);
+        glEnableVertexAttribArray(g_slots[ORTHO][TEXCOORD]);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        g_GUI.draw();
+        //DrawShadowedText(MSGOTHIC16, 0, 0, "Hello world. My name is Denis.");
+        glEnable(GL_DEPTH_TEST);
     }
     
     public void Resize(int width, int height)
@@ -2083,7 +3125,8 @@ public class MainActivity extends Activity
         float ratio = (float) width / height;
 
         //public static void frustumM(float[] m, int offset, float left, float right, float bottom, float top, float near, float far);
-        Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, MIN_D, MAX_D);
+        //Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, MIN_D, MAX_D);
+        
     }
     
     int RandomHuman()

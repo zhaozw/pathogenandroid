@@ -1,14 +1,19 @@
 package com.pathogengame.pathogen;
 
+import java.util.Vector;
+
 import android.opengl.*;
 import android.view.*;
 import android.content.Context;
+import android.graphics.Point;
 
 public class MyGLSurfaceView extends GLSurfaceView 
 {
 	float mPreviousX;
 	float mPreviousY;
 	//public MyGL20Renderer mRenderer;
+	
+	Vector<Point> mTouch = new Vector<Point>();
 	
 	public MyGLSurfaceView(Context context)
     {

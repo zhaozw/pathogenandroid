@@ -9,26 +9,6 @@ public class Movement extends CFuncPtr
 		super(act);
 	}
 	
-	void Left()
-	{
-		
-	}
-	
-	void Right()
-	{
-		
-	}
-	
-	void Forward()
-	{
-		
-	}
-	
-	void Back()
-	{
-		
-	}
-	
     @Override
     public void func(float dx, float dy)
 	{
@@ -39,13 +19,13 @@ public class Movement extends CFuncPtr
             return;
         
         if(dx < -mActivity.MOV_THRESH*mActivity.mRetinaScale)
-            Left();
+            mActivity.Left();
         else if(dx > mActivity.MOV_THRESH*mActivity.mRetinaScale)
-            Right();
+        	mActivity.Right();
         
         if(dy < -mActivity.MOV_THRESH*mActivity.mRetinaScale)
-            Forward();
+        	mActivity.Forward();
         else if(dy > mActivity.MOV_THRESH*mActivity.mRetinaScale)
-            Back();
+        	mActivity.Back();
 	}
 }

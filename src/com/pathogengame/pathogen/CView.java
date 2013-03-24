@@ -43,6 +43,17 @@ public class CView
 		}
 	}
 	
+
+	boolean touchframe(float x, float y)
+    {
+		for(int i=mWidget.size()-1; i>=0; i--)
+			if(mWidget.get(i).touchframe(x, y))
+                return true;
+        
+        return false;
+    }
+	
+	/*
 	public boolean mouseupdate(float x, float y)
 	{
 		CWidget w;
@@ -55,7 +66,7 @@ public class CView
 		}
 		
 		return false;
-	}
+	}*/
 	
 	public boolean lbuttondown(float x, float y)
 	{

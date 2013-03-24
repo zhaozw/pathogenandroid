@@ -13,10 +13,11 @@ public class CGUI
 {
 	public Vector<CView> mView = new Vector();
 	
-	public CFuncPtr mousemovefunc = null;
-	public CFuncPtr mouseupdfunc = null;
-	public CFuncPtr lbuttondownfunc = null;
-	public CFuncPtr lbuttonupfunc = null;
+	CFuncPtr mousemovefunc = null;
+	//CFuncPtr mouseupdfunc = null;
+	CFuncPtr touchframefunc = null;
+	CFuncPtr lbuttondownfunc = null;
+	CFuncPtr lbuttonupfunc = null;
 	
 	MainActivity mActivity;
 	
@@ -148,6 +149,21 @@ public class CGUI
 		OpenSoleView("logo", 0);
 	}
 	
+	void UpdateGUI()
+	{
+		CView v = getview("pick up");
+	    
+		if(!v.opened)
+			return;
+	    
+		CWidget w = v.mWidget.get(0);
+	    
+		w.rgba[3] -= MainActivity.FRAME_INTERVAL;
+	    
+		if(w.rgba[3] <= 0.0f)
+			v.opened = false;
+	}
+	
 	void Dialog(String msg, CFuncPtr Continue)
 	{
 	    getview("dialog").mWidget.get(1).text = msg;
@@ -252,7 +268,7 @@ public class CGUI
 		for(int i=0; i<mView.size(); i++)
 		{
 			v = mView.get(i);
-			if(v.name.equals(n))
+			if(v.name.equalsIgnoreCase(n))
 				return v;
 		}
 		
@@ -270,10 +286,32 @@ public class CGUI
 		mousemovefunc = mouse;
 	}
 	
+	/*
 	public void assignMouseUpdate(CFuncPtr mouseu)
 	{
 		mouseupdfunc = mouseu;
+	}*/
+	
+	void assignTouchFrame(CFuncPtr touchf)
+	{
+		touchframefunc = touchf;
 	}
+	
+	void touchframe(float x, float y)
+    {
+		CView v;
+		
+		for(int i=mView.size()-1; i>=0; i--)
+		{
+			v = mView.get(i);
+			if(v.opened)
+                if(v.touchframe(x, y))
+                    return;
+		}
+		
+		if(touchframefunc != null)
+			touchframefunc.func(x, y);
+    }
 	
 	public void lbuttondown(float x, float y)
 	{
@@ -320,6 +358,7 @@ public class CGUI
 		}
 	}
 	
+	/*
 	public void mouseupdate(float x, float y)
 	{
 		CView v;
@@ -334,7 +373,7 @@ public class CGUI
 			if(mouseupdfunc != null)
 				mouseupdfunc.func(x, y);
 		}
-	}
+	}*/
 	
 	public void draw()
 	{

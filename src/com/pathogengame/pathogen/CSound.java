@@ -7,6 +7,14 @@ import android.media.MediaPlayer;
 
 public class CSound 
 {
+	static final int DRYSHOT = 0;
+	static final int SHOT = 1;
+	static final int RELOAD = 2;
+	static final int COCK = 3;
+	static final int DRYFIRE = 4;
+	static final int HIT = 5;
+	static final int ITEM_SOUNDS = 6;
+	
     String file;
     MediaPlayer mMedia;
 	

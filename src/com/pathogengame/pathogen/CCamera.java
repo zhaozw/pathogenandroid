@@ -23,9 +23,9 @@ public class CCamera
 		mOrientation = new CVector2();
 	}
 	
-	CVector3 Position() {	return mPosition;		}
-	CVector3 View()		{	return mView;			}
-	CVector3 UpVector() {	return mUpVector;		}
+	CVector3 Position() {	return Math3D.Copy(mPosition);		}
+	CVector3 View()		{	return Math3D.Copy(mView);			}
+	CVector3 UpVector() {	return Math3D.Copy(mUpVector);		}
 	CVector3 Up2()
 	{
         return Math3D.Normalize( Math3D.Cross( mStrafe, Math3D.Subtract(mView, mPosition) ) );
