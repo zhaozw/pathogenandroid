@@ -23,4 +23,9 @@ public class CFuncPtr
 	{
 		
 	}
+	
+	void collision(CParticle part, CBillboard billb, CVector3 trace, CVector3 normal)
+	{
+		
+	}
 }

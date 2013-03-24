@@ -28,6 +28,7 @@ public class MainActivity extends Activity
 	public static final int MOV_THRESH = 15;
 	
 	public static final int FRAME_RATE = 30;
+	public static final float FRAME_INTERVAL = (1000.0f / (float)FRAME_RATE);
 	
 	public static final float Z_FOV	= 45.0f;
 	public static final float Z_TURN_RATE = 1.0f;
@@ -112,7 +113,541 @@ public class MainActivity extends Activity
 	static final int SCRIPT_FUNCS = 10;
 	CFuncPtr mScriptFunc[] = new CFuncPtr[SCRIPT_FUNCS];
 	
+	Vector<CBillboardType> mBillbT = new Vector<CBillboardType>();
+	static final int BILLBOARDS = 512;
+	CBillboard mBillb[] = new CBillboard[BILLBOARDS];
+	
+	int mMuzzle[] = new int[4];
+	
+	CParticleType mParticleType[] = new CParticleType[CParticleType.PARTICLE_TYPES];
+	static final int PARTICLES = 256;
+	CParticle mParticle[] = new CParticle[PARTICLES];
+	
+	CDecalType mDecalT[] = new CDecalType[CDecalType.DECAL_TYPES];
+	static final int DECALS = 128;
+	CDecal mDecal[] = new CDecal[DECALS];
+	
 	//int rotational;
+	
+	void Decal(int type, String tex, float decay, float size)
+	{
+		mDecalT[type] = new CDecalType();
+		CDecalType t = mDecalT[type];
+		
+		t.tex = CreateTexture(tex, true);
+		t.decay = decay;
+		t.size = size;
+	}
+	
+	void Decals()
+	{
+		Decal(CDecalType.BLOODSPLAT, "/effects/bloodsplat", 0.01f, 10.0f);
+		Decal(CDecalType.BULLETHOLE, "/effects/bullethole", 0.005f, 3.0f);
+	}
+	
+	void UpdateDecals()
+	{
+		CDecal d;
+		CDecalType t;
+	    
+		for(int i=0; i<DECALS; i++)
+		{
+			d = mDecal[i];
+	        
+			if(!d.on)
+				continue;
+	        
+			t = mDecalT[d.type];
+	        
+			d.life -= t.decay;
+	        
+			if(d.life < 0.0f)
+				d.on = false;
+		}
+	}
+	
+	void DrawDecals()
+	{
+		CDecal d;
+		CDecalType t;
+	    
+		float precolor[] = {1,1,1,1};
+	    
+	    if(mReddening > 0.0f)
+	    {
+			precolor[1] = 1.0f - mReddening;
+			precolor[2] = 1.0f - mReddening;
+		}
+	    
+	    float colorf[] = {1, 1, 1, 1};
+		CVector3 colorv;
+	    
+        CShader s = mShader[CShader.BILLBOARD];
+		
+		for(int i=0; i<DECALS; i++)
+	    {
+	        d = mDecal[i];
+	        if(!d.on)
+	            continue;
+	        
+	        colorv = mMap.LightVol(d.lpos);
+			colorf[0] = colorv.x;
+			colorf[1] = precolor[1] * colorv.y;
+			colorf[2] = precolor[2] * colorv.z;
+			colorf[3] = d.life;
+	        GLES20.glUniform4f(s.slot[CShader.COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+	        
+	        t = mDecalT[d.type];
+	        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.tex);
+	        GLES20.glUniform1i(s.slot[CShader.TEXTURE], 0);
+	        
+	        float vertices[] =
+	        {
+	            //posx, posy posz   texx, texy
+	            d.a.x, d.a.y, d.a.z,          1, 0,
+	            d.b.x, d.b.y, d.b.z,          1, 1,
+	            d.c.x, d.c.y, d.c.z,          0, 1,
+	            
+	            d.c.x, d.c.y, d.c.z,          0, 1,
+	            d.d.x, d.d.y, d.d.z,          0, 0,
+	            d.a.x, d.a.y, d.a.z,          1, 0
+	        };
+	        
+	        GLES20.glVertexAttribPointer(s.slot[CShader.POSITION], 3, GLES20.GL_FLOAT, false, 4*5, 0*4);
+	        GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD], 2, GLES20.GL_FLOAT, false, 4*5, 3*4);
+	        
+	        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+	    }
+	    
+		GLES20.glUniform4f(s.slot[CShader.COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
+	}
+
+	int NewDecal()
+	{
+		for(int i=0; i<DECALS; i++)
+			if(!mDecal[i].on)
+				return i;
+	    
+		return -1;
+	}
+	
+	void PlaceDecal(int type, CVector3 pos, CVector3 norm)
+	{
+		int i = NewDecal();
+		if(i < 0)
+			return;
+	    
+		CDecal d = mDecal[i];
+		d.on = true;
+		d.life = 1;
+	    d.type = type;
+	    
+		CDecalType t = mDecalT[type];
+	    
+		CVector3 vertical = Math3D.Normalize(Math3D.Cross(pos, norm));
+		CVector3 horizontal = Math3D.Normalize(Math3D.Cross(vertical, norm));
+	    
+		CVector3 vert = Math3D.Multiply(vertical, t.size);
+		CVector3 horiz = Math3D.Multiply(horizontal, t.size);
+	    
+	    d.lpos = Math3D.Add(pos, Math3D.Multiply(norm, 0.1f));
+		d.a = Math3D.Add(Math3D.Subtract(pos, horiz), vert);
+		d.b = Math3D.Add(Math3D.Add(pos, horiz), vert);
+		d.c = Math3D.Subtract(Math3D.Add(pos, horiz), vert);
+		d.d = Math3D.Subtract(Math3D.Subtract(pos, horiz), vert);
+	}
+	
+	int NewParticle()
+	{
+		for(int i=0; i<PARTICLES; i++)
+			if(!mParticle[i].on)
+				return i;
+	    
+		return -1;
+	}
+	
+	void Particle(int i, String texpath, int del, float dec, CVector3 minV, CVector3 maxV, CVector3 minA, CVector3 maxA, float minS, float maxS, CFuncPtr collision)
+	{
+		mParticleType[i] = new CParticleType();
+		CParticleType t = mParticleType[i];
+	    
+		t.billbT = Billboard(texpath);
+		t.delay = del;
+		t.decay = dec;
+		t.minvelocity = minV;
+		t.velvariation = Math3D.Subtract(maxV, minV);
+		t.minacceleration = minA;
+		t.accelvariation = Math3D.Subtract(maxA, minA);
+		t.minsize = minS/2.0f;
+		t.sizevariation = (maxS-minS)/2.0f;
+		t.collision = collision;
+	}
+	
+	void EmitParticle(int type, CVector3 pos)
+	{
+		int i = NewParticle();
+		if(i < 0)
+			return;
+	    
+		CParticleType t = mParticleType[type];
+		PlaceBillboard(t.billbT, pos, t.minsize, i, false);
+	    
+		CParticle p = mParticle[i];
+	    
+		p.on = true;
+		p.life = 1;
+		p.vel.x = t.minvelocity.x + t.velvariation.x * (float)(Math.random());
+		p.vel.y = t.minvelocity.y + t.velvariation.y * (float)(Math.random());
+		p.vel.z = t.minvelocity.z + t.velvariation.z * (float)(Math.random());
+		p.type = type;
+	}
+	
+	void Particles()
+	{
+		Particle(CParticleType.BLOODPART, "bloodpart", 500, 0.05f, new CVector3(-1.5f, -0.5f, -1.5f), new CVector3(1.5f, 1.8f, 1.5f), new CVector3(0, -0.1f, 0), new CVector3(0.0f, -0.3f, 0.0f), 5.0f, 10.0f, new Collision_BloodSplat(this));
+	}
+
+	void UpdateParticles()
+	{
+		CBillboard b;
+		CParticle p;
+	    
+		for(int i=0; i<BILLBOARDS; i++)
+		{
+			b = mBillb[i];
+	        
+			if(!b.on)
+				continue;
+	        
+			if(b.particle < 0)
+				continue;
+	        
+			p = mParticle[b.particle];
+	        
+			p.Update(b);
+		}
+	}
+	
+	void Effects()
+	{
+		mMuzzle[0] = CreateTexture("effects/muzzle0", true);
+		mMuzzle[1] = CreateTexture("effects/muzzle1", true);
+		mMuzzle[2] = CreateTexture("effects/muzzle2", true);
+		mMuzzle[3] = CreateTexture("effects/muzzle3", true);
+	}
+	
+	int NewBillboard(String tex)
+	{
+	    CBillboardType t = new CBillboardType();
+		String rawtex;
+		rawtex = CFile.StripPathExtension(tex);
+		t.name = "/billboards/" + rawtex;
+	    t.tex = CreateTexture(t.name, true);
+		mBillbT.add(t);
+		return mBillbT.size() - 1;
+	}
+	
+	int Billboard(String name)
+	{
+		String rawname;
+		rawname = "/billboards/" + CFile.StripPathExtension(name);
+	    
+	    for(int i=0; i<mBillbT.size(); i++)
+	    {
+	        if(mBillbT.get(i).name.equalsIgnoreCase(rawname))
+	            return i;
+	    }
+	    
+	    return NewBillboard(rawname);
+	}
+	
+	int NewBillboard()
+	{
+	    for(int i=0; i<BILLBOARDS; i++)
+	        if(!mBillb[i].on)
+	            return i;
+	    
+	    return -1;
+	}
+	
+	void PlaceBillboard(String n, CVector3 pos, float size, int particle, boolean nolightvol)
+	{
+	    int type = Billboard(n);
+	    if(type < 0)
+	        return;
+	    
+	    PlaceBillboard(type, pos, size, particle, nolightvol);
+	}
+	
+	void PlaceBillboard(int type, CVector3 pos, float size, int particle, boolean nolightvol)
+	{
+	    int i = NewBillboard();
+	    if(i < 0)
+	        return;
+	    
+	    CBillboard b = mBillb[i];
+	    b.on = true;
+	    b.type = type;
+	    b.pos = pos;
+	    b.size = size;
+		b.particle = particle;
+		b.nolightvol = nolightvol;
+	}
+	
+	void SwitchBillboards(int i, int j)
+	{
+		CBillboard temp = new CBillboard();
+		CBillboard ibb = mBillb[i];
+		CBillboard jbb = mBillb[j];
+		
+		/*
+	    boolean on;
+	    int type;
+	    float size;
+	    CVector3 pos;
+	    float dist;
+	    int particle;
+		boolean nolightvol;
+		*/
+		
+		temp.on = ibb.on;
+		temp.type = ibb.type;
+		temp.size = ibb.size;
+		temp.pos.x = ibb.pos.x;
+		temp.pos.y = ibb.pos.y;
+		temp.pos.z = ibb.pos.z;
+		temp.dist = ibb.dist;
+		temp.particle = ibb.particle;
+		temp.nolightvol = ibb.nolightvol;
+		
+		ibb.on = jbb.on;
+		ibb.type = jbb.type;
+		ibb.size = jbb.size;
+		ibb.pos.x = jbb.pos.x;
+		ibb.pos.y = jbb.pos.y;
+		ibb.pos.z = jbb.pos.z;
+		ibb.dist = jbb.dist;
+		ibb.particle = jbb.particle;
+		ibb.nolightvol = jbb.nolightvol;
+
+		jbb.on = temp.on;
+		jbb.type = temp.type;
+		jbb.size = temp.size;
+		jbb.pos.x = temp.pos.x;
+		jbb.pos.y = temp.pos.y;
+		jbb.pos.z = temp.pos.z;
+		jbb.dist = temp.dist;
+		jbb.particle = temp.particle;
+		jbb.nolightvol = temp.nolightvol;
+	}
+	
+	void SortBillboards()
+	{
+	    CVector3 pos = mCamera.LookPos(this);
+	    
+		for(int i=0; i<BILLBOARDS; i++)
+		{
+			if(!mBillb[i].on)
+				continue;
+	        
+			mBillb[i].dist = Math3D.Magnitude2(Math3D.Subtract(pos, mBillb[i].pos));
+		}
+	    
+		CBillboard temp;
+		int leftoff = 0;
+		boolean backtracking = false;
+	    
+		for(int i=1; i<BILLBOARDS; i++)
+		{
+			if(!mBillb[i].on)
+				continue;
+	        
+			if(i > 0)
+			{
+				if(mBillb[i].dist > mBillb[i-1].dist)
+				{
+					if(!backtracking)
+					{
+						leftoff = i;
+						backtracking = true;
+					}
+					//temp = mBillb[i];
+					//mBillb[i] = mBillb[i-1];
+					//mBillb[i-1] = temp;
+					SwitchBillboards(i, i-1);
+					i-=2;
+				}
+				else
+				{
+					if(backtracking)
+					{
+						backtracking = false;
+						i = leftoff;
+					}
+				}
+			}
+			else
+				backtracking = false;
+		}
+	}
+	
+	void DrawBillboards()
+	{
+	    CBillboard billb;
+	    CBillboardType t;
+	    float size;
+	    
+		CVector3 vertical = mCamera.Up2();
+		CVector3 horizontal = mCamera.Strafe();
+		CVector3 a, b, c, d;
+		CVector3 vert, horiz;
+	    
+		CParticle part;
+		CParticleType pT;
+	    
+	    float precolor[] = {1,1,1,1};
+	    
+	    if(mReddening > 0.0f)
+	    {
+			precolor[1] = 1.0f - mReddening;
+			precolor[2] = 1.0f - mReddening;
+		}
+	    
+		float colorf[] = {1, 1, 1, 1};
+		CVector3 colorv;
+		
+		CShader s = mShader[CShader.BILLBOARD];
+	    
+	    for(int i=0; i<BILLBOARDS; i++)
+	    {
+	        billb = mBillb[i];
+	        if(!billb.on)
+	            continue;
+	        
+	        t = mBillbT.get(billb.type);
+	        
+	        if(billb.nolightvol)
+				colorv = new CVector3(1, 1, 1);
+			else
+				colorv = mMap.LightVol(billb.pos);
+	        
+			colorf[0] = colorv.x;
+			colorf[1] = precolor[1] * colorv.y;
+			colorf[2] = precolor[2] * colorv.z;
+	        GLES20.glUniform4f(s.slot[CShader.COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+	        
+			if(billb.particle >= 0)
+			{
+				part = mParticle[billb.particle];
+				pT = mParticleType[part.type];
+				size = pT.minsize + pT.sizevariation*(1.0f - part.life);
+			}
+			else
+				size = billb.size;
+	        
+			GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.tex);
+			GLES20.glUniform1i(s.slot[CShader.TEXTURE], 0);
+	        
+			vert = Math3D.Multiply(vertical, size);
+			horiz = Math3D.Multiply(horizontal, size);
+	        
+			a = Math3D.Add(Math3D.Subtract(billb.pos, horiz), vert);
+			b = Math3D.Add(Math3D.Add(billb.pos, horiz), vert);
+			c = Math3D.Subtract(Math3D.Add(billb.pos, horiz), vert);
+			d = Math3D.Subtract(Math3D.Subtract(billb.pos, horiz), vert);
+	        
+	        float vertices[] =
+	        {
+	            //posx, posy posz   texx, texy
+	            a.x, a.y, a.z,          1, 0,
+	            b.x, b.y, b.z,          1, 1,
+	            c.x, c.y, c.z,          0, 1,
+	            
+	            c.x, c.y, c.z,          0, 1,
+	            d.x, d.y, d.z,          0, 0,
+	            a.x, a.y, a.z,          1, 0
+	        };
+	        
+	        GLES20.glVertexAttribPointer(s.slot[CShader.POSITION], 3, GLES20.GL_FLOAT, false, 4*5, 0*4);
+	        GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD], 2, GLES20.GL_FLOAT, false, 4*5, 3*4);
+	        
+	        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+	    }
+	    
+	    GLES20.glUniform4f(s.slot[CShader.COLOR], 1, 1, 1, 1);
+	    
+		CEntity e;
+		CPlayer p;
+		CHold h;
+		CItemType iT;
+		size = 8.0f;
+		vert = Math3D.Multiply(vertical, size);
+		horiz = Math3D.Multiply(horizontal, size);
+		CVector3 muzz;
+		CCamera cam;
+		CVector3 offset;
+	    
+		for(int i=0; i<ENTITIES; i++)
+		{
+			e = mEntity[i];
+	        
+			if(!e.on)
+				continue;
+	        
+			if(e.controller < 0)
+				continue;
+	        
+			p = mPlayer[e.controller];
+	        
+			if(p.equipped < 0)
+				continue;
+	        
+			h = p.items.get(p.equipped);
+			iT = mItemType[h.type];
+	        
+			if((e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_SHOTSHOULDER_S || e.frame[CEntity.BODY_UPPER].value > Animation.ANIM_SHOTSHOULDER_S+4) &&
+	           (e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_SHOTGUNSHOT_S || e.frame[CEntity.BODY_UPPER].value > Animation.ANIM_SHOTGUNSHOT_S+4) &&
+	           (e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_PISTOLSHOT_S || e.frame[CEntity.BODY_UPPER].value > Animation.ANIM_PISTOLSHOT_S+4))
+				continue;
+	        
+			GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mMuzzle[(int)Math.round(Math.random()*4)]);
+			GLES20.glUniform1i(s.slot[CShader.TEXTURE], 0);
+	        
+			cam = e.camera;
+	        
+			if(p == mPlayer[mLocalP] && mViewMode == VIEWMODE.FIRSTPERSON)
+				muzz = Math3D.Rotate(iT.front, -cam.Pitch(), 1, 0, 0);
+			else
+				muzz = Math3D.RotateAround(iT.front, new CVector3(0, CEntity.MID_HEIGHT_OFFSET, 0), -cam.Pitch(), 1, 0, 0);
+	        
+			muzz = Math3D.Add(cam.Position(), Math3D.Rotate(muzz, cam.Yaw(), 0, 1, 0));
+	        
+			a = Math3D.Add(Math3D.Subtract(muzz, horiz), vert);
+			b = Math3D.Add(Math3D.Add(muzz, horiz), vert);
+			c = Math3D.Subtract(Math3D.Add(muzz, horiz), vert);
+			d = Math3D.Subtract(Math3D.Subtract(muzz, horiz), vert);
+	        
+	        float vertices[] =
+	        {
+	            //posx, posy posz   texx, texy
+	            a.x, a.y, a.z,          1, 0,
+	            b.x, b.y, b.z,          1, 1,
+	            c.x, c.y, c.z,          0, 1,
+	            
+	            c.x, c.y, c.z,          0, 1,
+	            d.x, d.y, d.z,          0, 0,
+	            a.x, a.y, a.z,          1, 0
+	        };
+	        
+	        GLES20.glVertexAttribPointer(s.slot[CShader.POSITION], 3, GLES20.GL_FLOAT, false, 4*5, 0*4);
+	        GLES20.glVertexAttribPointer(s.slot[CShader.TEXCOORD], 2, GLES20.GL_FLOAT, false, 4*5, 3*4);
+	        
+	        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+		}
+	}
 	
 	void NoMove()
 	{
@@ -265,7 +800,7 @@ public class MainActivity extends Activity
 	void EntitySound(int category, String file)
 	{
 		CEntityType t = mEntityType.get(mLastEnt);
-		Vector<CSound> vec;
+		Vector<CSound> vec = new Vector<CSound>();
 	    
 		if(category == CEntity.CLOSESND)
 			vec = t.closeSound;
@@ -482,7 +1017,7 @@ public class MainActivity extends Activity
 	        if(t.category != CEntity.DOOR)
 	            continue;
 	        
-			trace = e.TraceRay(vLine, this);
+			trace = e.TraceRay(vLine);
 	        
 			if(Math3D.Equals(trace, vLine[1]))
 				continue;
@@ -800,109 +1335,309 @@ public class MainActivity extends Activity
 
 	void UpdateAI()
 	{
-	    CPlayer* p;
+	    CPlayer p;
 	    
 	    for(int i=0; i<PLAYERS; i++)
 	    {
-	        p = &g_player[i];
+	        p = mPlayer[i];
 	        
-	        if(!p->on)
+	        if(!p.on)
 	            continue;
 	        
-	        if(!p->ai)
+	        if(!p.ai)
 	            continue;
 	        
-			if(p->hp <= 0.0f)
+			if(p.hp <= 0.0f)
 				continue;
 	        
 	        UpdateAI(p);
 	    }
 	}
 
-	void UpdateDead(CPlayer* p)
+	void UpdateDead(CPlayer p)
 	{
-		CEntity* e = &g_entity[p->entity];
+		CEntity e = mEntity[p.entity];
 	    
-		if(!IsZombie(e->type))
+		if(!IsZombie(e.type))
 			return;
 	    
-		p->ticksleft --;
+		p.ticksleft --;
 	    
-		if(p->ticksleft <= 0)
+		if(p.ticksleft <= 0)
 		{
-			e->on = false;
-			p->on = false;
+			e.on = false;
+			p.on = false;
 		}
+	}
+	
+	void Shot(int player)
+	{
+		CPlayer p = mPlayer[player];
+		CHold h = p.items.get(p.equipped);
+		CItemType t = mItemType[h.type];
+	    
+		if(GetTickCount() - p.last < t.delay)
+			return;
+	    
+		p.last = GetTickCount();
+		h.clip -= 1.0f;
+	    
+		if(p == mPlayer[mLocalP])
+			mGUI.RedoAmmo();
+	    
+		CEntity e = mEntity[p.entity];
+	    
+		if(t.ammo == CItemType.PRIMARYAMMO)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_SHOTSHOULDER_S;
+		else if(t.ammo == CItemType.SECONDARYAMMO)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_SHOTGUNSHOT_S;
+		else if(t.ammo == CItemType.TERTAMMO)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_PISTOLSHOT_S;
+		else if(h.type == CItemType.BBAT)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_BATSWING_S;
+		else if(h.type == CItemType.KNIFE)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_KNIFESTAB_S;
+	    
+		if(t.shotSound.size() > 0)
+			t.shotSound.get( (int)Math.round(Math.random()*t.shotSound.size()) ).Play();
+	    
+		CCamera c = e.camera;
+	    
+		CVector3 d = Math3D.Normalize(Math3D.Subtract(c.View(), c.Position()));
+		CVector3 horizontal = Math3D.Normalize(Math3D.Cross( new CVector3(0, 1, 0), d ));
+		CVector3 vertical = Math3D.Normalize(Math3D.Cross( horizontal, d ));
+		CVector3 vLine[] = new CVector3[2];
+		vLine[0] = c.Position();
+		CVector3 vert;
+		CVector3 horiz;
+		CVector3 o;
+	    
+		CEntity e2;
+		int hit;
+		CVector3 trace;
+	    
+		for(int s=0; s<t.split; s++)
+		{
+			horiz = Math3D.Multiply(horizontal, (float)(t.inacc * (Math.random()*1000-500)/500.0f));
+			vert = Math3D.Multiply(vertical, (float)(t.inacc * (Math.random()*1000-500)/500.0f));
+			vLine[1] = Math3D.Add(Math3D.Add(c.Position(), Math3D.Multiply(d, t.range)), Math3D.Add(horiz, vert));
+	        
+			if(mMap.BreakFaces(vLine[0], vLine[1]))
+				continue;
+	        
+			o = vLine[1] = mMap.TraceRay(vLine[0], vLine[1]);
+	        
+			hit = -1;
+	        
+			for(int i=0; i<ENTITIES; i++)
+			{
+				e2 = mEntity[i];
+	            
+				if(!e2.on)
+					continue;
+	            
+				if(!mMap.IsClusterVisible(e.cluster, e2.cluster))
+					continue;
+	            
+				if(i == p.entity)
+					continue;
+	            
+				trace = e2.TraceRay(vLine);
+	            
+				if(trace == vLine[1])
+					continue;
+	            
+				hit = i;
+				vLine[1] = trace;
+			}
+	        
+			if(hit < 0)
+			{
+				if(mMap.Collided())
+				{
+					PlaceDecal(CDecalType.BULLETHOLE, vLine[1], mMap.CollisionNormal());
+	                
+					if(t.hitSound.size() > 0)
+						t.hitSound.get( (int)Math.round(Math.random()*t.hitSound.size()) ).Play();
+				}
+	            
+				continue;
+			}
+
+			if(t.hitSound.size() > 0)
+				t.hitSound.get( (int)Math.round(Math.random()*t.hitSound.size()) ).Play();
+	        
+			e2 = mEntity[hit];
+			c = e2.camera;
+	        
+			CVector3 v = c.Velocity();
+			c.Velocity( Math3D.Add(v, Math3D.Multiply(d, 100.0f)) );
+	        
+			if(e2.controller < 0)
+				return;
+	        
+			if(!IsZombie(e2.type))
+				return;
+	        
+			CPlayer p2 = mPlayer[e2.controller];
+	        
+			if(p2.hp > 0.0f)
+			{
+				float damage = t.damage;
+	            
+				if(vLine[1].y >= c.Position().y + CEntity.HEAD_OFFSET)
+					damage *= 100.0f;
+	            
+				Damage(p2, damage, true);
+			}
+	        
+			for(int i=0; i<30; i++)
+				EmitParticle(CParticleType.BLOODPART, vLine[1]);
+	        
+			// TO DO
+		}
+	}
+	
+	void EquipFrame(CPlayer p, int hold, CItemType t)
+	{
+		CEntity e = mEntity[p.entity];
+	    
+		if(t == null)
+			e.frame[CEntity.BODY_UPPER].value = 0;
+		else if(t.ammo == CItemType.PRIMARYAMMO)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_SHOTSHOULDER_E;
+		else if(t.ammo == CItemType.SECONDARYAMMO)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_SHOTGUNSHOT_E;
+		else if(t.ammo == CItemType.TERTAMMO)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_PISTOLSHOT_E;
+		else if(p.items.get(hold).type == CItemType.BBAT)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_BATSWING_E;
+		else if(p.items.get(hold).type == CItemType.KNIFE)
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_KNIFESTAB_E;
+	}
+
+	void DoneReload(int player)
+	{
+		CPlayer p = mPlayer[player];
+		p.reload = false;
+		CHold h = p.items.get(p.equipped);
+		CItemType t = mItemType[h.type];
+		EquipFrame(p, p.equipped, t);
+	}
+
+	/*
+	#ifndef max
+	#define max(a,b) (((a) > (b)) ? (a) : (b))
+	#endif
+	#ifndef min
+	#define min(a,b) (((a) < (b)) ? (a) : (b))
+	#endif
+	*/
+
+	void Reload(int player)
+	{
+		CPlayer* p = &g_player[player];
+		CHold* h = &p->items[p->equipped];
+		CItemType* t = &g_itemType[h->type];
+	    
+		float amount = SubtractItem(p, t->ammo, MIN(t->reloadrate, t->clip - h->clip));
+		h = &p->items[p->equipped]; //item might have shifted
+		h->clip += amount;
+	    
+		if(h->clip >= t->clip || !HasAmmo(p, t->ammo))	// Done reloading?
+		{
+			if(h->type == MOSSBERG500)	// Need to cock gun?
+			{
+				CEntity* e = &g_entity[p->entity];
+				e->frame[BODY_UPPER] = ANIM_SHOTGUNCOCK_S;
+	            
+				if(t->cockSound.size() > 0)
+					t->cockSound[ rand()%t->cockSound.size() ].Play();
+			}
+			else	// Assume aiming stance
+				DoneReload(player);
+		}
+		else if(h->type == MOSSBERG500)	// Continuing to reload shotgun?
+		{
+			CEntity* e = &g_entity[p->entity];
+			e->frame[BODY_UPPER] = ANIM_SHOTGUNRELD_M;
+	        
+			if(t->reloadSound.size() > 0)
+				t->reloadSound[ rand()%t->reloadSound.size() ].Play();
+		}
+	    
+		if(p == &g_player[g_localP])
+			RedoAmmo();
 	}
 
 	void UpdatePlayers()
 	{
-	    CPlayer* p;
+	    CPlayer p;
 		float maxhp;
 		float maxstamina;
-		CHold* h;
-		CItemType* t;
-		CEntity* e;
+		CHold h;
+		CItemType t;
+		CEntity e;
 	    
 	    for(int i=0; i<PLAYERS; i++)
 	    {
-	        p = &g_player[i];
+	        p = mPlayer[i];
 	        
-	        if(!p->on)
+	        if(!p.on)
 	            continue;
 	        
-	        if(p->hp <= 0.0f)
+	        if(p.hp <= 0.0f)
 			{
 				UpdateDead(p);
 				continue;
 			}
 	        
-	        maxhp = p->MaxHP();
-	        if(p->hp < maxhp)
+	        maxhp = p.MaxHP();
+	        if(p.hp < maxhp)
 	        {
-	            p->hp += p->HPRegen() * g_FrameInterval;
-	            if(p->hp > maxhp)
-	                p->hp = maxhp;
+	            p.hp += p.HPRegen() * FRAME_INTERVAL;
+	            if(p.hp > maxhp)
+	                p.hp = maxhp;
 	            
-	            if(p == &g_player[g_localP])
-	                RedoHP();
+	            if(p == mPlayer[mLocalP])
+	                mGUI.RedoHP();
 	        }
 	        
-			maxstamina = p->MaxStamina();
-			if(p->run && !p->crouched)
+			maxstamina = p.MaxStamina();
+			if(p.run && !p.crouched)
 			{
-				p->stamina -= RUN_DSTAMINA * g_FrameInterval;
-				if(p->stamina < 0.0f)
+				p.stamina -= RUN_DSTAMINA * FRAME_INTERVAL;
+				if(p.stamina < 0.0f)
 				{
-					p->stamina = 0.0f;
-					p->run = false;
+					p.stamina = 0.0f;
+					p.run = false;
 				}
 	            
-				if(p == &g_player[g_localP])
-					RedoStamina();
+				if(p == mPlayer[mLocalP])
+					mGUI.RedoStamina();
 			}
-			else if(p->stamina < maxstamina)
+			else if(p.stamina < maxstamina)
 			{
-				p->stamina += p->StaminaRegen() * g_FrameInterval;
-				if(p->stamina > maxstamina)
-					p->stamina = maxstamina;
+				p.stamina += p.StaminaRegen() * FRAME_INTERVAL;
+				if(p.stamina > maxstamina)
+					p.stamina = maxstamina;
 	            
-				if(p == &g_player[g_localP])
-					RedoStamina();
+				if(p == mPlayer[mLocalP])
+					mGUI.RedoStamina();
 			}
 	        
-			if(p->shoot && p->equipped >= 0)
+			if(p.shoot && p.equipped >= 0)
 			{
-				h = &p->items[p->equipped];
-				t = &g_itemType[h->type];
-				e = &g_entity[p->entity];
+				h = p.items.get(p.equipped);
+				t = mItemType[h.type];
+				e = mEntity[p.entity];
 	            
-				if(h->clip >= 1.0f)
+				if(h.clip >= 1.0f)
 				{
 					Shot(i);
 				}
 				else
-					p->shoot = false;
+					p.shoot = false;
 			}
 	    }
 	}
@@ -1046,12 +1781,21 @@ public class MainActivity extends Activity
     		mModel[i] = new CModel();
     	
     	for(int i=0; i<ENTITIES; i++)
-    		mEntity[i] = new CEntity();
+    		mEntity[i] = new CEntity(this);
     	
     	mFrustum = new CFrustum();
     	
     	for(int i=0; i<SCRIPT_FUNCS; i++)
-    		mScriptFunc[i] = new CFuncPtr();
+    		mScriptFunc[i] = new CFuncPtr(this);
+    	
+    	for(int i=0; i<BILLBOARDS; i++)
+    		mBillb[i] = new CBillboard();
+    	
+    	for(int i=0; i<PARTICLES; i++)
+    		mParticle[i] = new CParticle(this);
+    	
+    	for(int i=0; i<DECALS; i++)
+    		mDecal[i] = new CDecal();
     	
     	mRenderer.mTriangle = new Triangle();
     	//mRenderer.mTriangle.mTextureDataHandle = CreateTexture("textures/texture", true);
@@ -1085,8 +1829,20 @@ public class MainActivity extends Activity
     	FreeTextures();
     }
     
+    void UpdateGameState()
+    {
+    	UpdateTicks();
+    }
+    
+    void Update()
+    {
+    	
+    }
+    
     public void Draw()
     {
+    	Update();
+    	
         // Redraw background color
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         //public static void setLookAtM(float[] rm, int rmOffset, float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
