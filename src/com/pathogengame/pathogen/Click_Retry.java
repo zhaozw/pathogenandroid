@@ -10,14 +10,14 @@ public class Click_Retry extends CFuncPtr
     @Override
     public void func()
     {
-    	CPlayer* p = &g_player[g_localP];
-        p->hp = p->MaxHP();
-        CEntity* e = &g_entity[p->entity];
-        e->frame[0] = 0;
-        e->frame[1] = 0;
+    	CPlayer p = mActivity.mPlayer[mActivity.mLocalP];
+        p.hp = p.MaxHP();
+        CEntity e = mActivity.mEntity[p.entity];
+        e.frame[0].value = 0;
+        e.frame[1].value = 0;
         
-        p->items.clear();
-        p->equipped = -1;
+        p.items.clear();
+        p.equipped = -1;
         /*
         if(p->equipped > 0)
         {
@@ -27,11 +27,10 @@ public class Click_Retry extends CFuncPtr
             //EquipFrame(p, t);
         }*/
         
-        g_arrest = false;
-        CloseView("game over");
+        mActivity.mArrest = false;
+        mActivity.mGUI.CloseView("game over");
         
-        UnloadMap();
-        Click_GoToStory c_gts = new Click_GoToStory(mActivity);
-        c_gts.func();
+        mActivity.UnloadMap();
+        new Click_GoToStory(mActivity).func();
     }
 }

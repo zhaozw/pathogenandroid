@@ -10,6 +10,6 @@ public class Script0c extends CFuncPtr
     @Override
     public void func()
     {
-    
+    	 mActivity.mGUI.Dialog("Chapter 1 - Unwelcome guest", new Script0d(mActivity));
     }
 }

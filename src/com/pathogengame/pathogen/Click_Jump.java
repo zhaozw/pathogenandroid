@@ -1,5 +1,7 @@
 package com.pathogengame.pathogen;
 
+import com.pathogengame.pathogen.MainActivity.GAMEMODE;
+
 public class Click_Jump extends CFuncPtr
 {
 	public Click_Jump(MainActivity act)
@@ -10,12 +12,12 @@ public class Click_Jump extends CFuncPtr
     @Override
     public void func()
     {
-    	if(g_mode != PLAY)
+    	if(mActivity.mMode != GAMEMODE.PLAY)
     		return;
         
-    	if(g_arrest)
+    	if(mActivity.mArrest)
     		return;
         
-    	g_player[g_localP].jump = true;
+    	mActivity.mPlayer[mActivity.mLocalP].jump = true;
     }
 }

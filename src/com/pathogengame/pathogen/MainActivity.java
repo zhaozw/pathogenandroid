@@ -15,6 +15,7 @@ import java.io.UnsupportedEncodingException;
 import android.content.res.AssetManager;
 import android.view.Menu;
 import java.io.InputStream;
+import java.nio.IntBuffer;
 import java.util.Vector;
 
 import android.view.View;
@@ -99,6 +100,7 @@ public class MainActivity extends Activity
 	Vector<CSpawn> g_zspawn = new Vector<CSpawn>(); //zombie spawn
 	
 	CFuncPtr DialogContinue = null;
+	boolean mShowDialog = true;
 	
 	int mLastEnt = -1;
 	
@@ -128,6 +130,55 @@ public class MainActivity extends Activity
 	CDecal mDecal[] = new CDecal[DECALS];
 	
 	//int rotational;
+	
+	void FreeEntities()
+	{
+		CEntity e;
+		for(int i=0; i<ENTITIES; i++)
+		{
+			e = mEntity[i];
+			e.on = false;
+		}
+	}
+
+	void FreePlayers(int ignore)
+	{
+		CPlayer p;
+		for(int i=0; i<PLAYERS; i++)
+		{
+			if(i == ignore)
+				continue;
+	        
+			p = mPlayer[i];
+			p.on = false;
+			p.items.clear();
+		}
+	}
+
+	void FreeBillboards()
+	{
+		CBillboard b;
+		for(int i=0; i<BILLBOARDS; i++)
+		{
+			b = mBillb[i];
+			b.on = false;
+		}
+	}
+	
+	void UnloadMap()
+	{
+		//g_map.Destroy(false);
+		mMap.Destroy(true);
+		FreeBillboards();
+		FreeEntities();
+		FreePlayers(mLocalP);
+		g_zspawn.clear();
+		g_spawn.clear();
+		g_sspawn.clear();		//For mobile version
+		mMap.mFuncProxy.clear();
+		mMap.mFuncMap.clear();
+	    mShowDialog = true;
+	}
 	
 	void Decal(int type, String tex, float decay, float size)
 	{
@@ -705,7 +756,7 @@ public class MainActivity extends Activity
 	    return false;
 	}
 	
-	int NewAI()
+	/*int NewAI()
 	{
 	    CPlayer p;
 	    
@@ -720,6 +771,29 @@ public class MainActivity extends Activity
 	        p.on = true;
 			p.target = -1;
 			p.stamina = 1;
+	        return i;
+	    }
+	    
+	    return -1;
+	}*/
+	
+	int NewAI(int activity)
+	{
+		CPlayer p;
+	    
+	    for(int i=0; i<PLAYERS; i++)
+	    {
+			p = mPlayer[i];
+	        
+	        if(p.on)
+	            continue;
+	        
+	        p.ai = true;
+			p.on = true;
+			p.target = -1;
+			p.stamina = 1;
+			p.activity = activity;
+	        p.hp = p.MaxHP();
 	        return i;
 	    }
 	    
@@ -1524,50 +1598,143 @@ public class MainActivity extends Activity
 		CItemType t = mItemType[h.type];
 		EquipFrame(p, p.equipped, t);
 	}
+	
+	void Equip(CPlayer p, int hold, CItemType t)
+	{
+		p.equipped = hold;
+		EquipFrame(p, hold, t);
+	    
+		if(p == mPlayer[mLocalP])
+			mGUI.RedoAmmo();
+	}
+	
+	void EquipAny(CPlayer p)
+	{
+		CHold h;
+		CItemType t;
+	    
+		for(int i=0; i<p.items.size(); i++)
+		{
+			h = p.items.get(i);
+			t = mItemType[h.type];
+	        
+			if(!t.equip)
+				continue;
+	        
+			p.equipped = i;
+			EquipFrame(p, i, t);
+			return;
+		}
+	    
+		EquipFrame(p, -1, null);
+	}
 
-	/*
-	#ifndef max
-	#define max(a,b) (((a) > (b)) ? (a) : (b))
-	#endif
-	#ifndef min
-	#define min(a,b) (((a) < (b)) ? (a) : (b))
-	#endif
-	*/
+	boolean IsAmmo(int item)
+	{
+		if(item == CItemType.PRIMARYAMMO)
+			return true;
+	    
+		if(item == CItemType.SECONDARYAMMO)
+			return true;
+	    
+		if(item == CItemType.TERTAMMO)
+			return true;
+	    
+		return false;
+	}
+	
+	float SubtractItem(CPlayer p, int item, float amount)
+	{
+		CHold h = null;
+		int i;
+	    
+		for(i=0; i<p.items.size(); i++)
+		{
+			if(p.items.get(i).type != item)
+				continue;
+	        
+			h = p.items.get(i);
+			break;
+		}
+	    
+		if(h == null)
+			return 0;
+	    
+		if(h.amount < amount)
+			amount = h.amount;
+	    
+		h.amount -= amount;
+	    
+		if(h.amount <= 0.0f)
+		{
+			p.items.remove( i );
+	        
+			if(p.equipped > i)
+				p.equipped--;
+			else if(p.equipped == i)
+				EquipAny(p);
+		}
+	    
+		if(p == mPlayer[mLocalP] && IsAmmo(item))
+			mGUI.RedoAmmo();
+	    
+		return amount;
+	}
+	
+	boolean HasAmmo(CPlayer p, int ammo)
+	{
+		CHold h;
+	    
+		for(int i=0; i<p.items.size(); i++)
+		{
+			h = p.items.get(i);
+	        
+			if(h.type != ammo)
+				continue;
+	        
+			if(h.amount < 1.0f)
+				continue;
+	        
+			return true;
+		}
+	    
+		return false;
+	}
 
 	void Reload(int player)
 	{
-		CPlayer* p = &g_player[player];
-		CHold* h = &p->items[p->equipped];
-		CItemType* t = &g_itemType[h->type];
+		CPlayer p = mPlayer[player];
+		CHold h = p.items.get(p.equipped);
+		CItemType t = mItemType[h.type];
 	    
-		float amount = SubtractItem(p, t->ammo, MIN(t->reloadrate, t->clip - h->clip));
-		h = &p->items[p->equipped]; //item might have shifted
-		h->clip += amount;
+		float amount = SubtractItem(p, t.ammo, Math.min(t.reloadrate, t.clip - h.clip));
+		h = p.items.get(p.equipped); //item might have shifted
+		h.clip += amount;
 	    
-		if(h->clip >= t->clip || !HasAmmo(p, t->ammo))	// Done reloading?
+		if(h.clip >= t.clip || !HasAmmo(p, t.ammo))	// Done reloading?
 		{
-			if(h->type == MOSSBERG500)	// Need to cock gun?
+			if(h.type == CItemType.MOSSBERG500)	// Need to cock gun?
 			{
-				CEntity* e = &g_entity[p->entity];
-				e->frame[BODY_UPPER] = ANIM_SHOTGUNCOCK_S;
+				CEntity e = mEntity[p.entity];
+				e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_SHOTGUNCOCK_S;
 	            
-				if(t->cockSound.size() > 0)
-					t->cockSound[ rand()%t->cockSound.size() ].Play();
+				if(t.cockSound.size() > 0)
+					t.cockSound.get( (int)Math.round(Math.random()*t.cockSound.size()) ).Play();
 			}
 			else	// Assume aiming stance
 				DoneReload(player);
 		}
-		else if(h->type == MOSSBERG500)	// Continuing to reload shotgun?
+		else if(h.type == CItemType.MOSSBERG500)	// Continuing to reload shotgun?
 		{
-			CEntity* e = &g_entity[p->entity];
-			e->frame[BODY_UPPER] = ANIM_SHOTGUNRELD_M;
+			CEntity e = mEntity[p.entity];
+			e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_SHOTGUNRELD_M;
 	        
-			if(t->reloadSound.size() > 0)
-				t->reloadSound[ rand()%t->reloadSound.size() ].Play();
+			if(t.reloadSound.size() > 0)
+				t.reloadSound.get( (int)Math.round(Math.random()*t.reloadSound.size()) ).Play();
 		}
 	    
-		if(p == &g_player[g_localP])
-			RedoAmmo();
+		if(p == mPlayer[mLocalP])
+			mGUI.RedoAmmo();
 	}
 
 	void UpdatePlayers()
@@ -1644,122 +1811,122 @@ public class MainActivity extends Activity
 
 	void Animate()
 	{
-	    CPlayer* p;
-	    CEntity* e;
-	    CEntityType* t;
+	    CPlayer p;
+	    CEntity e;
+	    CEntityType t;
 	    int leftright;
 	    int forwardback;
 		float animrate;
-		CHold* h;
-		CItemType* iT;
+		CHold h;
+		CItemType iT;
 	    
 	    for(int i=0; i<PLAYERS; i++)
 	    {
-	        p = &g_player[i];
-	        if(!p->on)
+	        p = mPlayer[i];
+	        if(!p.on)
 	            continue;
 	        
-	        if(p->entity < 0)
+	        if(p.entity < 0)
 	            continue;
 	        
 	        leftright = 0;
 	        forwardback = 0;
 	        
-	        e = &g_entity[p->entity];
-			t = &g_entityType[e->type];
+	        e = mEntity[p.entity];
+			t = mEntityType.get(e.type);
 	        
-	        if(p->forward)
+	        if(p.forward)
 	            forwardback ++;
-	        if(p->backward)
+	        if(p.backward)
 	            forwardback --;
-	        if(p->left)
+	        if(p.left)
 	            leftright --;
-	        if(p->right)
+	        if(p.right)
 	            leftright ++;
 	        
-			animrate = t->animrate;
+			animrate = t.animrate;
 	        
-			if(p->crouched)
+			if(p.crouched)
 				animrate /= 2.0f;
-			else if(p->run && p->stamina > 0.0f)
+			else if(p.run && p.stamina > 0.0f)
 				animrate *= 2.0f;
 	        
-			if(p->hp > 0.0f)
+			if(p.hp > 0.0f)
 			{
-				if(!p->crouched)
+				if(!p.crouched)
 				{
-					if(forwardback == 0 && leftright == 0)  PlayAnimation(e->frame[BODY_LOWER], ANIM_WALK_S, ANIM_WALK_S, true, animrate);
-					else if(forwardback > 0 && leftright == 0)  PlayAnimation(e->frame[BODY_LOWER], ANIM_WALK_S, ANIM_WALK_E, true, animrate);
-					else if(forwardback < 0 && leftright == 0)  PlayAnimationB(e->frame[BODY_LOWER], ANIM_WALK_S, ANIM_WALK_E, true, animrate);
-					else if(forwardback == 0 && leftright > 0)  PlayAnimation(e->frame[BODY_LOWER], ANIM_STRAFER_S, ANIM_STRAFER_E, true, animrate);
-					else if(forwardback == 0 && leftright < 0)  PlayAnimationB(e->frame[BODY_LOWER], ANIM_STRAFER_S, ANIM_STRAFER_E, true, animrate);
-					else if(forwardback > 0 && leftright > 0)   PlayAnimation(e->frame[BODY_LOWER], ANIM_WALKFWR_S, ANIM_WALKFWR_E, true, animrate);
-					else if(forwardback > 0 && leftright < 0)   PlayAnimation(e->frame[BODY_LOWER], ANIM_WALKFWL_S, ANIM_WALKFWL_E, true, animrate);
-					else if(forwardback < 0 && leftright > 0)   PlayAnimationB(e->frame[BODY_LOWER], ANIM_WALKFWL_S, ANIM_WALKFWL_E, true, animrate);
-					else if(forwardback < 0 && leftright < 0)   PlayAnimationB(e->frame[BODY_LOWER], ANIM_WALKFWR_S, ANIM_WALKFWR_E, true, animrate);
+					if(forwardback == 0 && leftright == 0)  CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_WALK_S, Animation.ANIM_WALK_S, true, animrate);
+					else if(forwardback > 0 && leftright == 0)  CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_WALK_S, Animation.ANIM_WALK_E, true, animrate);
+					else if(forwardback < 0 && leftright == 0)  CModel.PlayAnimationB(e.frame[CEntity.BODY_LOWER], Animation.ANIM_WALK_S, Animation.ANIM_WALK_E, true, animrate);
+					else if(forwardback == 0 && leftright > 0)  CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_STRAFER_S, Animation.ANIM_STRAFER_E, true, animrate);
+					else if(forwardback == 0 && leftright < 0)  CModel.PlayAnimationB(e.frame[CEntity.BODY_LOWER], Animation.ANIM_STRAFER_S, Animation.ANIM_STRAFER_E, true, animrate);
+					else if(forwardback > 0 && leftright > 0)   CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_WALKFWR_S, Animation.ANIM_WALKFWR_E, true, animrate);
+					else if(forwardback > 0 && leftright < 0)   CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_WALKFWL_S, Animation.ANIM_WALKFWL_E, true, animrate);
+					else if(forwardback < 0 && leftright > 0)   CModel.PlayAnimationB(e.frame[CEntity.BODY_LOWER], Animation.ANIM_WALKFWL_S, Animation.ANIM_WALKFWL_E, true, animrate);
+					else if(forwardback < 0 && leftright < 0)   CModel.PlayAnimationB(e.frame[CEntity.BODY_LOWER], Animation.ANIM_WALKFWR_S, Animation.ANIM_WALKFWR_E, true, animrate);
 				}
 				else
 				{
-					if(forwardback == 0 && leftright == 0)  PlayAnimation(e->frame[BODY_LOWER], ANIM_CWALK_S, ANIM_CWALK_S, true, animrate);
-					else if(forwardback > 0 && leftright == 0)  PlayAnimation(e->frame[BODY_LOWER], ANIM_CWALK_S, ANIM_CWALK_E, true, animrate);
-					else if(forwardback < 0 && leftright == 0)  PlayAnimationB(e->frame[BODY_LOWER], ANIM_CWALK_S, ANIM_CWALK_E, true, animrate);
-					else if(forwardback == 0 && leftright > 0)  PlayAnimation(e->frame[BODY_LOWER], ANIM_CSTRAFER_S, ANIM_CSTRAFER_E, true, animrate);
-					else if(forwardback == 0 && leftright < 0)  PlayAnimationB(e->frame[BODY_LOWER], ANIM_CSTRAFER_S, ANIM_CSTRAFER_E, true, animrate);
-					else if(forwardback > 0 && leftright > 0)   PlayAnimation(e->frame[BODY_LOWER], ANIM_CWALKFWR_S, ANIM_CWALKFWR_E, true, animrate);
-					else if(forwardback > 0 && leftright < 0)   PlayAnimation(e->frame[BODY_LOWER], ANIM_CWALKFWL_S, ANIM_CWALKFWL_E, true, animrate);
-					else if(forwardback < 0 && leftright > 0)   PlayAnimationB(e->frame[BODY_LOWER], ANIM_CWALKFWL_S, ANIM_CWALKFWL_E, true, animrate);
-					else if(forwardback < 0 && leftright < 0)   PlayAnimationB(e->frame[BODY_LOWER], ANIM_CWALKFWR_S, ANIM_CWALKFWR_E, true, animrate);
+					if(forwardback == 0 && leftright == 0)  CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CWALK_S, Animation.ANIM_CWALK_S, true, animrate);
+					else if(forwardback > 0 && leftright == 0)  CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CWALK_S, Animation.ANIM_CWALK_E, true, animrate);
+					else if(forwardback < 0 && leftright == 0)  CModel.PlayAnimationB(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CWALK_S, Animation.ANIM_CWALK_E, true, animrate);
+					else if(forwardback == 0 && leftright > 0)  CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CSTRAFER_S, Animation.ANIM_CSTRAFER_E, true, animrate);
+					else if(forwardback == 0 && leftright < 0)  CModel.PlayAnimationB(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CSTRAFER_S, Animation.ANIM_CSTRAFER_E, true, animrate);
+					else if(forwardback > 0 && leftright > 0)   CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CWALKFWR_S, Animation.ANIM_CWALKFWR_E, true, animrate);
+					else if(forwardback > 0 && leftright < 0)   CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CWALKFWL_S, Animation.ANIM_CWALKFWL_E, true, animrate);
+					else if(forwardback < 0 && leftright > 0)   CModel.PlayAnimationB(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CWALKFWL_S, Animation.ANIM_CWALKFWL_E, true, animrate);
+					else if(forwardback < 0 && leftright < 0)   CModel.PlayAnimationB(e.frame[CEntity.BODY_LOWER], Animation.ANIM_CWALKFWR_S, Animation.ANIM_CWALKFWR_E, true, animrate);
 				}
 			}
 	        
-			if(p->hp <= 0.0f)
+			if(p.hp <= 0.0f)
 			{
-				if(e->frame[BODY_UPPER] >= ANIM_UDEATHFW_S && e->frame[BODY_UPPER] <= ANIM_UDEATHFW_E)
+				if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_UDEATHFW_S && e.frame[CEntity.BODY_UPPER].value <= Animation.ANIM_UDEATHFW_E)
 				{
-					PlayAnimation(e->frame[BODY_UPPER], ANIM_UDEATHFW_S, ANIM_UDEATHFW_E, false, 1.0f);
-					PlayAnimation(e->frame[BODY_LOWER], ANIM_LDEATHFW_S, ANIM_LDEATHFW_E, false, 1.0f);
+					CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_UDEATHFW_S, Animation.ANIM_UDEATHFW_E, false, 1.0f);
+					CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_LDEATHFW_S, Animation.ANIM_LDEATHFW_E, false, 1.0f);
 				}
-				else if(e->frame[BODY_UPPER] >= ANIM_UDEATHBW_S && e->frame[BODY_UPPER] <= ANIM_UDEATHBW_E)
+				else if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_UDEATHBW_S && e.frame[CEntity.BODY_UPPER].value <= Animation.ANIM_UDEATHBW_E)
 				{
-					PlayAnimation(e->frame[BODY_UPPER], ANIM_UDEATHBW_S, ANIM_UDEATHBW_E, false, 1.0f);
-					PlayAnimation(e->frame[BODY_LOWER], ANIM_LDEATHBW_S, ANIM_LDEATHBW_E, false, 1.0f);
+					CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_UDEATHBW_S, Animation.ANIM_UDEATHBW_E, false, 1.0f);
+					CModel.PlayAnimation(e.frame[CEntity.BODY_LOWER], Animation.ANIM_LDEATHBW_S, Animation.ANIM_LDEATHBW_E, false, 1.0f);
 				}
 			}
-			else if(e->frame[BODY_UPPER] >= ANIM_ZGRASP_S && e->frame[BODY_UPPER] < ANIM_ZGRASP_E)					PlayAnimation(e->frame[BODY_UPPER], ANIM_ZGRASP_S, ANIM_ZGRASP_E, false, 1.0f);
-			else if(e->frame[BODY_UPPER] >= ANIM_SHOTSHOULDER_S && e->frame[BODY_UPPER] < ANIM_SHOTSHOULDER_E)		PlayAnimation(e->frame[BODY_UPPER], ANIM_SHOTSHOULDER_S, ANIM_SHOTSHOULDER_E, false, ANIM_SHOTSHOULDER_R);
-			else if(e->frame[BODY_UPPER] >= ANIM_PISTOLSHOT_S && e->frame[BODY_UPPER] < ANIM_PISTOLSHOT_E)			PlayAnimation(e->frame[BODY_UPPER], ANIM_PISTOLSHOT_S, ANIM_PISTOLSHOT_E, false, 1.0f);
-			else if(e->frame[BODY_UPPER] >= ANIM_SHOTGUNSHOT_S && e->frame[BODY_UPPER] < ANIM_SHOTGUNSHOT_E)		PlayAnimation(e->frame[BODY_UPPER], ANIM_SHOTGUNSHOT_S, ANIM_SHOTGUNSHOT_E, false, ANIM_SHOTGUNSHOT_R);
-			else if(e->frame[BODY_UPPER] >= ANIM_BATSWING_S && e->frame[BODY_UPPER] < ANIM_BATSWING_E)				PlayAnimation(e->frame[BODY_UPPER], ANIM_BATSWING_S, ANIM_BATSWING_E, false, 1.0f);
-			else if(e->frame[BODY_UPPER] >= ANIM_KNIFESTAB_S && e->frame[BODY_UPPER] < ANIM_KNIFESTAB_E)			PlayAnimation(e->frame[BODY_UPPER], ANIM_KNIFESTAB_S, ANIM_KNIFESTAB_E, false, 1.0f);
-			else if(p->reload)
+			else if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_ZGRASP_S && e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_ZGRASP_E)					CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_ZGRASP_S, Animation.ANIM_ZGRASP_E, false, 1.0f);
+			else if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_SHOTSHOULDER_S && e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_SHOTSHOULDER_E)		CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_SHOTSHOULDER_S, Animation.ANIM_SHOTSHOULDER_E, false, Animation.ANIM_SHOTSHOULDER_R);
+			else if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_PISTOLSHOT_S && e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_PISTOLSHOT_E)			CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_PISTOLSHOT_S, Animation.ANIM_PISTOLSHOT_E, false, 1.0f);
+			else if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_SHOTGUNSHOT_S && e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_SHOTGUNSHOT_E)		CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_SHOTGUNSHOT_S, Animation.ANIM_SHOTGUNSHOT_E, false, Animation.ANIM_SHOTGUNSHOT_R);
+			else if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_BATSWING_S && e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_BATSWING_E)				CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_BATSWING_S, Animation.ANIM_BATSWING_E, false, 1.0f);
+			else if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_KNIFESTAB_S && e.frame[CEntity.BODY_UPPER].value < Animation.ANIM_KNIFESTAB_E)			CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_KNIFESTAB_S, Animation.ANIM_KNIFESTAB_E, false, 1.0f);
+			else if(p.reload)
 			{
-				h = &p->items[p->equipped];
-				iT = &g_itemType[h->type];
+				h = p.items.get(p.equipped);
+				iT = mItemType[h.type];
 	            
-				if(iT->ammo == ITEM::PRIMARYAMMO && PlayAnimation(e->frame[BODY_UPPER], ANIM_RIFLERELOAD_S, ANIM_RIFLERELOAD_E, false, ANIM_RIFLERELOAD_R))
+				if(iT.ammo == CItemType.PRIMARYAMMO && CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_RIFLERELOAD_S, Animation.ANIM_RIFLERELOAD_E, false, Animation.ANIM_RIFLERELOAD_R))
 					Reload(i);
-				if(iT->ammo == ITEM::SECONDARYAMMO)
+				if(iT.ammo == CItemType.SECONDARYAMMO)
 				{
-					if(e->frame[BODY_UPPER] >= ANIM_SHOTGUNRELD_S && e->frame[BODY_UPPER] <= ANIM_SHOTGUNRELD_E)
+					if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_SHOTGUNRELD_S && e.frame[CEntity.BODY_UPPER].value <= Animation.ANIM_SHOTGUNRELD_E)
 					{
-						if(PlayAnimation(e->frame[BODY_UPPER], ANIM_SHOTGUNRELD_S, ANIM_SHOTGUNRELD_E, false, ANIM_SHOTGUNRELD_R))
+						if(CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_SHOTGUNRELD_S, Animation.ANIM_SHOTGUNRELD_E, false, Animation.ANIM_SHOTGUNRELD_R))
 							Reload(i);
 					}
-					else if(e->frame[BODY_UPPER] >= ANIM_SHOTGUNCOCK_S && e->frame[BODY_UPPER] <= ANIM_SHOTGUNCOCK_E)
+					else if(e.frame[CEntity.BODY_UPPER].value >= Animation.ANIM_SHOTGUNCOCK_S && e.frame[CEntity.BODY_UPPER].value <= Animation.ANIM_SHOTGUNCOCK_E)
 					{
-						if(PlayAnimation(e->frame[BODY_UPPER], ANIM_SHOTGUNCOCK_S, ANIM_SHOTGUNCOCK_E, false, ANIM_SHOTGUNRELD_R))
+						if(CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_SHOTGUNCOCK_S, Animation.ANIM_SHOTGUNCOCK_E, false, Animation.ANIM_SHOTGUNRELD_R))
 							DoneReload(i);
 					}
 				}
-				if(iT->ammo == ITEM::TERTAMMO && PlayAnimation(e->frame[BODY_UPPER], ANIM_PISTOLRLD_S, ANIM_PISTOLRLD_E, false, 1.0f))
+				if(iT.ammo == CItemType.TERTAMMO && CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_PISTOLRLD_S, Animation.ANIM_PISTOLRLD_E, false, 1.0f))
 					Reload(i);
 			}
-			else if(p->pain)
+			else if(p.pain)
 			{
-				if(PlayAnimation(e->frame[BODY_UPPER], ANIM_PAIN_S, ANIM_PAIN_E, false, 1.0f))
+				if(CModel.PlayAnimation(e.frame[CEntity.BODY_UPPER], Animation.ANIM_PAIN_S, Animation.ANIM_PAIN_E, false, 1.0f))
 				{
-					e->frame[BODY_UPPER] = 0;
-					p->pain = false;
+					e.frame[CEntity.BODY_UPPER].value = 0;
+					p.pain = false;
 				}
 			}
 	    }
@@ -1832,6 +1999,28 @@ public class MainActivity extends Activity
     void UpdateGameState()
     {
     	UpdateTicks();
+    	
+    	Unforward();
+        Unback();
+        Unleft();
+        Unright();
+        
+        for(int i=0; i<mTouch.size(); i++)
+        {
+            CGPoint* touch = &g_touch[i];
+            mGUI.touchframe(touch.x, touch.y);
+        }
+        
+        UpdateAI();
+        UpdatePlayers();
+        Animate();
+        Physics();
+        UpdateParticles();
+        UpdateDecals();
+        UpdateGUI();
+        ProjectAction();
+        UpdateObjects();
+        CheckFuncs();
     }
     
     void Update()
@@ -1847,6 +2036,7 @@ public class MainActivity extends Activity
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         //public static void setLookAtM(float[] rm, int rmOffset, float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
 
+        /*
         Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
         //Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mViewMatrix, 0);
 
@@ -1880,6 +2070,9 @@ public class MainActivity extends Activity
         //DrawShadowedText(MSGOTHIC16, 0, 0, "Hello world. My name is Denis.");
         //mGUI.DrawImage(rotational, 0, 0, mWidth, mHeight);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        */
+        
+        
     }
     
     public void Resize(int width, int height)
@@ -1893,26 +2086,62 @@ public class MainActivity extends Activity
         Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, MIN_D, MAX_D);
     }
     
+    int RandomHuman()
+    {
+    	Vector<Integer> h = new Vector<Integer>();
+    	CEntityType t;
+        
+    	for(int i=0; i<mEntityType.size(); i++)
+    	{
+    		t = mEntityType.get(i);
+            
+    		if(t.category != CEntity.HUMAN)
+    			continue;
+            
+    		h.add(new Integer(i));
+    	}
+        
+    	return h.get( (int)Math.round(Math.random()*h.size()) );
+    }
+
+    int RandomZombie()
+    {
+    	Vector<Integer> z = new Vector<Integer>();
+    	CEntityType t;
+        
+    	for(int i=0; i<mEntityType.size(); i++)
+    	{
+    		t = mEntityType.get(i);
+            
+    		if(t.category != CEntity.ZOMBIE)
+    			continue;
+            
+    		z.add(new Integer(i));
+    	}
+        
+    	return z.get( (int)Math.round(Math.random()*z.size()) );
+    }
+    
     void SpawnPlayer()
     {
-    	CPlayer* p = &g_player[g_localP];
-    	p->on = true;
-    	p->ai = false;
-    	p->stamina = 1;
-    	CSpawn spawn = g_sspawn[0];
-    	int e;
+    	CPlayer p = mPlayer[mLocalP];
+    	p.on = true;
+    	p.ai = false;
+    	p.stamina = 1;
+    	CSpawn spawn = mMap.mSSpawn.get(0);
+    	Integer e = new Integer(0);
         
-    	PlaceEntity(RandomHuman(), g_localP, -1, -1, spawn.pos, spawn.angle, &e, false, -1);
+    	PlaceEntity(RandomHuman(), mLocalP, -1, -1, spawn.pos, spawn.angle, e, false, -1);
         
-    	g_camera = &g_entity[e].camera;	
+    	mCamera = mEntity[e.intValue()].camera;	
     }
     
     void SpawnZombies()
     {
-    	for(int i=0; i<g_zspawn.size(); i++)
+    	for(int i=0; i<mMap.mZSpawn.size(); i++)
         {
-            CSpawn spawn = g_zspawn[i];
-            PlaceEntity(RandomZombie(), NewAI(spawn.activity), -1, -1, spawn.pos, spawn.angle, NULL, false, spawn.script);
+            CSpawn spawn = mMap.mZSpawn.get(i);
+            PlaceEntity(RandomZombie(), NewAI(spawn.activity), -1, -1, spawn.pos, spawn.angle, null, false, spawn.script);
         }
     }
     
@@ -2072,13 +2301,15 @@ public class MainActivity extends Activity
             //NSLog(@"Test %d", i);
             //NSLog(@"Testing texture %s / %s", filepath, [g_texture[i].filepath UTF8String]);
     		//if(g_texture[i].on && stricmp([g_texture[i].filepath UTF8String], filepath) == 0)
-            if(typed.equalsIgnoreCase(mTexture[i].filepath))
+            if(typed.equalsIgnoreCase(mTexture[i].file))
     		{
                 
                 //NSLog(@"Freeing texture %s / %s", filepath, [g_texture[i].filepath UTF8String]);
                 
     			mTexture[i].on = false;
-    			GLES20.glDeleteTextures(1, mTexture[i].tex);
+    			IntBuffer ib = IntBuffer.allocate(1);
+    			ib.put(mTexture[i].tex);
+    			GLES20.glDeleteTextures(1, ib);
     			//g_log<<"Found texture "<<filepath<<" ("<<texture<<")"<<endl;
     			return;
     		}

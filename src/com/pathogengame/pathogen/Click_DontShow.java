@@ -10,7 +10,7 @@ public class Click_DontShow extends CFuncPtr
     @Override
     public void func()
     {
-    	g_showdialog = false;
-        Click_DialogContinue();
+    	mActivity.mShowDialog = false;
+        new Click_DialogContinue(mActivity).func();
     }
 }

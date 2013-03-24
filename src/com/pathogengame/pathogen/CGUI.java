@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ByteOrder;
 
+import com.pathogengame.pathogen.MainActivity.GAMEMODE;
+
 public class CGUI 
 {
 	public Vector<CView> mView = new Vector();
@@ -146,77 +148,101 @@ public class CGUI
 		OpenSoleView("logo", 0);
 	}
 	
+	void Dialog(String msg, CFuncPtr Continue)
+	{
+	    getview("dialog").mWidget.get(1).text = msg;
+	    mActivity.DialogContinue = Continue;
+	    
+	    if(mActivity.mShowDialog)
+	    {
+	    	mActivity.mMode = GAMEMODE.MENU;
+	        OpenAnotherView("dialog", 0);
+	    }
+	    else
+	    {
+	        new CloseDialog(mActivity).func();
+	        new Click_DialogContinue(mActivity).func();
+	    }
+	}
+	
+	void ItemIcon(int tex, String msg)
+	{
+		CView v = getview("pick up");
+		CWidget w = v.mWidget.get(0);
+		w.tex = tex;
+		w.rgba[3] = 1;
+		CWidget w2 = v.mWidget.get(1);
+		w2.text = msg;
+		OpenAnotherView("pick up", 0);
+	}
+	
 	void RedoHP()
 	{
-	    CPlayer* p = &g_player[g_localP];
+	    CPlayer p = mActivity.mPlayer[mActivity.mLocalP];
 	    
-	    char msg[128];
-	    sprintf(msg, "HP: %1.1f/%1.0f", p->hp, p->MaxHP());
-	    g_GUI.getview("play")->gettext("hp")->text = msg;
+	    String msg = "HP: " + p.hp + " / " + p.MaxHP();
+	    getview("play").gettext("hp").text = msg;
 	}
 
 	void RedoStamina()
 	{
-		CPlayer* p = &g_player[g_localP];
-		char msg[128];
-		sprintf(msg, "Stamina: %1.2f / %1.0f", p->stamina, p->MaxStamina());
+		CPlayer p = mActivity.mPlayer[mActivity.mLocalP];
+		String msg = "Stamina: " + p.stamina + " / " + p.MaxStamina();
 		//sprintf(msg, "Yaw: %f", g_entity[p->entity].camera.Yaw());
-		g_GUI.getview("play")->gettext("stamina")->text = msg;
+		getview("play").gettext("stamina").text = msg;
 	}
 
 	void RedoScore()
 	{
-		CPlayer* p = &g_player[g_localP];
-		char msg[128];
-		sprintf(msg, "Score: %d", g_score);
-		g_GUI.getview("play")->gettext("score")->text = msg;
+		CPlayer p = mActivity.mPlayer[mActivity.mLocalP];
+		String msg = "Score: " + mActivity.mScore;
+		getview("play").gettext("score").text = msg;
 	}
 
 	void RedoAmmo()
 	{
-		CPlayer* p = &g_player[g_localP];
+		CPlayer p = mActivity.mPlayer[mActivity.mLocalP];
 	    
 	    CloseView("shoot");
 	    CloseView("swing");
 	    CloseView("stab");
 	    CloseView("reload");
 	    
-		if(p->equipped < 0)
+		if(p.equipped < 0)
 		{
-			g_GUI.getview("play")->gettext("ammo")->text = "";
+			getview("play").gettext("ammo").text = "";
 			return;
 		}
 	    
-		CHold* h = &p->items[p->equipped];
-		CItemType* t = &g_itemType[h->type];
+		CHold h = p.items.get(p.equipped);
+		CItemType t = mActivity.mItemType[h.type];
 	    
-		if(!IsAmmo(t->ammo))
+		if(!mActivity.IsAmmo(t.ammo))
 		{
-	        if(h->type == ITEM::BBAT)
-	            OpenAnotherView("swing");
-	        else if(h->type == ITEM::KNIFE)
-	            OpenAnotherView("stab");
+	        if(h.type == CItemType.BBAT)
+	            OpenAnotherView("swing", 0);
+	        else if(h.type == CItemType.KNIFE)
+	            OpenAnotherView("stab", 0);
 	        
-			g_GUI.getview("play")->gettext("ammo")->text = "";
+			getview("play").gettext("ammo").text = "";
 			return;
 		}
 	    
-		int clip = h->clip;
+		int clip = (int)h.clip;
 		int ammo = 0;
 	    
-		for(int i=0; i<p->items.size(); i++)
+		for(int i=0; i<p.items.size(); i++)
 		{
-			h = &p->items[i];
+			h = p.items.get(i);
 	        
-			if(h->type == t->ammo)
-				ammo += h->amount;
+			if(h.type == t.ammo)
+				ammo += h.amount;
 		}
 	    
-		char msg[128];
-		sprintf(msg, "Ammo: %d / %d", clip, ammo);
-		g_GUI.getview("play")->gettext("ammo")->text = msg;
-	    OpenAnotherView("shoot");
-	    OpenAnotherView("reload");
+		String msg = "Ammo: " + clip + " / " + ammo;
+		getview("play").gettext("ammo").text = msg;
+	    OpenAnotherView("shoot", 0);
+	    OpenAnotherView("reload", 0);
 	}
 	
 	public CView getview(String n)

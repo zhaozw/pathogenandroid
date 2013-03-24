@@ -10,6 +10,8 @@ public class Script3b extends CFuncPtr
     @Override
     public void func()
     {
-    
+    	mActivity.mGUI.Dialog("My path through the streets "+
+    	           "will be long. The main thing was to find at least any signs of life and survive.", new CloseDialog(mActivity));
+
     }
 }

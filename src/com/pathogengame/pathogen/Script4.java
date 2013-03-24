@@ -10,6 +10,7 @@ public class Script4 extends CFuncPtr
     @Override
     public void func()
     {
-    
+    	 mActivity.mGUI.Dialog("I had found a shotgun in the other backyard.", new CloseDialog(mActivity));
+
     }
 }

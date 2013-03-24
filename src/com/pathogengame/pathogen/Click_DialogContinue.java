@@ -10,7 +10,7 @@ public class Click_DialogContinue extends CFuncPtr
     @Override
     public void func()
     {
-    	if(DialogContinue != null)
-            DialogContinue.func();
+    	if(mActivity.DialogContinue != null)
+    		mActivity.DialogContinue.func();
     }
 }

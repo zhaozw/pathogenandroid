@@ -531,4 +531,28 @@ public class CModel
         
         return false;
     }
+    
+    //Play animation backwards
+    static boolean PlayAnimationB(CFloat frame, int first, int last, boolean loop, float rate)
+    {
+        if(frame.value < first || frame.value > last)
+        {
+            frame.value = last;
+            return false;
+        }
+        
+        frame.value -= rate;
+        
+        if(frame.value < first)
+        {
+            if(loop)
+                frame.value = last;
+    		else
+    			frame.value = first;
+            
+            return true;
+        }
+        
+        return false;
+    }
 }

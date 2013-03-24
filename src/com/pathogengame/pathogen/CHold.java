@@ -6,6 +6,10 @@ public class CHold
 	float amount;
 	float clip;
     
+	CHold()
+	{	
+	}
+	
 	CHold(int t, float a, float c)
 	{
 		type = t;

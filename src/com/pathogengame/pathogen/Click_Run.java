@@ -1,5 +1,7 @@
 package com.pathogengame.pathogen;
 
+import com.pathogengame.pathogen.MainActivity.GAMEMODE;
+
 public class Click_Run extends CFuncPtr
 {
 	public Click_Run(MainActivity act)
@@ -10,15 +12,15 @@ public class Click_Run extends CFuncPtr
     @Override
     public void func()
     {
-    	if(g_mode != PLAY)
+    	if(mActivity.mMode != GAMEMODE.PLAY)
     		return;
         
-    	if(g_arrest)
+    	if(mActivity.mArrest)
     		return;
         
-    	if(g_player[g_localP].crouched)
+    	if(mActivity.mPlayer[mActivity.mLocalP].crouched)
     		return;
         
-    	g_player[g_localP].run = !g_player[g_localP].run;
+    	mActivity.mPlayer[mActivity.mLocalP].run = !mActivity.mPlayer[mActivity.mLocalP].run;
     }
 }

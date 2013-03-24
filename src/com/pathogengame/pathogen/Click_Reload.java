@@ -1,5 +1,7 @@
 package com.pathogengame.pathogen;
 
+import com.pathogengame.pathogen.MainActivity.GAMEMODE;
+
 public class Click_Reload extends CFuncPtr
 {
 	public Click_Reload(MainActivity act)
@@ -10,38 +12,38 @@ public class Click_Reload extends CFuncPtr
     @Override
     public void func()
     {
-    	if(g_mode != PLAY)
+    	if(mActivity.mMode != GAMEMODE.PLAY)
     		return;
         
-    	if(g_arrest)
+    	if(mActivity.mArrest)
     		return;
         
-    	CPlayer* p = &g_player[g_localP];
+    	CPlayer p = mActivity.mPlayer[mActivity.mLocalP];
         
-    	if(p->equipped < 0)
+    	if(p.equipped < 0)
     		return;
         
-    	CHold* h = &p->items[p->equipped];
-    	CItemType* t = &g_itemType[h->type];
+    	CHold h = p.items.get(p.equipped);
+    	CItemType t = mActivity.mItemType[h.type];
         
-    	if(h->clip >= t->clip)
+    	if(h.clip >= t.clip)
     		return;
         
-    	if(!HasAmmo(p, t->ammo))
+    	if(!mActivity.HasAmmo(p, t.ammo))
     		return;
         
-    	p->reload = true;
+    	p.reload = true;
         
-    	CEntity* e = &g_entity[p->entity];
+    	CEntity e = mActivity.mEntity[p.entity];
         
-    	if(t->ammo == ITEM::PRIMARYAMMO)
-    		e->frame[BODY_UPPER] = ANIM_RIFLERELOAD_S;
-    	if(t->ammo == ITEM::SECONDARYAMMO)
-    		e->frame[BODY_UPPER] = ANIM_SHOTGUNRELD_S;
-    	if(t->ammo == ITEM::TERTAMMO)
-    		e->frame[BODY_UPPER] = ANIM_PISTOLRLD_S;
+    	if(t.ammo == CItemType.PRIMARYAMMO)
+    		e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_RIFLERELOAD_S;
+    	if(t.ammo == CItemType.SECONDARYAMMO)
+    		e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_SHOTGUNRELD_S;
+    	if(t.ammo == CItemType.TERTAMMO)
+    		e.frame[CEntity.BODY_UPPER].value = Animation.ANIM_PISTOLRLD_S;
         
-    	if(t->reloadSound.size() > 0)
-    		t->reloadSound[ rand()%t->reloadSound.size() ].Play();
+    	if(t.reloadSound.size() > 0)
+    		t.reloadSound.get( (int)Math.round(Math.random()*t.reloadSound.size()) ).Play();
     }
 }

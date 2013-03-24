@@ -6,6 +6,8 @@ import java.nio.IntBuffer;
 import java.util.Vector;
 
 import android.opengl.GLES20;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -577,7 +579,7 @@ public class CQuake3BSP
     		if(m_pFaces[faceIndex].type != FACE_POLYGON) continue;
     		if(!m_transparent[m_pFaces[faceIndex].textureID]) continue;
             
-    		CSortFace sortFace;
+    		CSortFace sortFace = new CSortFace();
     		sortFace.faceIndex = faceIndex;
     		CVector3 vPos = new CVector3(0, 0, 0);
             
@@ -891,7 +893,13 @@ public class CQuake3BSP
     		entities += (char)entb[i];
     	}
     	
-    	iS.close();
+    	try 
+    	{
+			iS.close();
+		} catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
         
     	ReadEntities(entities);
         
@@ -2609,9 +2617,9 @@ public class CQuake3BSP
 				int coli = -1;
 		        
 				if(!collider.equalsIgnoreCase(""))
-					coli = LoadModel(collider, new CVector3(1,1,1));
+					coli = mActivity.LoadModel(collider, new CVector3(1,1,1));
 		        
-				eid = Entity(CEntity.FIXEDENT, model.c_str(), 1, coli);
+				eid = mActivity.Entity(CEntity.FIXEDENT, model, 1, coli);
 			}
 		    
 			mActivity.PlaceEntity(eid, -1, -1, -1, pos, ang, null, nolvol, scrpt);
@@ -2874,7 +2882,7 @@ public class CQuake3BSP
     	GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         
         //GLKMatrix4 modelmat = GLKMatrix4MakeTranslation(pos.x, pos.y, pos.z);
-    	CMatrix modelmat;
+    	CMatrix modelmat = new CMatrix();
     	modelmat.setTranslation(pos);
     	CShader s = mActivity.mShader[CShader.SKY];
     	FloatBuffer fb = FloatBuffer.allocate( 16 );

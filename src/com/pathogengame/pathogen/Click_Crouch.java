@@ -1,5 +1,7 @@
 package com.pathogengame.pathogen;
 
+import com.pathogengame.pathogen.MainActivity.GAMEMODE;
+
 public class Click_Crouch extends CFuncPtr
 {
 	public Click_Crouch(MainActivity act)
@@ -10,12 +12,12 @@ public class Click_Crouch extends CFuncPtr
     @Override
     public void func()
     {
-    	if(g_mode != PLAY)
+    	if(mActivity.mMode != GAMEMODE.PLAY)
     		return;
         
-    	if(g_arrest)
+    	if(mActivity.mArrest)
     		return;
         
-    	g_player[g_localP].crouching =! g_player[g_localP].crouching;
+    	mActivity.mPlayer[mActivity.mLocalP].crouching =! mActivity.mPlayer[mActivity.mLocalP].crouching;
     }
 }

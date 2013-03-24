@@ -1,5 +1,7 @@
 package com.pathogengame.pathogen;
 
+import com.pathogengame.pathogen.MainActivity.GAMEMODE;
+
 public class Click_EquipNext extends CFuncPtr
 {
 	public Click_EquipNext(MainActivity act)
@@ -10,43 +12,43 @@ public class Click_EquipNext extends CFuncPtr
     @Override
     public void func()
     {
-    	if(g_mode != PLAY)
+    	if(mActivity.mMode != GAMEMODE.PLAY)
     		return;
         
-    	if(g_arrest)
+    	if(mActivity.mArrest)
     		return;
         
-    	CPlayer* p = &g_player[g_localP];
+    	CPlayer p = mActivity.mPlayer[mActivity.mLocalP];
         
-    	if(p->reload)
+    	if(p.reload)
     		return;
         
-    	CHold* h;
-    	CItemType* t;
+    	CHold h;
+    	CItemType t;
         
-    	for(int i=p->equipped+1; i<p->items.size(); i++)
+    	for(int i=p.equipped+1; i<p.items.size(); i++)
     	{
-    		h = &p->items[i];
-    		t = &g_itemType[h->type];
+    		h = p.items.get(i);
+    		t = mActivity.mItemType[h.type];
             
-    		if(!t->equip)
+    		if(!t.equip)
     			continue;
             
-    		Equip(p, i, t);
-    		ItemIcon(t->icon, "");
+    		mActivity.Equip(p, i, t);
+    		mActivity.mGUI.ItemIcon(t.icon, "");
     		return;
     	}
         
-    	for(int i=0; i<p->equipped; i++)
+    	for(int i=0; i<p.equipped; i++)
     	{
-    		h = &p->items[i];
-    		t = &g_itemType[h->type];
+    		h = p.items.get(i);
+    		t = mActivity.mItemType[h.type];
             
-    		if(!t->equip)
+    		if(!t.equip)
     			continue;
             
-    		Equip(p, i, t);
-    		ItemIcon(t->icon, "");
+    		mActivity.Equip(p, i, t);
+    		mActivity.mGUI.ItemIcon(t.icon, "");
     		return;
     	}
     }

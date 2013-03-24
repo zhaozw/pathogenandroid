@@ -10,6 +10,7 @@ public class Script8 extends CFuncPtr
     @Override
     public void func()
     {
-    
+    	mActivity.mGUI.Dialog("Walking up to the car I heard a voice and decided to answer. \"Who is this?\" I asked.", new Script8a(mActivity));
+
     }
 }

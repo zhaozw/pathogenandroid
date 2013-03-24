@@ -32,10 +32,10 @@ public class Click_Shoot extends CFuncPtr
     	//if(t->ammo == ITEM::NOAMMO)
     	//	return;
         
-    	if(t->damage == 0.0f)
+    	if(t.damage == 0.0f)
     		return;
         
-    	if(t->ammo != ITEM::NOAMMO && h->clip < 1.0f)
+    	if(t.ammo != CItemType.NOAMMO && h.clip < 1.0f)
     	{
     		//if(t->dryFireSound.size() > 0)
     		//	t->dryFireSound[ rand()%t->dryFireSound.size() ].Play();
@@ -43,15 +43,15 @@ public class Click_Shoot extends CFuncPtr
     		return;
     	}
         
-    	if(t->delay > 0 && GetTickCount() - p->last < t->delay)
+    	if(t.delay > 0 && mActivity.GetTickCount() - p.last < t.delay)
     		return;
         
-    	if(t->ammo == ITEM::PRIMARYAMMO)
-    		p->shoot = true;
+    	if(t.ammo == CItemType.PRIMARYAMMO)
+    		p.shoot = true;
     	else //if(t->ammo == ITEM::SECONDARYAMMO)
     	{
-    		p->shoot = false;
-    		Shot(g_localP);
+    		p.shoot = false;
+    		mActivity.Shot(mActivity.mLocalP);
     	}
     }
 }

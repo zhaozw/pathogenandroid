@@ -10,6 +10,9 @@ public class Script8a extends CFuncPtr
     @Override
     public void func()
     {
-    
+    	 mActivity.mStaticSound.Play();
+    	    
+    	 mActivity.mGUI.Dialog("TO BE CONTINUED.", new Script8b(mActivity));
+
     }
 }

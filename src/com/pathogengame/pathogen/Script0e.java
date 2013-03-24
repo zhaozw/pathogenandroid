@@ -10,6 +10,9 @@ public class Script0e extends CFuncPtr
     @Override
     public void func()
     {
-    
+    	mActivity.mDoorKnock.Play();
+        
+    	mActivity.mGUI.Dialog("Oh my god, who could have decided to to pour into my home at 4 in the MORNING! I need to see who it is.", new CloseDialog(mActivity));
+
     }
 }
