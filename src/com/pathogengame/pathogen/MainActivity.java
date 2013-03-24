@@ -51,7 +51,7 @@ public class MainActivity extends Activity
 	enum VIEWMODE{FIRSTPERSON, THIRDPERSON};
 	VIEWMODE mViewMode = VIEWMODE.THIRDPERSON;
 	
-    private MyGLSurfaceView mGLView;
+    MyGLSurfaceView mGLView;
     public MyGL20Renderer mRenderer;
     public CShader mShader[] = new CShader[ CShader.SHADERS ];
     public CFont mFont[] = new CFont[ CFont.FONTS ];
@@ -993,7 +993,7 @@ public class MainActivity extends Activity
 	    if(i < 0)
 	        return -1;
 	    
-	    mModel[i].Load(raw, scale, this);
+	    mModel[i].Load(raw, scale);
 	    
 	    return i;
 	}
@@ -2065,7 +2065,16 @@ public class MainActivity extends Activity
 	
 	void Keymap()
 	{
-	    mGUI.AssignLButton(new LDown(this), new LUp(this));
+	    mGUI.assignLButton(new LDown(this), new LUp(this));
+	}
+	
+	void LoadSounds()
+	{
+		mZDeathSnd.add(new CSound(this, "creature_snarl1"));
+		mZGraspSnd.add(new CSound(this, "creature_snarl2"));
+		//g_zpainSnd.push_back(CSound("sounds/zpain.wav"));
+	    mDoorKnock = new CSound(this, "doorknock");
+	    mStaticSound = new CSound(this, "static");
 	}
 	
     public void Init()
@@ -2074,7 +2083,7 @@ public class MainActivity extends Activity
     		mTexture[i] = new CTexture();
     	
     	for(int i=0; i<MODELS; i++)
-    		mModel[i] = new CModel();
+    		mModel[i] = new CModel(this);
     	
     	for(int i=0; i<ENTITIES; i++)
     		mEntity[i] = new CEntity(this);
@@ -2143,7 +2152,29 @@ public class MainActivity extends Activity
     
     public void Deinit()
     {
-    	FreeTextures();
+    	//ClearPackets();
+        mMap.Destroy(true);
+        
+        for(int i=0; i<MODELS; i++)
+        {
+            if(!mModel[i].on)
+                continue;
+            
+            mModel[i].Free();
+        }
+        
+        FreeTextures();
+        
+        for(int i=0; i<CShader.SHADERS; i++)
+        {
+            if (mShader[i].mProgram == 0)
+                continue;
+            
+            GLES20.glDeleteProgram(mShader[i].mProgram);
+            mShader[i].mProgram = 0;
+        }
+        
+        System.gc();
     }
     
     void Forward()
@@ -2949,6 +2980,165 @@ public class MainActivity extends Activity
     	//ResendPackets();
     }
     
+    void DrawEntities(boolean transp)
+    {
+        CEntity e;
+        CEntityType t;
+        CCamera c;
+        CModel m;
+        CVector3 bounds[] = new CVector3[2];
+        
+    	int localE = mPlayer[mLocalP].entity;
+    	CPlayer p = new CPlayer();
+    	CHold h;
+    	int item;
+    	CItemType iT;
+    	CModel iM;
+        
+        float precolor[] = {1,1,1,1};
+        
+        if(mReddening > 0.0f)
+        {
+    		precolor[1] = 1.0f - mReddening;
+    		precolor[2] = 1.0f - mReddening;
+    	}
+        
+    	float colorf[] = {1, 1, 1, 1};
+    	CVector3 colorv;
+        
+    	boolean foundt;	// found transparency?
+        
+        for(int i=0; i<ENTITIES; i++)
+        {
+            e = mEntity[i];
+            if(!e.on)
+                continue;
+            
+            c = e.camera;
+            t = mEntityType.get(e.type);
+            
+    		if(e.controller >= 0)
+    			p = mPlayer[e.controller];
+            
+            if(i == localE && mViewMode == VIEWMODE.FIRSTPERSON)
+                continue;
+            
+    		foundt = false;
+            
+    		if(t.model[CEntity.BODY_LOWER] >= 0)
+    		{
+    			m = mModel[t.model[CEntity.BODY_LOWER]];
+    			if(m.transp)
+    				foundt = true;
+    		}
+            
+            if(t.model[CEntity.BODY_UPPER] >= 0)
+            {
+                m = mModel[t.model[CEntity.BODY_UPPER]];
+    			if(m.transp)
+    				foundt = true;
+    		}
+            
+    		if(foundt != transp)
+    			continue;
+            
+            if(e.nolightvol)
+    			colorv = new CVector3(1, 1, 1);
+    		else
+    			colorv = mMap.LightVol(Math3D.Add(c.Position(), t.vCenterOff));
+            
+    		colorf[0] = colorv.x;
+    		colorf[1] = precolor[1] * colorv.y;
+    		colorf[2] = precolor[2] * colorv.z;
+            
+            GLES20.glUniform4f(mShader[CShader.MODEL].slot[CShader.COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+            
+            bounds[0] = Math3D.Add(c.Position(), t.vMin);
+            bounds[1] = Math3D.Add(c.Position(), t.vMax);
+            
+    		if(!mFrustum.BoxInFrustum(bounds[0].x, bounds[0].y, bounds[0].z, bounds[1].x, bounds[1].y, bounds[1].z))
+    			continue;
+            
+            if(t.model[CEntity.BODY_LOWER] >= 0)
+            {
+                m = mModel[t.model[CEntity.BODY_LOWER]];
+                m.Draw((int)e.frame[CEntity.BODY_LOWER].value, c.Position(), 0, c.Yaw());
+            }
+            if(t.model[CEntity.BODY_UPPER] >= 0)
+            {
+                m = mModel[t.model[CEntity.BODY_UPPER]];
+                m.Draw2((int)e.frame[CEntity.BODY_UPPER].value, c.Position(), -c.Pitch(), c.Yaw());
+            }
+            
+    		if(e.controller >= 0 && p.equipped >= 0)
+    		{
+    			h = p.items.get(p.equipped);
+    			item = h.type;
+    			iT = mItemType[item];
+    			iM = mModel[iT.model];
+    			iM.Draw2((int)e.frame[CEntity.BODY_UPPER].value, c.Position(), -c.Pitch(), c.Yaw());
+    		}
+        }
+        
+        GLES20.glUniform4f(mShader[CShader.MODEL].slot[CShader.COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
+    }
+
+    void DrawHands()
+    {
+    	if(mViewMode == VIEWMODE.THIRDPERSON)
+    		return;
+        
+    	GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
+        
+        CEntity e;
+        CEntityType t;
+        CCamera c;
+        CModel m;
+        CVector3 bounds[] = new CVector3[2];
+        
+    	CPlayer p = mPlayer[mLocalP];
+    	CHold h;
+    	int item;
+    	CItemType iT;
+    	CModel iM;
+        
+    	float precolor[] = {1,1,1,1};
+        
+        if(mReddening > 0.0f)
+        {
+    		precolor[1] = 1.0f - mReddening;
+    		precolor[2] = 1.0f - mReddening;
+    	}
+        
+    	float colorf[] = {1, 1, 1, 1};
+    	CVector3 colorv;
+        
+    	int i = p.entity;
+        
+    	e = mEntity[i];
+        c = e.camera;
+        t = mEntityType.get(e.type);
+        
+    	colorv = mMap.LightVol(Math3D.Add(c.Position(), t.vCenterOff));
+    	colorf[0] = colorv.x;
+    	colorf[1] = precolor[1] * colorv.y;
+    	colorf[2] = precolor[2] * colorv.z;
+        GLES20.glUniform4f(mShader[CShader.MODEL].slot[CShader.COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+        
+        m = mModel[t.model[CEntity.BODY_UPPER]];
+        m.Draw((int)e.frame[CEntity.BODY_UPPER].value, c.Position(), -c.Pitch(), c.Yaw());
+        //m->Draw(e->frame[BODY_UPPER], c->Position(), -c->Pitch(), 0);
+        
+    	if(p.equipped < 0)
+    		return;
+        
+    	h = p.items.get(p.equipped);
+    	item = h.type;
+    	iT = mItemType[item];
+    	iM = mModel[iT.model];
+    	iM.Draw((int)e.frame[CEntity.BODY_UPPER].value, c.Position(), -c.Pitch(), c.Yaw());
+    }
+
     public void Draw()
     {
     	Update();
@@ -2993,128 +3183,133 @@ public class MainActivity extends Activity
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         */
         
-        if(g_mode == PLAY)
+        if(mMode == GAMEMODE.PLAY)
         {
-            float aspect = fabsf(g_width / g_height);
-            GLKMatrix4 projection = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(g_fov), aspect, g_near, g_far);
+            float aspect = Math.abs((float)mWidth / (float)mHeight);
+
+    		CMatrix projection = Math3D.BuildPerspProjMat(mFOV, aspect, mNear, mFar);
+            //GLKMatrix4 projection = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(g_fov), aspect, g_near, g_far);
             
-            GLKMatrix4 modelmat = GLKMatrix4MakeTranslation(0.0f, 0.0f, 0.0f);
+            //GLKMatrix4 modelmat = GLKMatrix4MakeTranslation(0.0f, 0.0f, 0.0f);
             
-            CVector3 viewvec = g_camera->View();
-            CVector3 posvec = g_camera->Position();
-            CVector3 posvec2 = g_camera->LookPos();
-            CVector3 upvec = g_camera->UpVector();
-            
-            CMatrix viewmat = gluLookAt(posvec2.x, posvec2.y, posvec2.z,
+            CVector3 viewvec = mCamera.View();
+            CVector3 posvec = mCamera.Position();
+            CVector3 posvec2 = mCamera.LookPos(this);
+            CVector3 upvec = mCamera.UpVector();
+
+            CMatrix viewmat = Math3D.gluLookAt2(posvec2.x, posvec2.y, posvec2.z,
                                         viewvec.x, viewvec.y, viewvec.z,
                                         upvec.x, upvec.y, upvec.z);
             
-            CMatrix modelview;
-            modelview.set(modelmat.m);
+            CMatrix modelmat = new CMatrix();
+    		float translation[] = {0, 0, 0};
+    		modelmat.setTranslation(translation);
+            CMatrix modelview = new CMatrix();
+            modelview.set(modelmat.getMatrix());
             modelview.postMultiply(viewmat);
             
-            g_frustum.CalculateFrustum(projection.m, modelview.getMatrix());
+            mFrustum.CalculateFrustum(projection.getMatrix(), modelview.getMatrix());
             
             float color[] = {1,1,1,1};
             
-            if(g_reddening > 0.0f)
+            if(mReddening > 0.0f)
             {
-                color[1] = 1.0f - g_reddening;
-                color[2] = 1.0f - g_reddening;
+                color[1] = 1.0f - mReddening;
+                color[2] = 1.0f - mReddening;
                 
-                g_reddening -= g_FrameInterval;
+                mReddening -= FRAME_INTERVAL;
             }
             
-            glUseProgram(g_program[SKY]);
-            glUniformMatrix4fv(g_slots[SKY][PROJECTION], 1, 0, projection.m);
+            GLES20.glUseProgram(mShader[CShader.SKY].mProgram);
+            GLES20.glUniformMatrix4fv(mShader[CShader.SKY].slot[CShader.PROJMAT], 1, false, projection.getMatrix(), 0);
             //glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.m);
-            glUniformMatrix4fv(g_slots[SKY][VIEWMAT], 1, 0, viewmat.getMatrix());
-            glUniform4f(g_slots[SKY][COLOR], color[0], color[1], color[2], color[3]);
-            glEnableVertexAttribArray(g_slots[SKY][POSITION]);
-            glEnableVertexAttribArray(g_slots[SKY][TEXCOORD]);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.SKY].slot[CShader.VIEWMAT], 1, false, viewmat.getMatrix(), 0);
+            GLES20.glUniform4f(mShader[CShader.SKY].slot[CShader.COLOR], color[0], color[1], color[2], color[3]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.SKY].slot[CShader.POSITION]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.SKY].slot[CShader.TEXCOORD]);
+            GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+            GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
             //g_map.RenderSky();
-            DrawSkyBox(posvec2);
+            mMap.DrawSkyBox(posvec2);
             
-            glUseProgram(g_program[MAP]);
-            glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.m);
-            glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.m);
-            glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
-            glUniform4f(g_slots[MAP][COLOR], color[0], color[1], color[2], color[3]);
-            glEnableVertexAttribArray(g_slots[MAP][POSITION]);
-            glEnableVertexAttribArray(g_slots[MAP][TEXCOORD]);
-            glEnableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
-            g_map.RenderLevel(posvec);
+            GLES20.glUseProgram(mShader[CShader.MAP].mProgram);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MAP].slot[CShader.PROJMAT], 1, false, projection.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MAP].slot[CShader.MODELMAT], 1, false, modelmat.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MAP].slot[CShader.VIEWMAT], 1, false, viewmat.getMatrix(), 0);
+            GLES20.glUniform4f(mShader[CShader.MAP].slot[CShader.COLOR], color[0], color[1], color[2], color[3]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MAP].slot[CShader.POSITION]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MAP].slot[CShader.TEXCOORD]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MAP].slot[CShader.TEXCOORD2]);
+            mMap.RenderLevel(posvec);
             
-            glUseProgram(g_program[MODEL]);
-            glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
-            //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
-            glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
-            glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
-            glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-            glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
-            SortEntities();
+            GLES20.glUseProgram(mShader[CShader.MODEL].mProgram);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MODEL].slot[CShader.PROJMAT], 1, false, projection.getMatrix(), 0);
+            //glUniformMatrix4fv(mShader[CShader.MODEL].slot[CShader.MODELMAT], 1, false, modelmat.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MODEL].slot[CShader.VIEWMAT], 1, false, viewmat.getMatrix(), 0);
+            GLES20.glUniform4f(mShader[CShader.MODEL].slot[CShader.COLOR], color[0], color[1], color[2], color[3]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MODEL].slot[CShader.POSITION]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MODEL].slot[CShader.TEXCOORD]);
+            //SortEntities();
             DrawEntities(false);
             DrawEntities(true);
             
-            glUseProgram(g_program[MAP]);
-            glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.m);
-            glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.m);
-            glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
-            glUniform4f(g_slots[MAP][COLOR], color[0], color[1], color[2], color[3]);
-            glEnableVertexAttribArray(g_slots[MAP][POSITION]);
-            glEnableVertexAttribArray(g_slots[MAP][TEXCOORD]);
-            glEnableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
-            g_map.SortFaces(posvec);
-            g_map.RenderLevel2(posvec);
+            GLES20.glUseProgram(mShader[CShader.MAP].mProgram);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MAP].slot[CShader.PROJMAT], 1, false, projection.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MAP].slot[CShader.MODELMAT], 1, false, modelmat.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MAP].slot[CShader.VIEWMAT], 1, false, viewmat.getMatrix(), 0);
+            GLES20.glUniform4f(mShader[CShader.MAP].slot[CShader.COLOR], color[0], color[1], color[2], color[3]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MAP].slot[CShader.POSITION]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MAP].slot[CShader.TEXCOORD]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MAP].slot[CShader.TEXCOORD2]);
+            mMap.SortFaces(posvec);
+            mMap.RenderLevel2(posvec);
             
-            glUseProgram(g_program[MODEL]);
-            glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
-            glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
-            glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
-            //glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
-            glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-            glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            GLES20.glUseProgram(mShader[CShader.MODEL].mProgram);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MODEL].slot[CShader.PROJMAT], 1, false, projection.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MODEL].slot[CShader.MODELMAT], 1, false, modelmat.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MODEL].slot[CShader.VIEWMAT], 1, false, viewmat.getMatrix(), 0);
+            //GLES20.glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MODEL].slot[CShader.POSITION]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MODEL].slot[CShader.TEXCOORD]);
+            GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+            GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
             DrawDecals();
             
-            glUseProgram(g_program[BILLBOARD]);
-            glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.m);
-            glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.m);
-            glUniformMatrix4fv(g_slots[BILLBOARD][VIEWMAT], 1, 0, viewmat.getMatrix());
-            //glUniform3f(g_slots[BILLBOARD][CAMERAPOS], posvec.x, posvec.y, posvec.z);
-            glUniform4f(g_slots[BILLBOARD][COLOR], color[0], color[1], color[2], color[3]);
-            glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
-            glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            GLES20.glUseProgram(mShader[CShader.BILLBOARD].mProgram);
+            GLES20.glUniformMatrix4fv(mShader[CShader.BILLBOARD].slot[CShader.PROJMAT], 1, false, projection.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.BILLBOARD].slot[CShader.MODELMAT], 1, false, modelmat.getMatrix(), 0);
+            GLES20.glUniformMatrix4fv(mShader[CShader.BILLBOARD].slot[CShader.VIEWMAT], 1, false, viewmat.getMatrix(), 0);
+            //GLES20.glUniform3f(mShader[CShader.BILLBOARD].slot[CShader.CAMERAPOS], posvec.x, posvec.y, posvec.z);
+            GLES20.glUniform4f(mShader[CShader.BILLBOARD].slot[CShader.COLOR], color[0], color[1], color[2], color[3]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.BILLBOARD].slot[CShader.POSITION]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.BILLBOARD].slot[CShader.TEXCOORD]);
+            GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+            GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
             SortBillboards();
             DrawBillboards();
             
-            glUseProgram(g_program[MODEL]);
-            glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
-            //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
-            glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
-            glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
-            glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-            glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+            GLES20.glUseProgram(mShader[CShader.MODEL].mProgram);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MODEL].slot[CShader.PROJMAT], 1, false, projection.getMatrix(), 0);
+            //GLES20.glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
+            GLES20.glUniformMatrix4fv(mShader[CShader.MODEL].slot[CShader.VIEWMAT], 1, false, viewmat.getMatrix(), 0);
+            GLES20.glUniform4f(mShader[CShader.MODEL].slot[CShader.COLOR], color[0], color[1], color[2], color[3]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MODEL].slot[CShader.POSITION]);
+            GLES20.glEnableVertexAttribArray(mShader[CShader.MODEL].slot[CShader.TEXCOORD]);
             DrawHands();
         }
         
-        glDisable(GL_DEPTH_TEST);
-        glUseProgram(g_program[ORTHO]);
-        glUniform1f(g_slots[ORTHO][WIDTH], (float)g_width);
-        glUniform1f(g_slots[ORTHO][HEIGHT], (float)g_height);
-        glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
-        glEnableVertexAttribArray(g_slots[ORTHO][POSITION]);
-        glEnableVertexAttribArray(g_slots[ORTHO][TEXCOORD]);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        g_GUI.draw();
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+        GLES20.glUseProgram(mShader[CShader.ORTHO].mProgram);
+        GLES20.glUniform1f(mShader[CShader.ORTHO].slot[CShader.WIDTH], (float)mWidth);
+        GLES20.glUniform1f(mShader[CShader.ORTHO].slot[CShader.HEIGHT], (float)mHeight);
+        GLES20.glUniform4f(mShader[CShader.ORTHO].slot[CShader.COLOR], 1, 1, 1, 1);
+        GLES20.glEnableVertexAttribArray(mShader[CShader.ORTHO].slot[CShader.POSITION]);
+        GLES20.glEnableVertexAttribArray(mShader[CShader.ORTHO].slot[CShader.TEXCOORD]);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
+        mGUI.draw();
         //DrawShadowedText(MSGOTHIC16, 0, 0, "Hello world. My name is Denis.");
-        glEnable(GL_DEPTH_TEST);
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
     }
     
     public void Resize(int width, int height)

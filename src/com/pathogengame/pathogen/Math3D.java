@@ -9,6 +9,7 @@ public class Math3D
 	//#else
 	
 	static final float EPS = 0.00005f; //10e-5;
+	static final float PI_OVER_360 = (float)(Math.PI/360.0f);
 	
 	static int SIGN3( CVector3 A ) 
 	{
@@ -791,5 +792,141 @@ public class Math3D
 			mindyaw = dyaw3;
 	    
 		return mindyaw;
+	}
+	
+	static int M(int row, int col)  
+	{
+		return col*4 + row;
+	}
+	
+	static CMatrix gluLookAt2(float eyex, float eyey, float eyez,
+            float centerx, float centery, float centerz,
+            float upx, float upy, float upz)
+	{
+		 float m[] = new float[16];
+		 float x[] = new float[3], y[] = new float[3], z[] = new float[3];
+		 float mag;
+		 
+		 /* Make rotation matrix */
+		 
+		 /* Z vector */
+		 z[0] = eyex - centerx;
+		 z[1] = eyey - centery;
+		 z[2] = eyez - centerz;
+		 mag = (float)Math.sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
+		 if (mag > 0.0f) {          /* mpichler, 19950515 */
+		     z[0] /= mag;
+		     z[1] /= mag;
+		     z[2] /= mag;
+		 }
+		 
+		 /* Y vector */
+		 y[0] = upx;
+		 y[1] = upy;
+		 y[2] = upz;
+		 
+		 /* X vector = Y cross Z */
+		 x[0] = y[1] * z[2] - y[2] * z[1];
+		 x[1] = -y[0] * z[2] + y[2] * z[0];
+		 x[2] = y[0] * z[1] - y[1] * z[0];
+		 
+		 /* Recompute Y = Z cross X */
+		 y[0] = z[1] * x[2] - z[2] * x[1];
+		 y[1] = -z[0] * x[2] + z[2] * x[0];
+		 y[2] = z[0] * x[1] - z[1] * x[0];
+		 
+		 /* mpichler, 19950515 */
+		 /* cross product gives area of parallelogram, which is < 1.0 for
+		  * non-perpendicular unit-length vectors; so normalize x, y here
+		  */
+		 
+		 mag = (float)Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+		 if (mag > 0.0f) {
+		     x[0] /= mag;
+		     x[1] /= mag;
+		     x[2] /= mag;
+		 }
+		 
+		 mag = (float)Math.sqrt(y[0] * y[0] + y[1] * y[1] + y[2] * y[2]);
+		 if (mag > 0.0f) {
+		     y[0] /= mag;
+		     y[1] /= mag;
+		     y[2] /= mag;
+		 }
+		 
+		 m[M(0, 0)] = x[0];
+		 m[M(0, 1)] = x[1];
+		 m[M(0, 2)] = x[2];
+		 m[M(0, 3)] = 0.0f;
+		 m[M(1, 0)] = y[0];
+		 m[M(1, 1)] = y[1];
+		 m[M(1, 2)] = y[2];
+		 m[M(1, 3)] = 0.0f;
+		 m[M(2, 0)] = z[0];
+		 m[M(2, 1)] = z[1];
+		 m[M(2, 2)] = z[2];
+		 m[M(2, 3)] = 0.0f;
+		 m[M(3, 0)] = 0.0f;
+		 m[M(3, 1)] = 0.0f;
+		 m[M(3, 2)] = 0.0f;
+		 m[M(3, 3)] = 1.0f;
+		 
+		 //glMultMatrixf(m);
+		 CMatrix mat = new CMatrix();
+		 mat.set(m);
+		 
+		 /* Translate Eye to Origin */
+		 //glTranslatef(-eyex, -eyey, -eyez);
+		 CMatrix mat2 = new CMatrix();
+		 float trans[] = {-eyex, -eyey, -eyez};
+		 mat2.setTranslation(trans);
+		 
+		 mat.postMultiply(mat2);
+		 
+		 return mat;
+	}
+	
+	static CMatrix BuildPerspProjMat(float fov, float aspect, float znear, float zfar)
+	{
+		float m[] = new float[16];
+
+	  float xymax = znear * (float)Math.tan(fov * PI_OVER_360);
+	  float ymin = -xymax;
+	  float xmin = -xymax;
+
+	  float width = xymax - xmin;
+	  float height = xymax - ymin;
+
+	  float depth = zfar - znear;
+	  float q = -(zfar + znear) / depth;
+	  float qn = -2 * (zfar * znear) / depth;
+
+	  float w = 2 * znear / width;
+	  w = w / aspect;
+	  float h = 2 * znear / height;
+
+	  m[0]  = w;
+	  m[1]  = 0;
+	  m[2]  = 0;
+	  m[3]  = 0;
+
+	  m[4]  = 0;
+	  m[5]  = h;
+	  m[6]  = 0;
+	  m[7]  = 0;
+
+	  m[8]  = 0;
+	  m[9]  = 0;
+	  m[10] = q;
+	  m[11] = -1;
+
+	  m[12] = 0;
+	  m[13] = 0;
+	  m[14] = qn;
+	  m[15] = 0;
+
+	  CMatrix mat = new CMatrix();
+	  mat.set(m);
+	  return mat;
 	}
 }

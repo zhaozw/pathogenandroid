@@ -566,6 +566,38 @@ public class CWidget
 		return false;
 	}*/
 	
+	// Touch check
+	
+	void Button_touchcheck()
+	{
+	    Point touch;
+	    
+	    if(!ldown)
+	        return;
+	    
+	    boolean found = false;
+	    
+	    for(int i=0; i<mActivity.mGLView.mTouch.size(); i++)
+	    {
+	        touch = mActivity.mGLView.mTouch.get(i);
+	        
+	        if(touch.x >= pos[0] && touch.x <= pos[2] && touch.y >= pos[1] && touch.y <= pos[3])
+	        {
+	            found = true;
+	            break;
+	        }
+	    }
+	    
+	    if(found)
+	        return;
+	    
+	    ldown = false;
+	    over = false;
+	    
+	    if(outfunc != null)
+	        outfunc.func();
+	}
+	
 	// Misc.
 	
 	public int rowsshown()
@@ -600,6 +632,15 @@ public class CWidget
 	}
 	
 	// Common
+	
+	void touchcheck()
+    {
+        switch(type)
+        {
+            case BUTTON: Button_touchcheck(); break;
+            default: break;
+        }
+    }
 	
 	boolean touchframe(float x, float y)
     {

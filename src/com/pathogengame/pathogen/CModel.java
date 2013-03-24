@@ -30,18 +30,18 @@ public class CModel
     
     MainActivity mActivity;
     
-    CModel()
+    CModel(MainActivity act)
     {
+    	mActivity = act;
         on = false;
         transp = false;
     }
 
-    void Load(String n, CVector3 scale, MainActivity act)
+    void Load(String n, CVector3 scale)
     {
         String raw = CFile.StripPathExtension(n);
         String fullpath = "/models/" + raw + ".md2";
         
-        mActivity = act;
         InputStream iS = CFile.GetInput(fullpath, mActivity);
         
         name = raw;
@@ -239,9 +239,9 @@ public class CModel
         
         String texn = CFile.StripPathExtension(skins[0].name);
         skins[0].name = "/models/" + texn;
-        tex_id = act.CreateTexture(skins[0].name, true);
+        tex_id = mActivity.CreateTexture(skins[0].name, true);
         
-        if(act.mLastTexTransp)
+        if(mActivity.mLastTexTransp)
             transp = true;
         
         vertexBuffers = new int[ header.num_frames ];
@@ -554,5 +554,49 @@ public class CModel
         }
         
         return false;
+    }
+    
+    void Free()
+    {
+    	IntBuffer ib = IntBuffer.allocate(header.num_frames);
+    	ib.put(vertexBuffers);
+        GLES20.glDeleteBuffers(header.num_frames, ib);
+        ib = IntBuffer.allocate(1);
+        ib.put(tex_id);
+        GLES20.glDeleteTextures(1, ib);
+        
+    	for(int i=0; i<header.num_frames; i++)
+    		vertexArrays[i].free();
+        
+        if(skins != null)
+        {
+            skins = null;
+        }
+        
+        if(texcoords != null)
+        {
+            texcoords = null;
+        }
+
+        if(triangles != null)
+        {
+            triangles = null;
+        }
+        
+        //if(glcmds != null)
+        //{
+        //    delete [] glcmds;
+        //    glcmds = null;
+       // }
+        
+        if(frames != null)
+        {
+            for (int i=0; i<header.num_frames; i++)
+            {
+                frames[i].verts = null;
+            }
+            
+            frames = null;
+        }
     }
 }

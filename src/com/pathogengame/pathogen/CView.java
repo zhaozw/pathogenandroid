@@ -68,6 +68,12 @@ public class CView
 		return false;
 	}*/
 	
+	void touchcheck()
+    {
+        for(int i=0; i<mWidget.size(); i++)
+        	mWidget.get(i).touchcheck();
+    }
+	
 	public boolean lbuttondown(float x, float y)
 	{
 		CWidget w;
