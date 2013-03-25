@@ -215,9 +215,10 @@ public class CQuake3BSP
     	int i = 0;
         
     	String raw = CFile.StripPathExtension(name);
-        String fullBspPath = "/maps/" + raw + ".bsp";
+        String fullBspPath = "maps/" + raw + ".bsp";
 
         InputStream iS = CFile.GetInput(fullBspPath, mActivity);
+        byte bucket[] = CFile.ReadWhole(iS);
         
         if(iS == null)
         {
@@ -232,15 +233,15 @@ public class CQuake3BSP
         //int version;	// This should be 0x2e for Quake 3 files
     	
     	int offset = 0;
-    	byte bucket[] = CFile.ReadBytes(iS, offset, 4);
+    	byte subbucket[] = CFile.SubBucket(bucket, offset, 4);
     	header.strID = "";
     	for(i=0; i<4; i++)
     	{
-    		header.strID += (char)bucket[i];
+    		header.strID += (char)subbucket[i];
     	}
     	
     	offset += 4;
-    	header.version = CFile.ReadInt(iS, offset);
+    	header.version = CFile.ReadInt(bucket, offset);
     	
     	if(!header.strID.equals("IBSP"))
     	{
@@ -261,8 +262,8 @@ public class CQuake3BSP
     	for(i=0;  i<kMaxLumps; i++)
     	{
     		lumps[i] = new tBSPLump();
-    		lumps[i].offset = CFile.ReadInt(iS, offset + 0);
-    		lumps[i].length = CFile.ReadInt(iS, offset + 4);
+    		lumps[i].offset = CFile.ReadInt(bucket, offset + 0);
+    		lumps[i].length = CFile.ReadInt(bucket, offset + 4);
     		offset += 8;
     	}
     	
@@ -362,17 +363,17 @@ public class CQuake3BSP
     byte color[] = new byte[4];
     		 */
 
-    		m_pVerts[i].vPosition.x = CFile.ReadFloat(iS, offset + 0*4);
-    		m_pVerts[i].vPosition.y = CFile.ReadFloat(iS, offset + 1*4);
-    		m_pVerts[i].vPosition.z = CFile.ReadFloat(iS, offset + 2*4);
-    		m_pVerts[i].vTextureCoord.x = CFile.ReadFloat(iS, offset + 3*4);
-    		m_pVerts[i].vTextureCoord.y = CFile.ReadFloat(iS, offset + 4*4);
-    		m_pVerts[i].vLightmapCoord.x = CFile.ReadFloat(iS, offset + 5*4);
-    		m_pVerts[i].vLightmapCoord.y = CFile.ReadFloat(iS, offset + 6*4);
-    		m_pVerts[i].vNormal.x = CFile.ReadFloat(iS, offset + 7*4);
-    		m_pVerts[i].vNormal.y = CFile.ReadFloat(iS, offset + 8*4);
-    		m_pVerts[i].vNormal.z = CFile.ReadFloat(iS, offset + 9*4);
-    		m_pVerts[i].color = CFile.ReadBytes(iS, offset + 10*4, 4);
+    		m_pVerts[i].vPosition.x = CFile.ReadFloat(bucket, offset + 0*4);
+    		m_pVerts[i].vPosition.y = CFile.ReadFloat(bucket, offset + 1*4);
+    		m_pVerts[i].vPosition.z = CFile.ReadFloat(bucket, offset + 2*4);
+    		m_pVerts[i].vTextureCoord.x = CFile.ReadFloat(bucket, offset + 3*4);
+    		m_pVerts[i].vTextureCoord.y = CFile.ReadFloat(bucket, offset + 4*4);
+    		m_pVerts[i].vLightmapCoord.x = CFile.ReadFloat(bucket, offset + 5*4);
+    		m_pVerts[i].vLightmapCoord.y = CFile.ReadFloat(bucket, offset + 6*4);
+    		m_pVerts[i].vNormal.x = CFile.ReadFloat(bucket, offset + 7*4);
+    		m_pVerts[i].vNormal.y = CFile.ReadFloat(bucket, offset + 8*4);
+    		m_pVerts[i].vNormal.z = CFile.ReadFloat(bucket, offset + 9*4);
+    		m_pVerts[i].color = CFile.SubBucket(bucket, offset + 10*4, 4);
             
     		float temp = m_pVerts[i].vPosition.y;
     		m_pVerts[i].vPosition.y = m_pVerts[i].vPosition.z;
@@ -384,7 +385,7 @@ public class CQuake3BSP
     	offset = lumps[kIndices].offset;
     	for(i=0; i<m_numOfIndices; i++)
     	{
-    		m_pIndices[i] = CFile.ReadInt(iS, offset);
+    		m_pIndices[i] = CFile.ReadInt(bucket, offset);
     		offset += 4;
     	}
         
@@ -411,34 +412,34 @@ public class CQuake3BSP
     int size[2];				// The bezier patch dimensions.
     		 */
 
-    		m_pFaces[i].textureID = CFile.ReadInt(iS, offset + 0*4);
-    		m_pFaces[i].effect = CFile.ReadInt(iS, offset + 1*4);
-    		m_pFaces[i].type = CFile.ReadInt(iS, offset + 2*4);
-    		m_pFaces[i].startVertIndex = CFile.ReadInt(iS, offset + 3*4);
-    		m_pFaces[i].numOfVerts = CFile.ReadInt(iS, offset + 4*4);
-    		m_pFaces[i].startIndex = CFile.ReadInt(iS, offset + 5*4);
-    		m_pFaces[i].numOfIndices = CFile.ReadInt(iS, offset + 6*4);
-    		m_pFaces[i].lightmapID = CFile.ReadInt(iS, offset + 7*4);
-    		m_pFaces[i].lMapCorner[0] = CFile.ReadInt(iS, offset + 8*4);
-    		m_pFaces[i].lMapCorner[1] = CFile.ReadInt(iS, offset + 9*4);
-    		m_pFaces[i].lMapSize[0] = CFile.ReadInt(iS, offset + 10*4);
-    		m_pFaces[i].lMapSize[1] = CFile.ReadInt(iS, offset + 11*4);
+    		m_pFaces[i].textureID = CFile.ReadInt(bucket, offset + 0*4);
+    		m_pFaces[i].effect = CFile.ReadInt(bucket, offset + 1*4);
+    		m_pFaces[i].type = CFile.ReadInt(bucket, offset + 2*4);
+    		m_pFaces[i].startVertIndex = CFile.ReadInt(bucket, offset + 3*4);
+    		m_pFaces[i].numOfVerts = CFile.ReadInt(bucket, offset + 4*4);
+    		m_pFaces[i].startIndex = CFile.ReadInt(bucket, offset + 5*4);
+    		m_pFaces[i].numOfIndices = CFile.ReadInt(bucket, offset + 6*4);
+    		m_pFaces[i].lightmapID = CFile.ReadInt(bucket, offset + 7*4);
+    		m_pFaces[i].lMapCorner[0] = CFile.ReadInt(bucket, offset + 8*4);
+    		m_pFaces[i].lMapCorner[1] = CFile.ReadInt(bucket, offset + 9*4);
+    		m_pFaces[i].lMapSize[0] = CFile.ReadInt(bucket, offset + 10*4);
+    		m_pFaces[i].lMapSize[1] = CFile.ReadInt(bucket, offset + 11*4);
 
-    		m_pFaces[i].lMapPos.x = CFile.ReadFloat(iS, offset + 12*4 + 0*4);
-    		m_pFaces[i].lMapPos.y = CFile.ReadFloat(iS, offset + 12*4 + 1*4);
-    		m_pFaces[i].lMapPos.z = CFile.ReadFloat(iS, offset + 12*4 + 2*4);
-    		m_pFaces[i].lMapVecs[0].x = CFile.ReadFloat(iS, offset + 12*4 + 3*4);
-    		m_pFaces[i].lMapVecs[0].y = CFile.ReadFloat(iS, offset + 12*4 + 4*4);
-    		m_pFaces[i].lMapVecs[0].z = CFile.ReadFloat(iS, offset + 12*4 + 5*4);
-    		m_pFaces[i].lMapVecs[1].x = CFile.ReadFloat(iS, offset + 12*4 + 6*4);
-    		m_pFaces[i].lMapVecs[1].y = CFile.ReadFloat(iS, offset + 12*4 + 7*4);
-    		m_pFaces[i].lMapVecs[1].z = CFile.ReadFloat(iS, offset + 12*4 + 8*4);
-    		m_pFaces[i].vNormal.x = CFile.ReadFloat(iS, offset + 12*4 + 9*4);
-    		m_pFaces[i].vNormal.y = CFile.ReadFloat(iS, offset + 12*4 + 10*4);
-    		m_pFaces[i].vNormal.z = CFile.ReadFloat(iS, offset + 12*4 + 11*4);
+    		m_pFaces[i].lMapPos.x = CFile.ReadFloat(bucket, offset + 12*4 + 0*4);
+    		m_pFaces[i].lMapPos.y = CFile.ReadFloat(bucket, offset + 12*4 + 1*4);
+    		m_pFaces[i].lMapPos.z = CFile.ReadFloat(bucket, offset + 12*4 + 2*4);
+    		m_pFaces[i].lMapVecs[0].x = CFile.ReadFloat(bucket, offset + 12*4 + 3*4);
+    		m_pFaces[i].lMapVecs[0].y = CFile.ReadFloat(bucket, offset + 12*4 + 4*4);
+    		m_pFaces[i].lMapVecs[0].z = CFile.ReadFloat(bucket, offset + 12*4 + 5*4);
+    		m_pFaces[i].lMapVecs[1].x = CFile.ReadFloat(bucket, offset + 12*4 + 6*4);
+    		m_pFaces[i].lMapVecs[1].y = CFile.ReadFloat(bucket, offset + 12*4 + 7*4);
+    		m_pFaces[i].lMapVecs[1].z = CFile.ReadFloat(bucket, offset + 12*4 + 8*4);
+    		m_pFaces[i].vNormal.x = CFile.ReadFloat(bucket, offset + 12*4 + 9*4);
+    		m_pFaces[i].vNormal.y = CFile.ReadFloat(bucket, offset + 12*4 + 10*4);
+    		m_pFaces[i].vNormal.z = CFile.ReadFloat(bucket, offset + 12*4 + 11*4);
 
-    		m_pFaces[i].size[0] = CFile.ReadInt(iS, offset + 12*4 + 12*4 + 0*4);
-    		m_pFaces[i].size[1] = CFile.ReadInt(iS, offset + 12*4 + 12*4 + 1*4);
+    		m_pFaces[i].size[0] = CFile.ReadInt(bucket, offset + 12*4 + 12*4 + 0*4);
+    		m_pFaces[i].size[1] = CFile.ReadInt(bucket, offset + 12*4 + 12*4 + 1*4);
     		
     		offset += ((8+4)*4 + 3*4*3 + 2*4);
     	}
@@ -517,16 +518,19 @@ public class CQuake3BSP
 	int textureType;
         	 */
 
-        	bucket = CFile.ReadBytes(iS, offset + 0, 64);
+        	subbucket = CFile.SubBucket(bucket, offset + 0, 64);
         	String texname = "";
         	for(j=0; j<64; j++)
         	{
+        		if((char)subbucket[j] == '\0')
+        			break;
+        		
         		texname += (char)bucket[j];
         	}
         	
         	m_pTextures[i].strName = texname;
-        	m_pTextures[i].flags = CFile.ReadInt(iS, offset + 64);
-        	m_pTextures[i].textureType = CFile.ReadInt(iS, offset + 64 + 4);
+        	m_pTextures[i].flags = CFile.ReadInt(bucket, offset + 64);
+        	m_pTextures[i].textureType = CFile.ReadInt(bucket, offset + 64 + 4);
         	
         	offset += (64 + 4 + 4);
         }
@@ -605,7 +609,7 @@ public class CQuake3BSP
     		m_pLightmaps[i] = new tBSPLightmap();
     		//fread(&m_pLightmaps[i], 1, sizeof(tBSPLightmap), fp);
     		
-    		m_pLightmaps[i].imageBits = CFile.ReadBytes(iS, offset, 128*128*3);
+    		m_pLightmaps[i].imageBits = CFile.SubBucket(bucket, offset, 128*128*3);
             
             m_lightmaps[i] = CreateLightmapTexture(m_pLightmaps[i].imageBits, 128, 128);
             
@@ -637,15 +641,15 @@ public class CQuake3BSP
     tVector3i max;				// The bounding box max position.
     */
 
-    		m_pNodes[i].plane = CFile.ReadInt(iS, offset + 0*4);
-    		m_pNodes[i].front = CFile.ReadInt(iS, offset + 1*4);
-    		m_pNodes[i].back = CFile.ReadInt(iS, offset + 2*4);
-    		m_pNodes[i].min.x = CFile.ReadInt(iS, offset + 3*4 + 0*4 + 0*4);
-    		m_pNodes[i].min.y = CFile.ReadInt(iS, offset + 3*4 + 1*4 + 0*4);
-    		m_pNodes[i].min.z = CFile.ReadInt(iS, offset + 3*4 + 2*4 + 0*4);
-    		m_pNodes[i].max.x = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 0*4);
-    		m_pNodes[i].max.y = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 1*4);
-    		m_pNodes[i].max.z = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 2*4);
+    		m_pNodes[i].plane = CFile.ReadInt(bucket, offset + 0*4);
+    		m_pNodes[i].front = CFile.ReadInt(bucket, offset + 1*4);
+    		m_pNodes[i].back = CFile.ReadInt(bucket, offset + 2*4);
+    		m_pNodes[i].min.x = CFile.ReadInt(bucket, offset + 3*4 + 0*4 + 0*4);
+    		m_pNodes[i].min.y = CFile.ReadInt(bucket, offset + 3*4 + 1*4 + 0*4);
+    		m_pNodes[i].min.z = CFile.ReadInt(bucket, offset + 3*4 + 2*4 + 0*4);
+    		m_pNodes[i].max.x = CFile.ReadInt(bucket, offset + 3*4 + 3*4 + 0*4);
+    		m_pNodes[i].max.y = CFile.ReadInt(bucket, offset + 3*4 + 3*4 + 1*4);
+    		m_pNodes[i].max.z = CFile.ReadInt(bucket, offset + 3*4 + 3*4 + 2*4);
     		
     		offset += (4*3 + 4*3*2);
     	}
@@ -670,18 +674,18 @@ public class CQuake3BSP
     	{
     		m_pLeafs[i] = new tBSPLeaf();
 
-    		m_pLeafs[i].cluster = CFile.ReadInt(iS, offset + 0*4);
-    		m_pLeafs[i].area = CFile.ReadInt(iS, offset + 1*4);
-    		m_pLeafs[i].min.x = CFile.ReadInt(iS, offset + 2*4 + 0*4);
-    		m_pLeafs[i].min.y = CFile.ReadInt(iS, offset + 2*4 + 1*4);
-    		m_pLeafs[i].min.z = CFile.ReadInt(iS, offset + 2*4 + 2*4);
-    		m_pLeafs[i].max.x = CFile.ReadInt(iS, offset + 2*4 + 3*4 + 0*4);
-    		m_pLeafs[i].max.y = CFile.ReadInt(iS, offset + 2*4 + 3*4 + 1*4);
-    		m_pLeafs[i].max.z = CFile.ReadInt(iS, offset + 2*4 + 3*4 + 2*4);
-    		m_pLeafs[i].leafface = CFile.ReadInt(iS, offset + 2*4 + 3*4 + 3*4 + 0*4);
-    		m_pLeafs[i].numOfLeafFaces = CFile.ReadInt(iS, offset + 2*4 + 3*4 + 3*4 + 1*4);
-    		m_pLeafs[i].leafBrush = CFile.ReadInt(iS, offset + 2*4 + 3*4 + 3*4 + 2*4);
-    		m_pLeafs[i].numOfLeafBrushes = CFile.ReadInt(iS, offset + 2*4 + 3*4 + 3*4 + 3*4);
+    		m_pLeafs[i].cluster = CFile.ReadInt(bucket, offset + 0*4);
+    		m_pLeafs[i].area = CFile.ReadInt(bucket, offset + 1*4);
+    		m_pLeafs[i].min.x = CFile.ReadInt(bucket, offset + 2*4 + 0*4);
+    		m_pLeafs[i].min.y = CFile.ReadInt(bucket, offset + 2*4 + 1*4);
+    		m_pLeafs[i].min.z = CFile.ReadInt(bucket, offset + 2*4 + 2*4);
+    		m_pLeafs[i].max.x = CFile.ReadInt(bucket, offset + 2*4 + 3*4 + 0*4);
+    		m_pLeafs[i].max.y = CFile.ReadInt(bucket, offset + 2*4 + 3*4 + 1*4);
+    		m_pLeafs[i].max.z = CFile.ReadInt(bucket, offset + 2*4 + 3*4 + 2*4);
+    		m_pLeafs[i].leafface = CFile.ReadInt(bucket, offset + 2*4 + 3*4 + 3*4 + 0*4);
+    		m_pLeafs[i].numOfLeafFaces = CFile.ReadInt(bucket, offset + 2*4 + 3*4 + 3*4 + 1*4);
+    		m_pLeafs[i].leafBrush = CFile.ReadInt(bucket, offset + 2*4 + 3*4 + 3*4 + 2*4);
+    		m_pLeafs[i].numOfLeafBrushes = CFile.ReadInt(bucket, offset + 2*4 + 3*4 + 3*4 + 3*4);
     		
     		offset += (2*4 + 2*3*4 + 4*4);
     	}
@@ -703,7 +707,7 @@ public class CQuake3BSP
     	offset = lumps[kLeafFaces].offset;
     	for(i=0; i<m_numOfLeafFaces; i++)
     	{
-    		m_pLeafFaces[i] = CFile.ReadInt(iS, offset);
+    		m_pLeafFaces[i] = CFile.ReadInt(bucket, offset);
     		offset += 4;
     	}
         
@@ -720,10 +724,10 @@ public class CQuake3BSP
     	{
     		m_pPlanes[i] = new tBSPPlane();
 
-    		m_pPlanes[i].vNormal.x = CFile.ReadFloat(iS, offset + 0*4);
-    		m_pPlanes[i].vNormal.y = CFile.ReadFloat(iS, offset + 1*4);
-    		m_pPlanes[i].vNormal.z = CFile.ReadFloat(iS, offset + 2*4);
-    		m_pPlanes[i].d = CFile.ReadFloat(iS, offset + 3*4);
+    		m_pPlanes[i].vNormal.x = CFile.ReadFloat(bucket, offset + 0*4);
+    		m_pPlanes[i].vNormal.y = CFile.ReadFloat(bucket, offset + 1*4);
+    		m_pPlanes[i].vNormal.z = CFile.ReadFloat(bucket, offset + 2*4);
+    		m_pPlanes[i].d = CFile.ReadFloat(bucket, offset + 3*4);
     		
     		offset += (3*4 + 4);
     	}
@@ -738,14 +742,14 @@ public class CQuake3BSP
     	offset = lumps[kVisData].offset;
     	if(lumps[kVisData].length > 0)
     	{
-    		m_clusters.numOfClusters = CFile.ReadInt(iS, offset + 0*4);
-    		m_clusters.bytesPerCluster = CFile.ReadInt(iS, offset + 1*4);
+    		m_clusters.numOfClusters = CFile.ReadInt(bucket, offset + 0*4);
+    		m_clusters.bytesPerCluster = CFile.ReadInt(bucket, offset + 1*4);
             
     		int size = m_clusters.numOfClusters * m_clusters.bytesPerCluster;
     		//m_clusters.pBitsets = new byte [size];
             
     		//fread(m_clusters.pBitsets, 1, sizeof(byte) * size, fp);
-    		m_clusters.pBitsets = CFile.ReadBytes(iS, offset + 2*4, size);
+    		m_clusters.pBitsets = CFile.SubBucket(bucket, offset + 2*4, size);
     	}
     	else
     		m_clusters.pBitsets = null;
@@ -769,9 +773,9 @@ public class CQuake3BSP
 			int textureID;				// The texture index for the brush
 			*/
 
-    		m_pBrushes[i].brushSide = CFile.ReadInt(iS, offset + 0*4);
-    		m_pBrushes[i].numOfBrushSides = CFile.ReadInt(iS, offset + 1*4);
-    		m_pBrushes[i].textureID = CFile.ReadInt(iS, offset + 2*4);
+    		m_pBrushes[i].brushSide = CFile.ReadInt(bucket, offset + 0*4);
+    		m_pBrushes[i].numOfBrushSides = CFile.ReadInt(bucket, offset + 1*4);
+    		m_pBrushes[i].textureID = CFile.ReadInt(bucket, offset + 2*4);
     		
     		offset += (3*4);
     	}
@@ -789,8 +793,8 @@ public class CQuake3BSP
     	{
     		m_pBrushSides[i] = new tBSPBrushSide();
 
-    		m_pBrushSides[i].plane = CFile.ReadInt(iS, offset + 0*4);
-    		m_pBrushSides[i].textureID = CFile.ReadInt(iS, offset + 1*4);
+    		m_pBrushSides[i].plane = CFile.ReadInt(bucket, offset + 0*4);
+    		m_pBrushSides[i].textureID = CFile.ReadInt(bucket, offset + 1*4);
     		
     		offset += (4*2);
     	}
@@ -801,7 +805,7 @@ public class CQuake3BSP
     	offset = lumps[kLeafBrushes].offset;
     	for(i=0; i<m_numOfLeafBrushes; i++)
     	{
-    		m_pLeafBrushes[i] = CFile.ReadInt(iS, offset);
+    		m_pLeafBrushes[i] = CFile.ReadInt(bucket, offset);
     		offset += 4;
     	}
         
@@ -820,16 +824,16 @@ public class CQuake3BSP
 			int numOfBrushes;
 			*/
 
-    		m_pModels[i].mins.x = CFile.ReadFloat(iS, offset + 0*4);
-    		m_pModels[i].mins.y = CFile.ReadFloat(iS, offset + 1*4);
-    		m_pModels[i].mins.z = CFile.ReadFloat(iS, offset + 2*4);
-    		m_pModels[i].maxs.x = CFile.ReadFloat(iS, offset + 3*4 + 0*4);
-    		m_pModels[i].maxs.y = CFile.ReadFloat(iS, offset + 3*4 + 1*4);
-    		m_pModels[i].maxs.z = CFile.ReadFloat(iS, offset + 3*4 + 2*4);
-    		m_pModels[i].firstFace = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 0*4);
-    		m_pModels[i].numOfFaces = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 1*4);
-    		m_pModels[i].firstBrush = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 2*4);
-    		m_pModels[i].numOfBrushes = CFile.ReadInt(iS, offset + 3*4 + 3*4 + 3*4);
+    		m_pModels[i].mins.x = CFile.ReadFloat(bucket, offset + 0*4);
+    		m_pModels[i].mins.y = CFile.ReadFloat(bucket, offset + 1*4);
+    		m_pModels[i].mins.z = CFile.ReadFloat(bucket, offset + 2*4);
+    		m_pModels[i].maxs.x = CFile.ReadFloat(bucket, offset + 3*4 + 0*4);
+    		m_pModels[i].maxs.y = CFile.ReadFloat(bucket, offset + 3*4 + 1*4);
+    		m_pModels[i].maxs.z = CFile.ReadFloat(bucket, offset + 3*4 + 2*4);
+    		m_pModels[i].firstFace = CFile.ReadInt(bucket, offset + 3*4 + 3*4 + 0*4);
+    		m_pModels[i].numOfFaces = CFile.ReadInt(bucket, offset + 3*4 + 3*4 + 1*4);
+    		m_pModels[i].firstBrush = CFile.ReadInt(bucket, offset + 3*4 + 3*4 + 2*4);
+    		m_pModels[i].numOfBrushes = CFile.ReadInt(bucket, offset + 3*4 + 3*4 + 3*4);
     		
     		offset += (3*4*2 + 4*4);
     	}
@@ -864,14 +868,14 @@ public class CQuake3BSP
 			tVector2uc dir; //0=phi, 1=theta
 			*/
 
-    		m_pLightVols[i].ambient.x = CFile.ReadUByte(iS, offset + 0*1);
-    		m_pLightVols[i].ambient.y = CFile.ReadUByte(iS, offset + 1*1);
-    		m_pLightVols[i].ambient.z = CFile.ReadUByte(iS, offset + 2*1);
-    		m_pLightVols[i].directional.x = CFile.ReadUByte(iS, offset + 3*1 + 0*1);
-    		m_pLightVols[i].directional.y = CFile.ReadUByte(iS, offset + 3*1 + 1*1);
-    		m_pLightVols[i].directional.z = CFile.ReadUByte(iS, offset + 3*1 + 2*1);
-    		m_pLightVols[i].dir.x = CFile.ReadUByte(iS, offset + 3*1 + 3*1 + 0*1);
-    		m_pLightVols[i].dir.y = CFile.ReadUByte(iS, offset + 3*1 + 3*1 + 1*1);
+    		m_pLightVols[i].ambient.x = CFile.ReadUByte(bucket, offset + 0*1);
+    		m_pLightVols[i].ambient.y = CFile.ReadUByte(bucket, offset + 1*1);
+    		m_pLightVols[i].ambient.z = CFile.ReadUByte(bucket, offset + 2*1);
+    		m_pLightVols[i].directional.x = CFile.ReadUByte(bucket, offset + 3*1 + 0*1);
+    		m_pLightVols[i].directional.y = CFile.ReadUByte(bucket, offset + 3*1 + 1*1);
+    		m_pLightVols[i].directional.z = CFile.ReadUByte(bucket, offset + 3*1 + 2*1);
+    		m_pLightVols[i].dir.x = CFile.ReadUByte(bucket, offset + 3*1 + 3*1 + 0*1);
+    		m_pLightVols[i].dir.y = CFile.ReadUByte(bucket, offset + 3*1 + 3*1 + 1*1);
     		
     		offset += (1*3 + 1*3 + 1*2);
     	}
@@ -883,7 +887,7 @@ public class CQuake3BSP
     	//fseek(fp, lumps[kEntities].offset, SEEK_SET);
     	offset = lumps[kEntities].offset;
     	
-    	byte entb[] = CFile.ReadBytes(iS, offset, lumps[kEntities].length);
+    	byte entb[] = CFile.SubBucket(bucket, offset, lumps[kEntities].length);
     	//fread(entities, lumps[kEntities].length, sizeof(char), fp);
     	//fclose(fp);
     	

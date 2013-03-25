@@ -94,7 +94,7 @@ public class MainActivity extends Activity
 	public static final int PLAYERS		= 32;
 	CPlayer mPlayer[] = new CPlayer[PLAYERS];
 	
-	Vector<CEntityType> mEntityType;
+	Vector<CEntityType> mEntityType = new Vector<CEntityType>();
 	public static final int ENTITIES	= 256;
 	CEntity mEntity[] = new CEntity[ENTITIES];
 	
@@ -199,8 +199,8 @@ public class MainActivity extends Activity
 	
 	void Decals()
 	{
-		Decal(CDecalType.BLOODSPLAT, "/effects/bloodsplat", 0.01f, 10.0f);
-		Decal(CDecalType.BULLETHOLE, "/effects/bullethole", 0.005f, 3.0f);
+		Decal(CDecalType.BLOODSPLAT, "effects/bloodsplat", 0.01f, 10.0f);
+		Decal(CDecalType.BULLETHOLE, "effects/bullethole", 0.005f, 3.0f);
 	}
 	
 	void UpdateDecals()
@@ -400,7 +400,7 @@ public class MainActivity extends Activity
 	    CBillboardType t = new CBillboardType();
 		String rawtex;
 		rawtex = CFile.StripPathExtension(tex);
-		t.name = "/billboards/" + rawtex;
+		t.name = "billboards/" + rawtex;
 	    t.tex = CreateTexture(t.name, true);
 		mBillbT.add(t);
 		return mBillbT.size() - 1;
@@ -409,7 +409,7 @@ public class MainActivity extends Activity
 	int Billboard(String name)
 	{
 		String rawname;
-		rawname = "/billboards/" + CFile.StripPathExtension(name);
+		rawname = "billboards/" + CFile.StripPathExtension(name);
 	    
 	    for(int i=0; i<mBillbT.size(); i++)
 	    {
@@ -931,6 +931,7 @@ public class MainActivity extends Activity
 	    
 	    t.lmodel = lowermodel;
 	    
+	    
 	    if(lowermodel.equals(""))
 	        t.model[CEntity.BODY_LOWER] = -1;
 	    else
@@ -938,7 +939,7 @@ public class MainActivity extends Activity
 	        String raw = CFile.StripPathExtension(lowermodel);
 	        t.model[CEntity.BODY_LOWER] = LoadModel(raw, scale);
 	    }
-	    
+	    /*
 	    if(uppermodel.equals(""))
 	        t.model[CEntity.BODY_UPPER] = -1;
 	    else
@@ -956,7 +957,7 @@ public class MainActivity extends Activity
 		t.jump = jump;
 		t.crouch = crouch;
 		t.animrate = animrate;
-	    t.collider = -1;
+	    t.collider = -1;*/
 	}
 	
 	int NewModel()
@@ -2035,30 +2036,30 @@ public class MainActivity extends Activity
 	void Items()
 	{
 		//Item(int i, char* model, char* icon, bool equip, int delay, int ammo, int clip, int reloadrate, float damage, float range, int split, float inacc)
-		Item(CItemType.MP5, "mp5", "mp5icon", true, 75, CItemType.PRIMARYAMMO, 30, 30, 10.0f, 1000.0f, 1, 50.0f);	// 800 RPM = 13.33 RPS -> 1000 / 13.33 = 75 ms
+		Item(CItemType.MP5, "mp5", "gui/mp5icon", true, 75, CItemType.PRIMARYAMMO, 30, 30, 10.0f, 1000.0f, 1, 50.0f);	// 800 RPM = 13.33 RPS -> 1000 / 13.33 = 75 ms
 		ItemSound(CSound.SHOT, "mp5shot1");
 		ItemSound(CSound.SHOT, "mp5shot2");
 		ItemSound(CSound.SHOT, "mp5shot3");
 		ItemSound(CSound.SHOT, "mp5shot4");
 		ItemSound(CSound.RELOAD, "mp5reload");
 		ItemSound(CSound.DRYFIRE, "dryfire");
-		Item(CItemType.MOSSBERG500, "mossberg500", "mossberg500icon", true, 1000, CItemType.SECONDARYAMMO, 6, 1, 30.0f, 500.0f, 8, 150.0f);
+		Item(CItemType.MOSSBERG500, "mossberg500", "gui/mossberg500icon", true, 1000, CItemType.SECONDARYAMMO, 6, 1, 30.0f, 500.0f, 8, 150.0f);
 		ItemSound(CSound.SHOT, "moss500shotcock");
 		ItemSound(CSound.RELOAD, "moss500load");
 		ItemSound(CSound.COCK, "moss500cock");
 		ItemSound(CSound.DRYFIRE, "dryfire");
-		Item(CItemType.M1911, "m1911", "m1911icon", true, 0, CItemType.TERTAMMO, 7, 7, 30.0f, 1000.0f, 1, 0.0f);
+		Item(CItemType.M1911, "m1911", "gui/m1911icon", true, 0, CItemType.TERTAMMO, 7, 7, 30.0f, 1000.0f, 1, 0.0f);
 		ItemSound(CSound.SHOT, "gun_pistol1");
 		ItemSound(CSound.RELOAD, "pistolreload");
 		ItemSound(CSound.DRYFIRE, "dryfire");
-		Item(CItemType.PRIMARYAMMO, "ammo1", "ammo1icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
-		Item(CItemType.SECONDARYAMMO, "ammo2", "ammo2icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
-		Item(CItemType.TERTAMMO, "ammo3", "ammo3icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
-		Item(CItemType.BBAT, "bbat", "bbaticon", true, 0, CItemType.NOAMMO, -1, -1, 45.0f, INTERACTION_D, 1, 0.0f);
+		Item(CItemType.PRIMARYAMMO, "ammo1", "gui/ammo1icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+		Item(CItemType.SECONDARYAMMO, "ammo2", "gui/ammo2icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+		Item(CItemType.TERTAMMO, "ammo3", "gui/ammo3icon", false, -1, CItemType.NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+		Item(CItemType.BBAT, "bbat", "gui/bbaticon", true, 0, CItemType.NOAMMO, -1, -1, 45.0f, INTERACTION_D, 1, 0.0f);
 		ItemSound(CSound.HIT, "thud");
-		Item(CItemType.KNIFE, "knife", "knifeicon", true, 0, CItemType.NOAMMO, -1, -1, 30.0f, INTERACTION_D, 1, 0.0f);
+		Item(CItemType.KNIFE, "knife", "gui/knifeicon", true, 0, CItemType.NOAMMO, -1, -1, 30.0f, INTERACTION_D, 1, 0.0f);
 		ItemSound(CSound.HIT, "stab");
-		Item(CItemType.WTALKIE, "wtalkie", "wtalkieicon", false, 0, CItemType.NOAMMO, -1, -1, 0.0f, 0.0f, 0, 0.0f);
+		Item(CItemType.WTALKIE, "wtalkie", "gui/wtalkieicon", false, 0, CItemType.NOAMMO, -1, -1, 0.0f, 0.0f, 0, 0.0f);
 	    
 	    //NSLog(@"1 reld sz = %d", (int)g_itemType[ITEM::M1911].reloadSound.size());
 	}
@@ -2136,14 +2137,14 @@ public class MainActivity extends Activity
     	
     	LoadFonts();
         Entities();
-        Items();
-        Effects();
-        Particles();
-        Decals();
-        Keymap();
-        LoadSounds();
+        //Items();
+        //Effects();
+        //Particles();
+        //Decals();
+        //Keymap();
+        //LoadSounds();
         //InitNet();
-        ScriptFuncs();
+        //ScriptFuncs();
         
         //PlayIntro();
     	
@@ -3412,8 +3413,8 @@ public class MainActivity extends Activity
     @Override
     protected void onStop()
     {
-    	Deinit();
-    	finish();
+    	//Deinit();
+    	//finish();
     	super.onStop();
     }
 

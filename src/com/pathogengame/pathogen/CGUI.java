@@ -31,7 +31,7 @@ public class CGUI
 	    float centerw = mActivity.mWidth/2;
 
 	    AddView("logo", 0);
-	    AddImage("logo", (float)mActivity.mWidth/2 - (float)mActivity.mHeight/2, 0, (float)mActivity.mWidth/2 + (float)mActivity.mHeight/2, (float)mActivity.mHeight, 1, 1, 1, 0);
+	    AddImage("gui/logo", (float)mActivity.mWidth/2 - (float)mActivity.mHeight/2, 0, (float)mActivity.mWidth/2 + (float)mActivity.mHeight/2, (float)mActivity.mHeight, 1, 1, 1, 0);
 	    
 		AddView("main", 0);
 		AddImage("gui/bg", 0.0f, 0.0f, (float)mActivity.mWidth, (float)mActivity.mHeight, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -58,7 +58,7 @@ public class CGUI
 		AddText("Ruslan Sabitov", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight*0*mActivity.mRetinaScale);
 		AddText("VIDEO", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + mActivity.mFont[CFont.MSGOTHIC16].mGHeight*2*mActivity.mRetinaScale);
 		AddText("Ruslan Sabitov", CFont.MSGOTHIC16, halign - 100*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + mActivity.mFont[CFont.MSGOTHIC16].mGHeight*3*mActivity.mRetinaScale);
-	    AddButton("buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, 240.0f*mActivity.mRetinaScale, centerw+buttonw/2, 284.0f*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, mActivity.mHeight-54.0f*mActivity.mRetinaScale, centerw+buttonw/2, mActivity.mHeight-10.0f*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
 
 	    //float dpadsize = 128.0f * (float)mActivity.mHeight / 320;
 	    float dpadsize = 128.0f * mActivity.mRetinaScale;
@@ -86,65 +86,65 @@ public class CGUI
 		
 		/*
 		AddView("switch view", 0);
-	    AddButton("buttonbg", "Switch View", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 0*mActivity.mRetinaScale, (float)mActivity.mWidth, 44*mActivity.mRetinaScale, new Click_SwitchView(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Switch View", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 0*mActivity.mRetinaScale, (float)mActivity.mWidth, 44*mActivity.mRetinaScale, new Click_SwitchView(mActivity), null, null);
 	    
 	    AddView("shoot", 0);
-	    AddButton("buttonbg", "Shoot", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    AddButton("gui/buttonbg", "Shoot", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
 	    
 	    AddView("swing", 0);
-	    AddButton("buttonbg", "Swing", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    AddButton("gui/buttonbg", "Swing", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
 	    
 	    AddView("stab", 0);
-	    AddButton("buttonbg", "Stab", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    AddButton("gui/buttonbg", "Stab", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-90*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
 	    
 	    AddView("switch item", 0);
-	    AddButton("buttonbg", "Switch Item", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 54*mActivity.mRetinaScale, (float)mActivity.mWidth, 98*mActivity.mRetinaScale, new Click_EquipNext(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Switch Item", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 54*mActivity.mRetinaScale, (float)mActivity.mWidth, 98*mActivity.mRetinaScale, new Click_EquipNext(mActivity), null, null);
 	    
 	    AddView("reload", 0);
-	    AddButton("buttonbg", "Reload", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 108*mActivity.mRetinaScale, (float)mActivity.mWidth, 152*mActivity.mRetinaScale, new Click_Reload(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Reload", CFont.MSGOTHIC16, (float)mActivity.mWidth-buttonw, 108*mActivity.mRetinaScale, (float)mActivity.mWidth, 152*mActivity.mRetinaScale, new Click_Reload(mActivity), null, null);
 	    
 	    AddView("crouch", 0);
-	    AddButton("buttonbg", "Crouch", CFont.MSGOTHIC16, 0*mActivity.mRetinaScale, 0*mActivity.mRetinaScale, buttonw, 60*mActivity.mRetinaScale, new Click_Crouch(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Crouch", CFont.MSGOTHIC16, 0*mActivity.mRetinaScale, 0*mActivity.mRetinaScale, buttonw, 60*mActivity.mRetinaScale, new Click_Crouch(mActivity), null, null);
 	    
 	    AddView("jump", 0);
-	    AddButton("buttonbg", "Jump", CFont.MSGOTHIC16, buttonw+10*mActivity.mRetinaScale, 00*mActivity.mRetinaScale, buttonw*2+10*mActivity.mRetinaScale, 60*mActivity.mRetinaScale, new Click_Jump(mActivity), null, new Unclick_Jump(mActivity));
+	    AddButton("gui/buttonbg", "Jump", CFont.MSGOTHIC16, buttonw+10*mActivity.mRetinaScale, 00*mActivity.mRetinaScale, buttonw*2+10*mActivity.mRetinaScale, 60*mActivity.mRetinaScale, new Click_Jump(mActivity), null, new Unclick_Jump(mActivity));
 	    
 	    AddView("run", 0);
-	    AddButton("buttonbg", "Run", CFont.MSGOTHIC16, buttonw*2+20*mActivity.mRetinaScale, 00*mActivity.mRetinaScale, buttonw*3+20*mActivity.mRetinaScale, 60*mActivity.mRetinaScale, new Click_Run(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Run", CFont.MSGOTHIC16, buttonw*2+20*mActivity.mRetinaScale, 00*mActivity.mRetinaScale, buttonw*3+20*mActivity.mRetinaScale, 60*mActivity.mRetinaScale, new Click_Run(mActivity), null, null);
 		 */
 		
 		AddView("switch view", 0);
-	    //AddButton("buttonbg", "Switch View", MSGOTHIC16, g_width-buttonw, 0, g_width, 44, &Click_SwitchView, NULL, NULL);
-	    AddButton("buttonbg", "Switch View", CFont.MSGOTHIC16, 0, 0, buttonw, 44*mActivity.mRetinaScale, new Click_SwitchView(mActivity), null, null);
+	    //AddButton("gui/buttonbg", "Switch View", MSGOTHIC16, g_width-buttonw, 0, g_width, 44, &Click_SwitchView, NULL, NULL);
+	    AddButton("gui/buttonbg", "Switch View", CFont.MSGOTHIC16, 0, 0, buttonw, 44*mActivity.mRetinaScale, new Click_SwitchView(mActivity), null, null);
 	    
 	    AddView("shoot", 0);
-	    //AddButton("buttonbg", "Shoot", MSGOTHIC16, centerw-buttonw/2, g_height-90, centerw+buttonw/2, g_height-30, &Click_Shoot, NULL, &Unclick_Shoot);
-	    AddButton("buttonbg", "Shoot", CFont.MSGOTHIC16, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale-buttonw, mActivity.mHeight-90*mActivity.mRetinaScale, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale, mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    //AddButton("gui/buttonbg", "Shoot", MSGOTHIC16, centerw-buttonw/2, g_height-90, centerw+buttonw/2, g_height-30, &Click_Shoot, NULL, &Unclick_Shoot);
+	    AddButton("gui/buttonbg", "Shoot", CFont.MSGOTHIC16, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale-buttonw, mActivity.mHeight-90*mActivity.mRetinaScale, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale, mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
 	    
 	    AddView("swing", 0);
-	    AddButton("buttonbg", "Swing", CFont.MSGOTHIC16, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale-buttonw, mActivity.mHeight-90*mActivity.mRetinaScale, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale, mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    AddButton("gui/buttonbg", "Swing", CFont.MSGOTHIC16, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale-buttonw, mActivity.mHeight-90*mActivity.mRetinaScale, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale, mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
 	    
 	    AddView("stab", 0);
-	    AddButton("buttonbg", "Stab", CFont.MSGOTHIC16, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale-buttonw, mActivity.mHeight-90*mActivity.mRetinaScale, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale, mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
+	    AddButton("gui/buttonbg", "Stab", CFont.MSGOTHIC16, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale-buttonw, mActivity.mHeight-90*mActivity.mRetinaScale, mActivity.mWidth-dpadsize-10*mActivity.mRetinaScale, mActivity.mHeight-30*mActivity.mRetinaScale, new Click_Shoot(mActivity), null, new Unclick_Shoot(mActivity));
 	    
 	    AddView("switch item", 0);
-	    //AddButton("buttonbg", "Switch Item", MSGOTHIC16, g_width-buttonw, 54, g_width, 98, &Click_EquipNext, NULL, NULL);
-	    AddButton("buttonbg", "Switch Item", CFont.MSGOTHIC16, 0, 54, buttonw, 98, new Click_EquipNext(mActivity), null, null);
+	    //AddButton("gui/buttonbg", "Switch Item", MSGOTHIC16, g_width-buttonw, 54, g_width, 98, &Click_EquipNext, NULL, NULL);
+	    AddButton("gui/buttonbg", "Switch Item", CFont.MSGOTHIC16, 0, 54, buttonw, 98, new Click_EquipNext(mActivity), null, null);
 	    
 	    AddView("reload", 0);
-	    AddButton("buttonbg", "Reload", CFont.MSGOTHIC16, mActivity.mWidth-buttonw, mActivity.mHeight-dpadsize-10*mActivity.mRetinaScale-60*mActivity.mRetinaScale, mActivity.mWidth, mActivity.mHeight-dpadsize-10*mActivity.mRetinaScale, new Click_Reload(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Reload", CFont.MSGOTHIC16, mActivity.mWidth-buttonw, mActivity.mHeight-dpadsize-10*mActivity.mRetinaScale-60*mActivity.mRetinaScale, mActivity.mWidth, mActivity.mHeight-dpadsize-10*mActivity.mRetinaScale, new Click_Reload(mActivity), null, null);
 	    
 	    AddView("crouch", 0);
-	    //AddButton("buttonbg", "Crouch", MSGOTHIC16, g_width-buttonw*2-10, 0, g_width-buttonw-10, 60, &Click_Crouch, NULL, NULL);
-	    AddButton("buttonbg", "Crouch", CFont.MSGOTHIC16, mActivity.mWidth-buttonw*3-20*mActivity.mRetinaScale, 0, mActivity.mWidth-buttonw*2-20*mActivity.mRetinaScale, 60*mActivity.mRetinaScale,  new Click_Crouch(mActivity), null, null);
+	    //AddButton("gui/buttonbg", "Crouch", MSGOTHIC16, g_width-buttonw*2-10, 0, g_width-buttonw-10, 60, &Click_Crouch, NULL, NULL);
+	    AddButton("gui/buttonbg", "Crouch", CFont.MSGOTHIC16, mActivity.mWidth-buttonw*3-20*mActivity.mRetinaScale, 0, mActivity.mWidth-buttonw*2-20*mActivity.mRetinaScale, 60*mActivity.mRetinaScale,  new Click_Crouch(mActivity), null, null);
 	    
 	    AddView("jump", 0);
-	    //AddButton("buttonbg", "Jump", MSGOTHIC16, buttonw+10, 00, buttonw*2+10, 60, &Click_Jump, NULL, &Unclick_Jump);
-	    AddButton("buttonbg", "Jump", CFont.MSGOTHIC16, mActivity.mWidth-buttonw, 00*mActivity.mRetinaScale, mActivity.mWidth, 60*mActivity.mRetinaScale, new Click_Jump(mActivity), null, new Unclick_Jump(mActivity));
+	    //AddButton("gui/buttonbg", "Jump", MSGOTHIC16, buttonw+10, 00, buttonw*2+10, 60, &Click_Jump, NULL, &Unclick_Jump);
+	    AddButton("gui/buttonbg", "Jump", CFont.MSGOTHIC16, mActivity.mWidth-buttonw, 00*mActivity.mRetinaScale, mActivity.mWidth, 60*mActivity.mRetinaScale, new Click_Jump(mActivity), null, new Unclick_Jump(mActivity));
 	    
 	    AddView("run", 0);
-	    //AddButton("buttonbg", "Run", MSGOTHIC16, buttonw*2+20, 00, buttonw*3+20, 60, &Click_Run, NULL, NULL);
-	    AddButton("buttonbg", "Run", CFont.MSGOTHIC16, mActivity.mWidth-buttonw*2-10*mActivity.mRetinaScale, 0*mActivity.mRetinaScale, mActivity.mWidth-buttonw-10*mActivity.mRetinaScale, 60*mActivity.mRetinaScale, new Click_Run(mActivity), null, null);
+	    //AddButton("gui/buttonbg", "Run", MSGOTHIC16, buttonw*2+20, 00, buttonw*3+20, 60, &Click_Run, NULL, NULL);
+	    AddButton("gui/buttonbg", "Run", CFont.MSGOTHIC16, mActivity.mWidth-buttonw*2-10*mActivity.mRetinaScale, 0*mActivity.mRetinaScale, mActivity.mWidth-buttonw-10*mActivity.mRetinaScale, 60*mActivity.mRetinaScale, new Click_Run(mActivity), null, null);
 	    
 	    AddView("pick up", 0);
 		AddImage("mp5icon", (float)mActivity.mWidth-256*mActivity.mRetinaScale, (float)mActivity.mHeight/2-128*mActivity.mRetinaScale, (float)mActivity.mWidth, (float)mActivity.mHeight/2+128*mActivity.mRetinaScale, 1, 1, 1, 0);
@@ -152,32 +152,32 @@ public class CGUI
 	    
 		/*
 		AddView("open door", 0);
-	    AddButton("buttonbg", "Open", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 90*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Open", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 90*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
 	    
 		AddView("close door", 0);
-	    AddButton("buttonbg", "Close", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 90*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Close", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 90*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
 	    */
 		
 		AddView("open door", 0);
-	    AddButton("buttonbg", "Open", CFont.MSGOTHIC16, mActivity.mWidth/2 - 75*mActivity.mRetinaScale, mActivity.mHeight/2 - 90*mActivity.mRetinaScale, mActivity.mWidth/2 + 75*mActivity.mRetinaScale, mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Open", CFont.MSGOTHIC16, mActivity.mWidth/2 - 75*mActivity.mRetinaScale, mActivity.mHeight/2 - 90*mActivity.mRetinaScale, mActivity.mWidth/2 + 75*mActivity.mRetinaScale, mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
 	    
 		AddView("close door", 0);
-	    AddButton("buttonbg", "Close", CFont.MSGOTHIC16, mActivity.mWidth/2 - 75*mActivity.mRetinaScale, mActivity.mHeight/2 - 90*mActivity.mRetinaScale, mActivity.mWidth/2 + 75*mActivity.mRetinaScale, mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Close", CFont.MSGOTHIC16, mActivity.mWidth/2 - 75*mActivity.mRetinaScale, mActivity.mHeight/2 - 90*mActivity.mRetinaScale, mActivity.mWidth/2 + 75*mActivity.mRetinaScale, mActivity.mHeight/2 - 30*mActivity.mRetinaScale, new Click_Action(mActivity), null, null);
 		
 		AddView("game over", 0);
 		AddText("Game Over", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 32*mActivity.mRetinaScale, (float)mActivity.mHeight/2 - 8*mActivity.mRetinaScale);
-	    AddButton("buttonbg", "Try Again", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 50*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 94*mActivity.mRetinaScale, new Click_Retry(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Try Again", CFont.MSGOTHIC16, (float)mActivity.mWidth/2 - 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 50*mActivity.mRetinaScale, (float)mActivity.mWidth/2 + 75*mActivity.mRetinaScale, (float)mActivity.mHeight/2 + 94*mActivity.mRetinaScale, new Click_Retry(mActivity), null, null);
 	    
 	    AddView("message", 0);
 		AddImage("bg", 0, 0, (float)mActivity.mWidth, (float)mActivity.mHeight, 1, 1, 1, 1);
 	    AddTextBox("error", "Hosho was the world's first commissioned ship to be designed and built as an aircraft carrier, and the first aircraft carrier of the Imperial Japanese Navy (IJN). Commissioned in 1922, the ship was used for testing aircraft and equipment, and to evaluate operational methods and tactics. She provided valuable lessons and experience for the IJN in early carrier air operations.", CFont.MSGOTHIC16, 50*mActivity.mRetinaScale, 100*mActivity.mRetinaScale, (float)mActivity.mWidth-50*mActivity.mRetinaScale, (float)mActivity.mHeight-100*mActivity.mRetinaScale);
-	    AddButton("buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-10*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-10*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
 	    
 	    AddView("dialog", 0);
 		AddImage("bg", 0, 0, (float)mActivity.mWidth, (float)mActivity.mHeight, 1, 1, 1, 1);
 	    AddTextBox("dialog", "", CFont.MSGOTHIC16, 50*mActivity.mRetinaScale, 100*mActivity.mRetinaScale, (float)mActivity.mWidth-50*mActivity.mRetinaScale, (float)mActivity.mHeight-100*mActivity.mRetinaScale);
-	    AddButton("buttonbg", "Continue", CFont.MSGOTHIC16, centerw-20*mActivity.mRetinaScale-buttonw, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw-20*mActivity.mRetinaScale, (float)mActivity.mHeight-1*mActivity.mRetinaScale, new Click_DialogContinue(mActivity), null, null);
-	    AddButton("buttonbg", "Don't Show Any More", CFont.MSGOTHIC16, centerw, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw*1.5f, (float)mActivity.mHeight-1*mActivity.mRetinaScale, new Click_DontShow(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Continue", CFont.MSGOTHIC16, centerw-20*mActivity.mRetinaScale-buttonw, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw-20*mActivity.mRetinaScale, (float)mActivity.mHeight-1*mActivity.mRetinaScale, new Click_DialogContinue(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Don't Show Any More", CFont.MSGOTHIC16, centerw, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw*1.5f, (float)mActivity.mHeight-1*mActivity.mRetinaScale, new Click_DontShow(mActivity), null, null);
 	    
 	    AddView("status", 0);
 		AddImage("bg", 0, 0, (float)mActivity.mWidth, (float)mActivity.mHeight, 1, 1, 1, 1);
@@ -186,7 +186,7 @@ public class CGUI
 	    AddView("status back", 0);
 		AddImage("bg", 0, 0, (float)mActivity.mWidth, (float)mActivity.mHeight, 1, 1, 1, 1);
 	    AddText("status", "Status", CFont.MSGOTHIC16, halign, (float)mActivity.mHeight/2 - mActivity.mFont[CFont.MSGOTHIC16].mGHeight/2);
-	    AddButton("buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-10*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
+	    AddButton("gui/buttonbg", "Back", CFont.MSGOTHIC16, centerw-buttonw/2, (float)mActivity.mHeight-45*mActivity.mRetinaScale, centerw+buttonw/2, (float)mActivity.mHeight-10*mActivity.mRetinaScale, new Click_GoToMain(mActivity), null, null);
 
 		//OpenSoleView("main", 0);
 		OpenSoleView("logo", 0);
@@ -475,8 +475,6 @@ public class CGUI
 		button.Button(filepath, t, f, left, top, right, bottom, click, overf, out);
 		CView v = mView.get(last);
 		v.mWidget.add(button);
-		
-		System.out.println("addb " + t + " = " + button.tex);
 	}
 	
 	public void AddButton(String filepath, String t, int f, float left, float top, float right, float bottom, CFuncPtr click2, int parm)

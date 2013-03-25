@@ -31,6 +31,11 @@ public class CTexture
 	 
 	        InputStream iS = CFile.GetInput(texfile, act);
 	        
+	        if(iS == null)
+	        {
+	        	return 0;
+	        }
+	        
 	        bitmap = BitmapFactory.decodeStream(iS);
 	        
 	        width = bitmap.getWidth();
@@ -54,7 +59,8 @@ public class CTexture
 				iS.close();
 			} catch (IOException e) 
 			{
-				e.printStackTrace();
+				//e.printStackTrace();
+				System.out.println("Failed to load texture " + texfile);
 			}
 	        
 	        file = texfile;

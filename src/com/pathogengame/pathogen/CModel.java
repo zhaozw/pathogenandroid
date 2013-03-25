@@ -40,9 +40,14 @@ public class CModel
     void Load(String n, CVector3 scale)
     {
         String raw = CFile.StripPathExtension(n);
-        String fullpath = "/models/" + raw + ".md2";
+        String fullpath = "models/" + raw + ".md2";
+        
+        System.out.println("" + raw + "md2...");
         
         InputStream iS = CFile.GetInput(fullpath, mActivity);
+        byte bucket[] = CFile.ReadWhole(iS);
+        
+        System.out.println("Read " + bucket.length + " bytes");
         
         name = raw;
         
@@ -80,24 +85,24 @@ public class CModel
         int offset = 0;
         header = new md2_header_t();
 
-        /* Read header */
-        header.ident = CFile.ReadInt(iS, offset + 0 * 4);
-        header.version = CFile.ReadInt(iS, offset + 1 * 4);
-        header.skinwidth = CFile.ReadInt(iS, offset + 2 * 4);
-        header.skinheight = CFile.ReadInt(iS, offset + 3 * 4);
-        header.framesize = CFile.ReadInt(iS, offset + 4 * 4);
-        header.num_skins = CFile.ReadInt(iS, offset + 5 * 4);
-        header.num_vertices = CFile.ReadInt(iS, offset + 6 * 4);
-        header.num_st = CFile.ReadInt(iS, offset + 7 * 4);
-        header.num_tris = CFile.ReadInt(iS, offset + 8 * 4);
-        header.num_glcmds = CFile.ReadInt(iS, offset + 9 * 4);
-        header.num_frames = CFile.ReadInt(iS, offset + 10 * 4);
-        header.offset_skins = CFile.ReadInt(iS, offset + 11 * 4);
-        header.offset_st = CFile.ReadInt(iS, offset + 12 * 4);
-        header.offset_tris = CFile.ReadInt(iS, offset + 13 * 4);
-        header.offset_frames = CFile.ReadInt(iS, offset + 14 * 4);
-        header.offset_glcmds = CFile.ReadInt(iS, offset + 15 * 4);
-        header.offset_end = CFile.ReadInt(iS, offset + 16 * 4);
+        // Read header
+        header.ident = CFile.ReadInt(bucket, offset + 0 * 4);
+        header.version = CFile.ReadInt(bucket, offset + 1 * 4);
+        header.skinwidth = CFile.ReadInt(bucket, offset + 2 * 4);
+        header.skinheight = CFile.ReadInt(bucket, offset + 3 * 4);
+        header.framesize = CFile.ReadInt(bucket, offset + 4 * 4);
+        header.num_skins = CFile.ReadInt(bucket, offset + 5 * 4);
+        header.num_vertices = CFile.ReadInt(bucket, offset + 6 * 4);
+        header.num_st = CFile.ReadInt(bucket, offset + 7 * 4);
+        header.num_tris = CFile.ReadInt(bucket, offset + 8 * 4);
+        header.num_glcmds = CFile.ReadInt(bucket, offset + 9 * 4);
+        header.num_frames = CFile.ReadInt(bucket, offset + 10 * 4);
+        header.offset_skins = CFile.ReadInt(bucket, offset + 11 * 4);
+        header.offset_st = CFile.ReadInt(bucket, offset + 12 * 4);
+        header.offset_tris = CFile.ReadInt(bucket, offset + 13 * 4);
+        header.offset_frames = CFile.ReadInt(bucket, offset + 14 * 4);
+        header.offset_glcmds = CFile.ReadInt(bucket, offset + 15 * 4);
+        header.offset_end = CFile.ReadInt(bucket, offset + 16 * 4);
         
         if ((header.ident != 844121161) ||
             (header.version != 8))
@@ -116,27 +121,33 @@ public class CModel
             return;
         }
         
-        /* Memory allocations */
+        // Memory allocations
         skins = new md2_skin_t[ header.num_skins ];
         texcoords = new md2_texCoord_t[ header.num_st ];
         triangles = new md2_triangle_t[ header.num_tris ];
         frames = new md2_frame_t[ header.num_frames ];
         //glcmds = new int[ header.num_glcmds ];
         
-        /* Read model data */
+        // Read model data
         
     	//char name[64];
         int i, j;
+        byte[] subbucket;
         for(i=0; i<header.num_skins; i++)
         {
         	skins[i] = new md2_skin_t();
         	
-        	byte[] bucket = CFile.ReadBytes(iS, header.offset_skins + 64*i, 64);
+        	System.out.println("header.offset_skins = " + header.offset_skins);
+        	
+        	subbucket = CFile.SubBucket(bucket, header.offset_skins + 64*i, 64);
         	
         	String skinname = "";
         	for(j=0; j<64; j++)
         	{
-        		skinname += (char)bucket[j];
+        		if((char)subbucket[j] == '\0')
+        			break;
+        		
+        		skinname += (char)subbucket[j];
         	}
         	
         	skins[i].name = skinname;
@@ -151,26 +162,25 @@ public class CModel
         {
         	texcoords[i] = new md2_texCoord_t();
         	// TO DO: byte packing?
-        	texcoords[i].s = CFile.ReadShort(iS, header.offset_st + (2+2)*i + 0);
-        	texcoords[i].t = CFile.ReadShort(iS, header.offset_st + (2+2)*i + 2);
+        	texcoords[i].s = CFile.ReadShort(bucket, header.offset_st + (2+2)*i + 0);
+        	texcoords[i].t = CFile.ReadShort(bucket, header.offset_st + (2+2)*i + 2);
         }
  
-        /*
-    	//unsigned short vertex[3];
-    	//unsigned short st[3];
-		char vertex[] = new int[3];
-		char st[] = new int[3];
-        */
+    	////unsigned short vertex[3];
+    	////unsigned short st[3];
+		//char vertex[] = new int[3];
+		//char st[] = new int[3];
+        
         for(i=0; i<header.num_tris; i++)
         {
         	triangles[i] = new md2_triangle_t();
         	// TO DO: byte packing?
-        	triangles[i].vertex[0] = CFile.ReadUShort(iS, header.offset_tris + (2*3*2)*i + 0*2);
-        	triangles[i].vertex[1] = CFile.ReadUShort(iS, header.offset_tris + (2*3*2)*i + 1*2);
-        	triangles[i].vertex[2] = CFile.ReadUShort(iS, header.offset_tris + (2*3*2)*i + 2*2);
-        	triangles[i].st[0] = CFile.ReadUShort(iS, header.offset_tris + (2*3*2)*i + 3*2);
-        	triangles[i].st[0] = CFile.ReadUShort(iS, header.offset_tris + (2*3*2)*i + 4*2);
-        	triangles[i].st[0] = CFile.ReadUShort(iS, header.offset_tris + (2*3*2)*i + 5*2);
+        	triangles[i].vertex[0] = CFile.ReadUShort(bucket, header.offset_tris + (2*3*2)*i + 0*2);
+        	triangles[i].vertex[1] = CFile.ReadUShort(bucket, header.offset_tris + (2*3*2)*i + 1*2);
+        	triangles[i].vertex[2] = CFile.ReadUShort(bucket, header.offset_tris + (2*3*2)*i + 2*2);
+        	triangles[i].st[0] = CFile.ReadUShort(bucket, header.offset_tris + (2*3*2)*i + 3*2);
+        	triangles[i].st[1] = CFile.ReadUShort(bucket, header.offset_tris + (2*3*2)*i + 4*2);
+        	triangles[i].st[2] = CFile.ReadUShort(bucket, header.offset_tris + (2*3*2)*i + 5*2);
         }
         
         //fseek (fp, header.offset_glcmds, SEEK_SET);
@@ -189,25 +199,34 @@ public class CModel
     		//unsigned char v[3];
     		//unsigned char normalIndex;
              */
+
+        System.out.println("header.num_frames = " + header.num_frames);
+        System.out.println("header.num_vertices = " + header.num_vertices);
+        System.out.println("header.num_tris = " + header.num_tris);
         
-        /* Read frames */
+        // Read frames
         offset = header.offset_frames;
         for(i=0; i<header.num_frames; i++)
         {
+        	System.out.println("frame " + i);
+        	
         	frames[i] = new md2_frame_t();
 
-        	frames[i].scale[0] = CFile.ReadFloat(iS, offset + 4*0);
-        	frames[i].scale[1] = CFile.ReadFloat(iS, offset + 4*1);
-        	frames[i].scale[2] = CFile.ReadFloat(iS, offset + 4*2);
-        	frames[i].translate[0] = CFile.ReadFloat(iS, offset + 4*3);
-        	frames[i].translate[1] = CFile.ReadFloat(iS, offset + 4*4);
-        	frames[i].translate[2] = CFile.ReadFloat(iS, offset + 4*5);
+        	frames[i].scale[0] = CFile.ReadFloat(bucket, offset + 4*0);
+        	frames[i].scale[1] = CFile.ReadFloat(bucket, offset + 4*1);
+        	frames[i].scale[2] = CFile.ReadFloat(bucket, offset + 4*2);
+        	frames[i].translate[0] = CFile.ReadFloat(bucket, offset + 4*3);
+        	frames[i].translate[1] = CFile.ReadFloat(bucket, offset + 4*4);
+        	frames[i].translate[2] = CFile.ReadFloat(bucket, offset + 4*5);
         	
-        	byte[] bucket = CFile.ReadBytes(iS, offset + 4*6, 16);
+        	subbucket = CFile.SubBucket(bucket, offset + 4*6, 16);
         	String framename = "";
         	for(j=0; j<16; j++)
         	{
-        		framename += (char)bucket[j];
+        		if((char)subbucket[j] == '\0')
+        			break;
+        		
+        		framename += (char)subbucket[j];
         	}
         	frames[i].name = framename;
         	
@@ -218,12 +237,14 @@ public class CModel
             {
             	frames[i].verts[j] = new md2_vertex_t();
 
-            	frames[i].verts[j].v[0] = CFile.ReadUByte(iS, offset + 1*0);
-            	frames[i].verts[j].v[1] = CFile.ReadUByte(iS, offset + 1*1);
-            	frames[i].verts[j].v[2] = CFile.ReadUByte(iS, offset + 1*2);
-            	frames[i].verts[j].normalIndex = CFile.ReadUByte(iS, offset + 1*3);
+            	frames[i].verts[j].v[0] = CFile.ReadUByte(bucket, offset + 1*0);
+            	frames[i].verts[j].v[1] = CFile.ReadUByte(bucket, offset + 1*1);
+            	frames[i].verts[j].v[2] = CFile.ReadUByte(bucket, offset + 1*2);
+            	frames[i].verts[j].normalIndex = CFile.ReadUByte(bucket, offset + 1*3);
             	offset += 1*4;
             }
+            
+        	System.out.println("done frame " + i);
         }
         
         try 
@@ -237,6 +258,7 @@ public class CModel
         //fclose (fp);
         on = true;
         
+        /*
         String texn = CFile.StripPathExtension(skins[0].name);
         skins[0].name = "/models/" + texn;
         tex_id = mActivity.CreateTexture(skins[0].name, true);
@@ -267,18 +289,15 @@ public class CModel
     				pframe = frames[f];
     				pvert = pframe.verts[(int)triangles[i].vertex[j]];
                     
-                    /*
                      // Reverse vertex order
-                     if(j == 1)
-                     index += 1;
-                     else if(j == 2)
-                     index -= 1;
-                     */
+                     //if(j == 1)
+                     //		index += 1;
+                     //else if(j == 2)
+                     //		index -= 1;
     				
-    				/*
-    				CVector3 vertex; [0 1 2]
-    				CVector2 texcoord; [3 4]
-    				CVector3 normal; [5 6 7] */
+    				//CVector3 vertex; [0 1 2]
+    				//CVector2 texcoord; [3 4]
+    				//CVector3 normal; [5 6 7]
                     
     				// Compute texture coordinates
     				//va2[index].texcoord.x = (float)texcoords[triangles[i].st[j]].s / header.skinwidth;
@@ -442,6 +461,7 @@ public class CModel
         
         vertexArrays = va;
         
+    	*/
         System.out.println(n + ".md2");
     }
 
