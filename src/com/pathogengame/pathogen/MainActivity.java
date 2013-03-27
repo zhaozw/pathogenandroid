@@ -5,6 +5,9 @@ import android.app.Activity;
 import android.view.WindowManager;
 import android.content.Context;
 import android.view.Display;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.Window;
 import android.os.Bundle;
 import java.io.IOException;
@@ -21,7 +24,7 @@ import java.util.Vector;
 
 import android.view.View;
 
-public class MainActivity extends Activity 
+public class MainActivity extends Activity implements SurfaceHolder.Callback
 {
 	public static final float MIN_D = 1.0f;
 	public static final float MAX_D = 9000.0f;
@@ -137,6 +140,27 @@ public class MainActivity extends Activity
 	
 	//int rotational;
 	int mStage = 0;
+	
+	AssetManager mAMgr;
+	
+	native void helloLog(String logThis);
+	native String getString(int value1, int value2);  
+
+    public static native void nativeOnCreate();
+    public static native void nativeOnResume();
+    public static native void nativeOnPause();
+    public static native void nativeOnStop();
+    //public static native void nativeSetSurface(Surface surface);
+	static native void nativeInit(String apkPath, String tmpPath, AssetManager amgr);
+
+    public static native void SurfChang(int width, int height);
+    //public static native void SurfCreat();
+    public static native void Step();
+	
+	static 
+	{  
+	    System.loadLibrary("ndk1");  
+	}
 	
 	void FreeEntities()
 	{
@@ -2080,6 +2104,8 @@ public class MainActivity extends Activity
 	
     public void Init()
     {
+    	helloLog("This will log to LogCat via the native call.");  
+    	
     	for(int i=0; i<TEXTURES; i++)
     		mTexture[i] = new CTexture();
     	
@@ -3384,6 +3410,20 @@ public class MainActivity extends Activity
         }
     }
     
+    public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) 
+    {
+        //nativeSetSurface(holder.getSurface());
+    }
+
+    public void surfaceCreated(SurfaceHolder holder) 
+    {
+    }
+
+    public void surfaceDestroyed(SurfaceHolder holder) 
+    {
+        //nativeSetSurface(null);
+    }
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) 
     {
@@ -3392,11 +3432,23 @@ public class MainActivity extends Activity
         getWindow().setFlags(  
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,  
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        /*
         mGLView = new MyGLSurfaceView(this);
         mRenderer = new MyGL20Renderer();
         mRenderer.mActivity = this;
         mGLView.setRenderer(mRenderer);
+        setContentView(mGLView);*/
+        
+
+        //mGLView = new MyGLSurfaceView(getApplication());
+        mGLView = new MyGLSurfaceView(this);
         setContentView(mGLView);
+        
+        nativeOnCreate();
+        
+        //setContentView(R.layout.main);
+       // SurfaceView surfaceView = (SurfaceView)findViewById(R.id.surfaceview);
+        //surfaceView.getHolder().addCallback(this);
 
         /*
     	AssetManager am = getAssets();
@@ -3410,12 +3462,30 @@ public class MainActivity extends Activity
     	}*/
     }
     
+
+    @Override
+    protected void onResume() 
+    {
+        super.onResume();
+        mGLView.onResume();
+        nativeOnResume();
+    }
+
+    @Override
+    protected void onPause() 
+    {
+        super.onPause();
+        mGLView.onPause();
+        nativeOnPause();
+    }
+    
     @Override
     protected void onStop()
     {
     	//Deinit();
     	//finish();
-    	super.onStop();
+    	super.onDestroy();
+    	nativeOnStop();
     }
 
     @Override

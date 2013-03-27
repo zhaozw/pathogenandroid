@@ -11,7 +11,7 @@ public class CVector3
 	{
 		x = X; y = Y; z = Z;
 	}
-    
+    /*
 	CVector3(float[] values)
 	{
 		Set(values);
@@ -32,5 +32,5 @@ public class CVector3
 	void Transform3(CMatrix m)
 	{
 		
-	}
+	}*/
 }

@@ -58,10 +58,19 @@ public class CFile
 	
 	static int ReadInt(byte bucket[], int offset)
 	{
-		byte[] subbucket = SubBucket(bucket, offset, 4);
+		//byte[] subbucket = SubBucket(bucket, offset, 4);
 		//System.out.println("bucket.length = " + bucket.length);
 		//java.nio.ByteBuffer.wrap(bytes).getInt();
-		return java.nio.ByteBuffer.wrap(subbucket).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
+		//return java.nio.ByteBuffer.wrap(subbucket).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
+
+        int firstByte = (0x000000FF & ((int)bucket[offset+3]));
+        int secondByte = (0x000000FF & ((int)bucket[offset+2]));
+        int thirdByte = (0x000000FF & ((int)bucket[offset+1]));
+        int fourthByte = (0x000000FF & ((int)bucket[offset+0]));
+        return ((int) (firstByte << 24
+                | secondByte << 16
+                | thirdByte << 8
+                | fourthByte));
 	}
 	
 	/*
@@ -73,8 +82,17 @@ public class CFile
 
 	static float ReadFloat(byte bucket[], int offset)
 	{
-		byte[] subbucket = SubBucket(bucket, offset, 4);
-		return java.nio.ByteBuffer.wrap(subbucket).order(java.nio.ByteOrder.LITTLE_ENDIAN).getFloat();
+		//byte[] subbucket = SubBucket(bucket, offset, 4);
+		//return java.nio.ByteBuffer.wrap(subbucket).order(java.nio.ByteOrder.LITTLE_ENDIAN).getFloat();
+
+        int firstByte = (0x000000FF & ((int)bucket[offset+3]));
+        int secondByte = (0x000000FF & ((int)bucket[offset+2]));
+        int thirdByte = (0x000000FF & ((int)bucket[offset+1]));
+        int fourthByte = (0x000000FF & ((int)bucket[offset+0]));
+        return ((float) (firstByte << 24
+                | secondByte << 16
+                | thirdByte << 8
+                | fourthByte));
 	}
 	
 	/*
@@ -86,8 +104,11 @@ public class CFile
 	
 	static short ReadShort(byte bucket[], int offset)
 	{
-		byte[] subbucket = SubBucket(bucket, offset, 2);
-		return java.nio.ByteBuffer.wrap(subbucket).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
+		//byte[] subbucket = SubBucket(bucket, offset, 2);
+		//return java.nio.ByteBuffer.wrap(subbucket).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort();
+        int firstByte = (0x000000FF & ((int)bucket[offset+1]));
+        int secondByte = (0x000000FF & ((int)bucket[offset+0]));
+        return (short) (firstByte << 8 | secondByte);
 	}
 	
 	// http://darksleep.com/player/JavaAndUnsignedTypes.html
@@ -102,9 +123,9 @@ public class CFile
 	
 	static char ReadUShort(byte bucket[], int offset)
 	{
-		byte[] subbucket = SubBucket(bucket, offset, 2);
-        int firstByte = (0x000000FF & ((int)subbucket[1]));
-        int secondByte = (0x000000FF & ((int)subbucket[0]));
+		//byte[] subbucket = SubBucket(bucket, offset, 2);
+        int firstByte = (0x000000FF & ((int)bucket[offset+1]));
+        int secondByte = (0x000000FF & ((int)bucket[offset+0]));
         return (char) (firstByte << 8 | secondByte);
 	}
 	
@@ -118,8 +139,8 @@ public class CFile
 	
 	static short ReadUByte(byte bucket[], int offset)
 	{
-		byte[] subbucket = SubBucket(bucket, offset, 2);
-		int firstByte = (0x000000FF & ((int)subbucket[0]));
+		//byte[] subbucket = SubBucket(bucket, offset, 1);
+		int firstByte = (0x000000FF & ((int)bucket[offset+0]));
 		return (short)firstByte;
 	}
 	
@@ -140,11 +161,11 @@ public class CFile
 
 	static long ReadUInt(byte bucket[], int offset)
 	{
-		byte[] subbucket = SubBucket(bucket, offset, 4);
-        int firstByte = (0x000000FF & ((int)subbucket[3]));
-        int secondByte = (0x000000FF & ((int)subbucket[2]));
-        int thirdByte = (0x000000FF & ((int)subbucket[1]));
-        int fourthByte = (0x000000FF & ((int)subbucket[0]));
+		//byte[] subbucket = SubBucket(bucket, offset, 4);
+        int firstByte = (0x000000FF & ((int)bucket[offset+3]));
+        int secondByte = (0x000000FF & ((int)bucket[offset+2]));
+        int thirdByte = (0x000000FF & ((int)bucket[offset+1]));
+        int fourthByte = (0x000000FF & ((int)bucket[offset+0]));
         return ((long) (firstByte << 24
                 | secondByte << 16
                 | thirdByte << 8
@@ -208,12 +229,14 @@ public class CFile
 	
 	static byte[] ReadWhole(InputStream iS)
 	{
-		byte[] buffer = new byte[256];
+		byte[] buffer = new byte[25600];
 		byte[] totalbuf = new byte[1];
 		
 		int rsz;
 		int totalsz = 0;
 		int i;
+		
+		byte[] newbuf;
 		
 		try 
         {
@@ -223,7 +246,7 @@ public class CFile
 				
 				if(rsz > 0)
 				{
-					byte[] newbuf = new byte[totalsz + rsz];
+					newbuf = new byte[totalsz + rsz];
 					
 					for(i=0; i<totalsz; i++)
 						newbuf[i] = totalbuf[i];
@@ -238,9 +261,12 @@ public class CFile
         }
 		catch(IOException e)
 		{
-			
+			e.printStackTrace();
 		}
 		
+		buffer = null;
+		newbuf = null;
+		//System.gc();
 		return totalbuf;
 	}
 	

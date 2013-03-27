@@ -1,0 +1,9 @@
+
+
+./android update project -p . -s --target android-17
+
+extern "C" {
+}
+
+http://stackoverflow.com/questions/11063786/can-i-use-ifstream-in-android-ndk-to-access-assets
+http://www.anddev.org/ndk_opengl_-_loading_resources_and_assets_from_native_code-t11978.html

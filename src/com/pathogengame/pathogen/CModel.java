@@ -42,6 +42,13 @@ public class CModel
         String raw = CFile.StripPathExtension(n);
         String fullpath = "models/" + raw + ".md2";
         
+        //boolean dothis = false;
+        
+        //if(raw.equalsIgnoreCase("human2lower"))
+        //	dothis = true;
+        
+        System.out.println("--------------------");
+        
         System.out.println("" + raw + "md2...");
         
         InputStream iS = CFile.GetInput(fullpath, mActivity);
@@ -137,7 +144,8 @@ public class CModel
         {
         	skins[i] = new md2_skin_t();
         	
-        	System.out.println("header.offset_skins = " + header.offset_skins);
+        	//if(dothis)
+        	//	System.out.println("header.offset_skins = " + header.offset_skins);
         	
         	subbucket = CFile.SubBucket(bucket, header.offset_skins + 64*i, 64);
         	
@@ -200,15 +208,20 @@ public class CModel
     		//unsigned char normalIndex;
              */
 
-        System.out.println("header.num_frames = " + header.num_frames);
-        System.out.println("header.num_vertices = " + header.num_vertices);
-        System.out.println("header.num_tris = " + header.num_tris);
+        //if(dothis)
+        {
+	     //   System.out.println("header.num_frames = " + header.num_frames);
+	     //   System.out.println("header.num_vertices = " + header.num_vertices);
+	     //   System.out.println("header.num_tris = " + header.num_tris);
+	    //    System.out.println("header.offset_frames = " + header.offset_frames);
+        }
         
         // Read frames
         offset = header.offset_frames;
         for(i=0; i<header.num_frames; i++)
         {
-        	System.out.println("frame " + i);
+        	//if(dothis)
+        	//	System.out.println("frame " + i + " @ " + offset);
         	
         	frames[i] = new md2_frame_t();
 
@@ -244,7 +257,8 @@ public class CModel
             	offset += 1*4;
             }
             
-        	System.out.println("done frame " + i);
+            //if(dothis)
+            //	System.out.println("done frame " + i);
         }
         
         try 
@@ -258,28 +272,34 @@ public class CModel
         //fclose (fp);
         on = true;
         
-        /*
         String texn = CFile.StripPathExtension(skins[0].name);
-        skins[0].name = "/models/" + texn;
+        skins[0].name = "models/" + texn;
         tex_id = mActivity.CreateTexture(skins[0].name, true);
         
         if(mActivity.mLastTexTransp)
             transp = true;
         
-        vertexBuffers = new int[ header.num_frames ];
+        //vertexBuffers = new int[ header.num_frames ];
         numverts = header.num_tris * 3;
         
-    	md2_frame_t pframe;
-    	md2_vertex_t pvert;
+    	//md2_frame_t pframe;
+    	//md2_vertex_t pvert;
     	int index;
         
+    	
         //CVertexArray2 va2[] = new CVertexArray2[ numverts ];
     	FloatBuffer va2 = FloatBuffer.allocate( numverts * (3 + 2 + 3) );
         float temp;
         int f;
+		CVector3 normal = new CVector3();
+		CVector3 tri[] = new CVector3[3];
+		tri[0] = new CVector3();
+		tri[1] = new CVector3();
+		tri[2] = new CVector3();
         
+		/*
     	for(f=0; f<header.num_frames; f++)
-    	{
+    	{	
     		for (i = 0; i < header.num_tris; ++i)
     		{
     			for (j = 0; j < 3; ++j)
@@ -339,12 +359,6 @@ public class CModel
     				va2.put( index * (3+2+3) + 2, temp);
     			}
     		}
-
-			CVector3 normal = new CVector3();
-			CVector3 tri[] = new CVector3[3];
-			tri[0] = new CVector3();
-			tri[1] = new CVector3();
-			tri[2] = new CVector3();
 			
             for(i=0; i<numverts; i+=3)
     		{
@@ -375,13 +389,19 @@ public class CModel
     			va2.put((i+2) * (3+2+3) + 7, normal.z);
     		}
 
+            va2.rewind();
             GLES20.glGenBuffers(1, vertexBuffers, f);
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffers[f]);
             GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, (3*4*2 + 2*4) * numverts, va2, GLES20.GL_STATIC_DRAW);
     	}
         
+    	va2 = null;
+    	System.gc();
         //delete [] va2;
-        
+        */
+		
+		/*
+		System.out.println("va header.num_frames="+header.num_frames+" numverts="+numverts);
         CVertexArray va[] = new CVertexArray[ header.num_frames ];
         
     	for(f=0; f<header.num_frames; f++)
@@ -439,13 +459,14 @@ public class CModel
     				temp = va[f].vertices[index].x;
     				va[f].vertices[index].x = -va[f].vertices[index].z;
     				va[f].vertices[index].z = temp;
+    				
     			}
     		}
             
             for(i=0; i<numverts; i+=3)
     		{
-    			CVector3 normal;
-    			CVector3 tri[] = new CVector3[3];
+    			//CVector3 normal;
+    			//CVector3 tri[] = new CVector3[3];
     			//tri[0] = new CVector3();
     			//tri[1] = new CVector3();
     			//tri[2] = new CVector3();
@@ -453,15 +474,16 @@ public class CModel
     			tri[1] = va[f].vertices[i+1];
     			tri[2] = va[f].vertices[i+2];
     			normal = Math3D.Normal2(tri);
-    			va[f].normals[i] = Math3D.Copy(normal);
-    			va[f].normals[i+1] = Math3D.Copy(normal);
-    			va[f].normals[i+2] = Math3D.Copy(normal);
+    			va[f].normals[i] = normal;
+    			va[f].normals[i+1] = normal;
+    			va[f].normals[i+2] = normal;
     		}
     	}
         
         vertexArrays = va;
+        System.gc();
+        */
         
-    	*/
         System.out.println(n + ".md2");
     }
 
