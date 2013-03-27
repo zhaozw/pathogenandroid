@@ -159,7 +159,6 @@ public:
 extern CModel g_model[MODELS];
 
 int LoadModel(const char* name, CVector3 scale);
-int LoadModel(NSString* name, CVector3 scale);
 void ModelMinMax(int model, CVector3* vMin, CVector3* vMax);
 CVector3 ModelFront(int model, int from, int to);
 bool PlayAnimation(float& frame, int first, int last, bool loop, float rate);

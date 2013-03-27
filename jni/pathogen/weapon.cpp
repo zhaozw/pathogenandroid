@@ -1,17 +1,17 @@
-#import "Main.h"
-#import "Weapon.h"
-#import "Player.h"
-#import "Entity.h"
-#import "Quake3BSP.h"
-#import "Menu.h"
-#import "Animations.h"
-#import "GUI.h"
-#import "Model.h"
-#import "Billboard.h"
-#import "Particle.h"
-#import "Item.h"
-#import "Decal.h"
-#import "3DMath.h"
+#include "main.h"
+#include "weapon.h"
+#include "player.h"
+#include "entity.h"
+#include "quake3bsp.h"
+#include "menu.h"
+#include "animations.h"
+#include "gui.h"
+#include "model.h"
+#include "billboard.h"
+#include "particle.h"
+#include "item.h"
+#include "decal.h"
+#include "3dmath.h"
 
 void Shot(int player)
 {
@@ -30,15 +30,20 @@ void Shot(int player)
     
 	CEntity* e = &g_entity[p->entity];
     
-	if(t->ammo == ITEM::PRIMARYAMMO)
+	//if(t->ammo == ITEM::PRIMARYAMMO)
+	if(t->ammo == PRIMARYAMMO)
 		e->frame[BODY_UPPER] = ANIM_SHOTSHOULDER_S;
-	else if(t->ammo == ITEM::SECONDARYAMMO)
+	//else if(t->ammo == ITEM::SECONDARYAMMO)
+	else if(t->ammo == SECONDARYAMMO)
 		e->frame[BODY_UPPER] = ANIM_SHOTGUNSHOT_S;
-	else if(t->ammo == ITEM::TERTAMMO)
+	//else if(t->ammo == ITEM::TERTAMMO)
+	else if(t->ammo == TERTAMMO)
 		e->frame[BODY_UPPER] = ANIM_PISTOLSHOT_S;
-	else if(h->type == ITEM::BBAT)
+	//else if(h->type == ITEM::BBAT)
+	else if(h->type == BBAT)
 		e->frame[BODY_UPPER] = ANIM_BATSWING_S;
-	else if(h->type == ITEM::KNIFE)
+	//else if(h->type == ITEM::KNIFE)
+	else if(h->type == KNIFE)
 		e->frame[BODY_UPPER] = ANIM_KNIFESTAB_S;
     
 	if(t->shotSound.size() > 0)
@@ -165,7 +170,7 @@ void Reload(int player)
 	CHold* h = &p->items[p->equipped];
 	CItemType* t = &g_itemType[h->type];
     
-	float amount = SubtractItem(p, t->ammo, MIN(t->reloadrate, t->clip - h->clip));
+	float amount = SubtractItem(p, t->ammo, min((float)t->reloadrate, t->clip - h->clip));
 	h = &p->items[p->equipped]; //item might have shifted
 	h->clip += amount;
     

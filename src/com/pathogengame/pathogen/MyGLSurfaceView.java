@@ -305,7 +305,7 @@ public class MyGLSurfaceView extends GLSurfaceView
     		String tmpPath = mContext.getCacheDir().getAbsolutePath();
     		mContext.mAMgr = mContext.getResources().getAssets();
     		
-    		mContext.nativeInit(apkFilePath, tmpPath, mContext.mAMgr);
+    		//mContext.nativeInit(apkFilePath, tmpPath, mContext.mAMgr);
         }
     }
 	
@@ -372,6 +372,7 @@ public class MyGLSurfaceView extends GLSurfaceView
         //setRenderer(mRenderer);
     }
 	
+	/*
 	@Override
 	public boolean onTouchEvent(MotionEvent e) 
 	{
@@ -385,14 +386,6 @@ public class MyGLSurfaceView extends GLSurfaceView
 	    {
 		    case MotionEvent.ACTION_DOWN:
 		    {
-		    	/*
-		    	int numPointers = e.getPointerCount();
-                for (int i = 0; i < numPointers; i++)
-                {
-            	    float x = e.getX(i);
-            	    float y = e.getY(i);
-                }
-                */
 		    	
 		    	int count = e.getPointerCount();
 		        Point touch;
@@ -409,15 +402,6 @@ public class MyGLSurfaceView extends GLSurfaceView
 		    }break;
 		    case MotionEvent.ACTION_UP:
 		    {
-		    	/*
-		    	int numPointers = e.getPointerCount();
-                for (int i = 0; i < numPointers; i++)
-                {
-            	    float x = e.getX(i);
-            	    float y = e.getY(i);
-                }
-                */
-		    	
 		        int count = e.getPointerCount();
 		        
 		        Point touch;
@@ -454,38 +438,6 @@ public class MyGLSurfaceView extends GLSurfaceView
 		    }break;
 	        case MotionEvent.ACTION_MOVE:
 	        {
-	        	/*
-                int numPointers = e.getPointerCount();
-                //System.out.println("" + numPointers + " moved");
-                
-                for (int i = 0; i < numPointers; i++)
-                {
-            	    float x = e.getX(i);
-            	    float y = e.getY(i);
-		        	//System.out.println("move");
-		        	
-		            float dx = x - mPreviousX;
-		            float dy = y - mPreviousY;
-	
-		            // reverse direction of rotation above the mid-line
-		            if (y > getHeight() / 2) 
-		            {
-		              dx = dx * -1 ;
-		            }
-	
-		            // reverse direction of rotation to left of the mid-line
-		            if (x < getWidth() / 2) 
-		            {
-		              dy = dy * -1 ;
-		            }
-	
-		            //mRenderer.mAngle += (dx + dy) * TOUCH_SCALE_FACTOR;  // = 180.0f / 320
-		            //requestRender();
-
-		    	    mPreviousX = x;
-		    	    mPreviousY = y;
-                }
-                */
 	        	
 	            int count = e.getPointerCount();
 	            Point touch;
@@ -548,4 +500,5 @@ public class MyGLSurfaceView extends GLSurfaceView
 	    
 	    return true;
 	}
+	*/
 }

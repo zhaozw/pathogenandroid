@@ -691,6 +691,159 @@ float GetYaw(float dx, float dz)
 	return atan2(dx, dz);
 }
 
+CMatrix gluLookAt2(float eyex, float eyey, float eyez,
+               float centerx, float centery, float centerz,
+               float upx, float upy, float upz)
+{
+    float m[16];
+    float x[3], y[3], z[3];
+    float mag;
+    
+    /* Make rotation matrix */
+    
+    /* Z vector */
+    z[0] = eyex - centerx;
+    z[1] = eyey - centery;
+    z[2] = eyez - centerz;
+    mag = sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
+    if (mag) {          /* mpichler, 19950515 */
+        z[0] /= mag;
+        z[1] /= mag;
+        z[2] /= mag;
+    }
+    
+    /* Y vector */
+    y[0] = upx;
+    y[1] = upy;
+    y[2] = upz;
+    
+    /* X vector = Y cross Z */
+    x[0] = y[1] * z[2] - y[2] * z[1];
+    x[1] = -y[0] * z[2] + y[2] * z[0];
+    x[2] = y[0] * z[1] - y[1] * z[0];
+    
+    /* Recompute Y = Z cross X */
+    y[0] = z[1] * x[2] - z[2] * x[1];
+    y[1] = -z[0] * x[2] + z[2] * x[0];
+    y[2] = z[0] * x[1] - z[1] * x[0];
+    
+    /* mpichler, 19950515 */
+    /* cross product gives area of parallelogram, which is < 1.0 for
+     * non-perpendicular unit-length vectors; so normalize x, y here
+     */
+    
+    mag = sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+    if (mag) {
+        x[0] /= mag;
+        x[1] /= mag;
+        x[2] /= mag;
+    }
+    
+    mag = sqrt(y[0] * y[0] + y[1] * y[1] + y[2] * y[2]);
+    if (mag) {
+        y[0] /= mag;
+        y[1] /= mag;
+        y[2] /= mag;
+    }
+    
+#define M(row,col)  m[col*4+row]
+    M(0, 0) = x[0];
+    M(0, 1) = x[1];
+    M(0, 2) = x[2];
+    M(0, 3) = 0.0;
+    M(1, 0) = y[0];
+    M(1, 1) = y[1];
+    M(1, 2) = y[2];
+    M(1, 3) = 0.0;
+    M(2, 0) = z[0];
+    M(2, 1) = z[1];
+    M(2, 2) = z[2];
+    M(2, 3) = 0.0;
+    M(3, 0) = 0.0;
+    M(3, 1) = 0.0;
+    M(3, 2) = 0.0;
+    M(3, 3) = 1.0;
+#undef M
+    //glMultMatrixf(m);
+    CMatrix mat;
+    mat.set(m);
+    
+    /* Translate Eye to Origin */
+    //glTranslatef(-eyex, -eyey, -eyez);
+    CMatrix mat2;
+    float trans[] = {-eyex, -eyey, -eyez};
+    mat2.setTranslation(trans);
+    
+    mat.postMultiply(mat2);
+    
+    return mat;
+}
+
+/*
+CMatrix setperspectivepmat(float Near, float Far, float fov)
+{
+    GLfloat m[16];
+	for(int i=0; i<16; i++)
+		m[i] = 0;
+
+    float scale = float(1) / tan(DEGTORAD(fov * 0.5));
+#define M(row,col)  m[col*4+row]
+    M(0, 0) = M(1, 1) = scale;
+    M(2, 2) = - Far / (Far - Near);
+    M(3, 2) = - Far * Near / (Far - Near);
+    M(2, 3) = - 1;
+    M(3, 3) = 0;
+#undef M
+
+	CMatrix mat;
+	mat.set(m);
+}*/
+
+#define PI_OVER_360		(M_PI/360.0f)
+CMatrix BuildPerspProjMat(float fov, float aspect, float znear, float zfar)
+{
+	float m[16];
+
+  float xymax = znear * tan(fov * PI_OVER_360);
+  float ymin = -xymax;
+  float xmin = -xymax;
+
+  float width = xymax - xmin;
+  float height = xymax - ymin;
+
+  float depth = zfar - znear;
+  float q = -(zfar + znear) / depth;
+  float qn = -2 * (zfar * znear) / depth;
+
+  float w = 2 * znear / width;
+  w = w / aspect;
+  float h = 2 * znear / height;
+
+  m[0]  = w;
+  m[1]  = 0;
+  m[2]  = 0;
+  m[3]  = 0;
+
+  m[4]  = 0;
+  m[5]  = h;
+  m[6]  = 0;
+  m[7]  = 0;
+
+  m[8]  = 0;
+  m[9]  = 0;
+  m[10] = q;
+  m[11] = -1;
+
+  m[12] = 0;
+  m[13] = 0;
+  m[14] = qn;
+  m[15] = 0;
+
+  CMatrix mat;
+  mat.set(m);
+  return mat;
+}
+
 void CVector3::Transform( CMatrix& m )
 {
 	double vector[4];
@@ -846,28 +999,51 @@ CMatrix::~CMatrix()
 void CMatrix::postMultiply( const CMatrix& matrix )
 {
 	float newMatrix[16];
+	/*
 	const float *m1 = m_matrix, *m2 = matrix.m_matrix;
-    
+
 	newMatrix[0] = m1[0]*m2[0] + m1[4]*m2[1] + m1[8]*m2[2];
 	newMatrix[1] = m1[1]*m2[0] + m1[5]*m2[1] + m1[9]*m2[2];
 	newMatrix[2] = m1[2]*m2[0] + m1[6]*m2[1] + m1[10]*m2[2];
 	newMatrix[3] = 0;
-    
+
 	newMatrix[4] = m1[0]*m2[4] + m1[4]*m2[5] + m1[8]*m2[6];
 	newMatrix[5] = m1[1]*m2[4] + m1[5]*m2[5] + m1[9]*m2[6];
 	newMatrix[6] = m1[2]*m2[4] + m1[6]*m2[5] + m1[10]*m2[6];
 	newMatrix[7] = 0;
-    
+
 	newMatrix[8] = m1[0]*m2[8] + m1[4]*m2[9] + m1[8]*m2[10];
 	newMatrix[9] = m1[1]*m2[8] + m1[5]*m2[9] + m1[9]*m2[10];
 	newMatrix[10] = m1[2]*m2[8] + m1[6]*m2[9] + m1[10]*m2[10];
 	newMatrix[11] = 0;
-    
+
 	newMatrix[12] = m1[0]*m2[12] + m1[4]*m2[13] + m1[8]*m2[14] + m1[12];
 	newMatrix[13] = m1[1]*m2[12] + m1[5]*m2[13] + m1[9]*m2[14] + m1[13];
 	newMatrix[14] = m1[2]*m2[12] + m1[6]*m2[13] + m1[10]*m2[14] + m1[14];
-	newMatrix[15] = 1;
-    
+	newMatrix[15] = 1;*/
+
+	const float *a = m_matrix, *b = matrix.m_matrix;
+
+    newMatrix[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8] * b[2]   + a[12] * b[3];
+    newMatrix[1]  = a[1] * b[0]  + a[5] * b[1]  + a[9] * b[2]   + a[13] * b[3];
+    newMatrix[2]  = a[2] * b[0]  + a[6] * b[1]  + a[10] * b[2]  + a[14] * b[3];
+    newMatrix[3]  = a[3] * b[0]  + a[7] * b[1]  + a[11] * b[2]  + a[15] * b[3];
+
+    newMatrix[4]  = a[0] * b[4]  + a[4] * b[5]  + a[8] * b[6]   + a[12] * b[7];
+    newMatrix[5]  = a[1] * b[4]  + a[5] * b[5]  + a[9] * b[6]   + a[13] * b[7];
+    newMatrix[6]  = a[2] * b[4]  + a[6] * b[5]  + a[10] * b[6]  + a[14] * b[7];
+    newMatrix[7]  = a[3] * b[4]  + a[7] * b[5]  + a[11] * b[6]  + a[15] * b[7];
+
+    newMatrix[8]  = a[0] * b[8]  + a[4] * b[9]  + a[8] * b[10]  + a[12] * b[11];
+    newMatrix[9]  = a[1] * b[8]  + a[5] * b[9]  + a[9] * b[10]  + a[13] * b[11];
+    newMatrix[10] = a[2] * b[8]  + a[6] * b[9]  + a[10] * b[10] + a[14] * b[11];
+    newMatrix[11] = a[3] * b[8]  + a[7] * b[9]  + a[11] * b[10] + a[15] * b[11];
+
+    newMatrix[12] = a[0] * b[12] + a[4] * b[13] + a[8] * b[14]  + a[12] * b[15];
+    newMatrix[13] = a[1] * b[12] + a[5] * b[13] + a[9] * b[14]  + a[13] * b[15];
+    newMatrix[14] = a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15];
+    newMatrix[15] = a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15];
+
 	set( newMatrix );
 }
 
@@ -1218,7 +1394,8 @@ CVector3 CCamera::LookPos()
             
             t = &g_entityType[e->type];
             
-            if(t->category != ENTITY::DOOR)
+            //if(t->category != ENTITY::DOOR)
+            if(t->category != DOOR)
                 continue;
             
 			if(localE == i)

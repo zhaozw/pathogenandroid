@@ -11,7 +11,7 @@
 
 using namespace std;
 
-#define MAX_PATH 128
+//#define MAX_PATH 128
 
 class CFile
 {

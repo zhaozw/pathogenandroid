@@ -12,8 +12,12 @@
 #include <android/native_window_jni.h> // requires ndk r5 or newer
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
-
+#include <android/sensor.h>
+#include <android_native_app_glue.h>
+#include <errno.h>
+#include <EGL/egl.h>
 #include <GLES/gl.h>
+
 extern "C" {
 #include <png.h>
 }
@@ -32,8 +36,11 @@ extern "C" {
 //#include <sys/socket.h>
 //#include <netinet/in.h>
 #include <limits.h>
+#include <vector>
 
 #include <zip.h>
+
+struct CVector2i;
 
 using namespace std;
 
@@ -60,10 +67,57 @@ using namespace std;
 
 #define VERSION     2.0f
 
+#define MAX_PATH	260
+
+#define _isnan	isnan
 #define stricmp strcasecmp
 
 typedef unsigned char byte;
 typedef unsigned int UINT;
+
+struct saved_state 
+{
+    float angle;
+    int32_t x;
+    int32_t y;
+};
+
+// http://developer.android.com/reference/android/app/NativeActivity.html
+struct engine 
+{
+    struct android_app* app;
+
+    ASensorManager* sensorManager;
+    const ASensor* accelerometerSensor;
+    ASensorEventQueue* sensorEventQueue;
+
+    int animating;
+    EGLDisplay display;
+    EGLSurface surface;
+    EGLContext context;
+    int32_t width;
+    int32_t height;
+    struct saved_state state;
+};
+
+class CTouch
+{
+public:
+	bool on;
+	int x, y;
+
+	CTouch()
+	{
+		on = false;
+	}
+
+	CTouch(int X, int Y)
+	{
+		on = true;
+		x = X;
+		y = Y;
+	}
+};
 
 extern float g_width;
 extern float g_height;
@@ -89,8 +143,8 @@ extern char g_tempPath[256];
 extern JNIEnv* g_env;
 extern AAssetManager* g_amgr;
 
-extern int g_width;
-extern int g_height;
+extern vector<CTouch> g_touch;
+
 extern bool g_inited;
 
 unsigned int timeGetTime();

@@ -4,6 +4,7 @@
 #include "image.h"
 #include "file.h"
 #include "logger.h"
+#include "shader.h"
 
 CModel g_model[MODELS];
 
@@ -42,7 +43,7 @@ void CModel::Load(const char* n, CVector3 scale)
         (header.version != 8))
     {
         LOGE("Bad version or identifier for model %s", name);
-        fclose(fp);
+        //fclose(fp);
         return;
     }
     
@@ -54,20 +55,29 @@ void CModel::Load(const char* n, CVector3 scale)
     glcmds = new int[ header.num_glcmds ];
     
     /* Read model data */
-    fseek (fp, header.offset_skins, SEEK_SET);
-    fread (skins, sizeof (struct md2_skin_t), header.num_skins, fp);
+    //fseek (fp, header.offset_skins, SEEK_SET);
+    //fread (skins, sizeof (struct md2_skin_t), header.num_skins, fp);
+	fp.seek(header.offset_skins);
+	fp.read((void*)skins, sizeof (struct md2_skin_t) * header.num_skins);
     
-    fseek (fp, header.offset_st, SEEK_SET);
-    fread (texcoords, sizeof (struct md2_texCoord_t), header.num_st, fp);
+    //fseek (fp, header.offset_st, SEEK_SET);
+    //fread (texcoords, sizeof (struct md2_texCoord_t), header.num_st, fp);
+	fp.seek(header.offset_st);
+	fp.read((void*)texcoords, sizeof (struct md2_texCoord_t) * header.num_st);
     
-    fseek (fp, header.offset_tris, SEEK_SET);
-    fread (triangles, sizeof (struct md2_triangle_t), header.num_tris, fp);
+    //fseek (fp, header.offset_tris, SEEK_SET);
+    //fread (triangles, sizeof (struct md2_triangle_t), header.num_tris, fp);
+	fp.seek(header.offset_tris);
+	fp.read((void*)triangles, sizeof (struct md2_triangle_t) * header.num_tris);
     
-    fseek (fp, header.offset_glcmds, SEEK_SET);
-    fread (glcmds, sizeof (int), header.num_glcmds, fp);
+    //fseek (fp, header.offset_glcmds, SEEK_SET);
+    //fread (glcmds, sizeof (int), header.num_glcmds, fp);
+	fp.seek(header.offset_glcmds);
+	fp.read((void*)glcmds, sizeof (int) * header.num_glcmds);
     
     /* Read frames */
-    fseek (fp, header.offset_frames, SEEK_SET);
+    //fseek (fp, header.offset_frames, SEEK_SET);
+	fp.seek(header.offset_frames);
     for (int i = 0; i < header.num_frames; ++i)
     {
         /* Memory allocation for vertices of this frame */
@@ -379,14 +389,14 @@ int NewModel()
     return -1;
 }
 
-int FindModel(NSString* raw)
+int FindModel(const char* raw)
 {
 	for(int i=0; i<MODELS; i++)
 	{
 		if(!g_model[i].on)
 			continue;
         
-		if([g_model[i].name isEqualToString:raw])
+		if(stricmp(g_model[i].name, raw) == 0)
 			return i;
 	}
     
@@ -395,13 +405,8 @@ int FindModel(NSString* raw)
 
 int LoadModel(const char* name, CVector3 scale)
 {
-    NSString* nsname = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
-	return LoadModel(nsname, scale);
-}
-
-int LoadModel(NSString* name, CVector3 scale)
-{
-	NSString* raw = StripPathExtension(name);
+	char raw[64];
+	StripPathExtension(name, raw);
 	int i = FindModel(raw);
 	if(i >= 0)
 		return i;

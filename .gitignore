@@ -55,3 +55,4 @@ assets/fonts/
 bin/classes/
 *.apk
 *.ap_
+*.class

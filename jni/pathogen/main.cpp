@@ -7,6 +7,26 @@
 #include "file.h"
 #include "font.h"
 #include "script.h"
+#include "quake3bsp.h"
+#include "3dmath.h"
+#include "entity.h"
+#include "player.h"
+//#include "gluLookAt.h"
+#include "gui.h"
+#include "physics.h"
+//#include "ortho.h"
+#include "frustum.h"
+#include "model.h"
+#include "menu.h"
+#include "image.h"
+#include "billboard.h"
+//#include "Net.h"
+//#include "SendPackets.h"
+//#include "ReadPackets.h"
+#include "video.h"
+#include "particle.h"
+#include "decal.h"
+#include "skybox.h"
 
 //com.mamlambo.sample.ndk1
 //AndroidNDK1SampleActivity
@@ -33,8 +53,7 @@ char g_path[256];
 char g_tempPath[256];
 JNIEnv* g_env;
 AAssetManager* g_amgr;
-int g_width;
-int g_height;
+vector<CTouch> g_touch;
 bool g_inited = false;
 
 
@@ -95,6 +114,7 @@ void Reload()
 	    
 	srand(GetTickCount());
     
+	glClearColor(0, 0, 0, 1);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
@@ -105,7 +125,6 @@ void Reload()
     
     LoadFonts();
 
-	/*
 	Entities();
 	Items();
 	Effects();
@@ -116,7 +135,6 @@ void Reload()
 	LoadSounds();
 	//InitNet();
 	ScriptFuncs();
-	*/
 	//PlayIntro();
 
 	g_inited = true;
@@ -233,7 +251,10 @@ void UpdateGameState()
     
     for(int i=0; i<g_touch.size(); i++)
     {
-        CVector2i* touch = &g_touch[i];
+        CTouch* touch = &g_touch[i];
+		if(!touch->on)
+			continue;
+
         g_GUI.touchframe(touch->x, touch->y);
     }
     
@@ -336,27 +357,34 @@ void Draw()
     glDrawArrays(GL_TRIANGLES, 0, 3);
     checkGlError("glDrawArrays");*/
 
+    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	if(g_mode == PLAY)
     {
         float aspect = fabsf(g_width / g_height);
-        GLKMatrix4 projection = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(g_fov), aspect, g_near, g_far);
+		CMatrix projection = BuildPerspProjMat(g_fov, aspect, g_near, g_far);
+        //GLKMatrix4 projection = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(g_fov), aspect, g_near, g_far);
         
-        GLKMatrix4 modelmat = GLKMatrix4MakeTranslation(0.0f, 0.0f, 0.0f);
-        
+        //GLKMatrix4 modelmat = GLKMatrix4MakeTranslation(0.0f, 0.0f, 0.0f);
+		CMatrix modelmat;
+		float translation[] = {0, 0, 0};
+        modelmat.setTranslation(translation);
+
         CVector3 viewvec = g_camera->View();
         CVector3 posvec = g_camera->Position();
         CVector3 posvec2 = g_camera->LookPos();
         CVector3 upvec = g_camera->UpVector();
         
-        CMatrix viewmat = gluLookAt(posvec2.x, posvec2.y, posvec2.z,
+        CMatrix viewmat = gluLookAt2(posvec2.x, posvec2.y, posvec2.z,
                                     viewvec.x, viewvec.y, viewvec.z,
                                     upvec.x, upvec.y, upvec.z);
         
         CMatrix modelview;
-        modelview.set(modelmat.m);
+        modelview.set(modelmat.getMatrix());
         modelview.postMultiply(viewmat);
         
-        g_frustum.CalculateFrustum(projection.m, modelview.getMatrix());
+        g_frustum.CalculateFrustum(projection.getMatrix(), modelview.getMatrix());
         
         float color[] = {1,1,1,1};
         
@@ -369,8 +397,8 @@ void Draw()
         }
         
         glUseProgram(g_program[SKY]);
-        glUniformMatrix4fv(g_slots[SKY][PROJECTION], 1, 0, projection.m);
-        //glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.m);
+        glUniformMatrix4fv(g_slots[SKY][PROJECTION], 1, 0, projection.getMatrix());
+        //glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[SKY][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[SKY][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[SKY][POSITION]);
@@ -381,8 +409,8 @@ void Draw()
         DrawSkyBox(posvec2);
         
         glUseProgram(g_program[MAP]);
-        glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.m);
-        glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.m);
+        glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[MAP][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MAP][POSITION]);
@@ -391,8 +419,8 @@ void Draw()
         g_map.RenderLevel(posvec);
         
         glUseProgram(g_program[MODEL]);
-        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
-        //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
+        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
+        //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
@@ -402,8 +430,8 @@ void Draw()
         DrawEntities(true);
         
         glUseProgram(g_program[MAP]);
-        glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.m);
-        glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.m);
+        glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[MAP][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MAP][POSITION]);
@@ -413,8 +441,8 @@ void Draw()
         g_map.RenderLevel2(posvec);
         
         glUseProgram(g_program[MODEL]);
-        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
-        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
+        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
         //glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
@@ -424,8 +452,8 @@ void Draw()
         DrawDecals();
         
         glUseProgram(g_program[BILLBOARD]);
-        glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.m);
-        glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.m);
+        glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[BILLBOARD][VIEWMAT], 1, 0, viewmat.getMatrix());
         //glUniform3f(g_slots[BILLBOARD][CAMERAPOS], posvec.x, posvec.y, posvec.z);
         glUniform4f(g_slots[BILLBOARD][COLOR], color[0], color[1], color[2], color[3]);
@@ -437,8 +465,8 @@ void Draw()
         DrawBillboards();
         
         glUseProgram(g_program[MODEL]);
-        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.m);
-        //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.m);
+        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
+        //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
@@ -654,3 +682,337 @@ JNIEXPORT void Java_com_pathogengame_pathogen_MainActivity_nativeInit(JNIEnv * e
     g_GUI.touchcheck();
 }
 */
+
+/**
+ * Initialize an EGL context for the current display.
+ */
+static int engine_init_display(struct engine* engine) 
+{
+    // initialize OpenGL ES and EGL
+
+    /*
+     * Here specify the attributes of the desired configuration.
+     * Below, we select an EGLConfig with at least 8 bits per color
+     * component compatible with on-screen windows
+     */
+    const EGLint attribs[] = 
+	{
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+            EGL_BLUE_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_RED_SIZE, 8,
+            EGL_NONE
+    };
+    EGLint w, h, dummy, format;
+    EGLint numConfigs;
+    EGLConfig config;
+    EGLSurface surface;
+    EGLContext context;
+
+    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
+    eglInitialize(display, 0, 0);
+
+    /* Here, the application chooses the configuration it desires. In this
+     * sample, we have a very simplified selection process, where we pick
+     * the first EGLConfig that matches our criteria */
+    eglChooseConfig(display, attribs, &config, 1, &numConfigs);
+
+    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+     * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+     * As soon as we picked a EGLConfig, we can safely reconfigure the
+     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
+    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
+
+    ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+
+    surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
+    context = eglCreateContext(display, config, NULL, NULL);
+
+    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) 
+	{
+        LOGW("Unable to eglMakeCurrent");
+        return -1;
+    }
+
+    eglQuerySurface(display, surface, EGL_WIDTH, &w);
+    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
+
+    engine->display = display;
+    engine->context = context;
+    engine->surface = surface;
+    engine->width = w;
+    engine->height = h;
+    engine->state.angle = 0;
+
+    // Initialize GL state.
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+    glEnable(GL_CULL_FACE);
+    glShadeModel(GL_SMOOTH);
+    glDisable(GL_DEPTH_TEST);
+
+    return 0;
+}
+
+/**
+ * Just the current frame in the display.
+ */
+static void engine_draw_frame(struct engine* engine) 
+{
+    if (engine->display == NULL) 
+	{
+        // No display.
+        return;
+    }
+
+	Update();
+
+    // Just fill the screen with a color.
+    //glClearColor(((float)engine->state.x)/engine->width, engine->state.angle, ((float)engine->state.y)/engine->height, 1);
+    //glClear(GL_COLOR_BUFFER_BIT);
+
+	Draw();
+
+    eglSwapBuffers(engine->display, engine->surface);
+}
+
+/**
+ * Tear down the EGL context currently associated with the display.
+ */
+static void engine_term_display(struct engine* engine) 
+{
+	Deinit();
+
+    if (engine->display != EGL_NO_DISPLAY) 
+	{
+        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (engine->context != EGL_NO_CONTEXT) 
+		{
+            eglDestroyContext(engine->display, engine->context);
+        }
+        if (engine->surface != EGL_NO_SURFACE) 
+		{
+            eglDestroySurface(engine->display, engine->surface);
+        }
+        eglTerminate(engine->display);
+    }
+
+    engine->animating = 0;
+    engine->display = EGL_NO_DISPLAY;
+    engine->context = EGL_NO_CONTEXT;
+    engine->surface = EGL_NO_SURFACE;
+}
+
+/**
+ * Process the next input event.
+ */
+// http://stackoverflow.com/questions/12500825/android-ndk-multitouch
+// http://mobilepearls.com/labs/native-android-api/include/android/input.h
+// http://stackoverflow.com/questions/13707664/keyboard-input-in-android-ndk-using-nativeactivity
+// https://bitbucket.org/runhello/jumpcore/src/2641f6910f3386d74e3401a16a32f4888631cf35/android/jumpcore-eclipse/jni/gl_code.cpp
+// http://android-developers.blogspot.ca/2010/06/making-sense-of-multitouch.html
+static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
+{
+	//LOGI("engine handle input");
+
+    struct engine* engine = (struct engine*)app->userData;
+
+	unsigned int pindex = AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK;
+
+    switch(AInputEvent_getType(event))
+	{
+		case AINPUT_EVENT_TYPE_MOTION:
+			{
+				//LOGI("motion %d,%d", (int)AMotionEvent_getX(event, 0), (int)AMotionEvent_getY(event, 0));
+				engine->animating = 1;
+				engine->state.x = AMotionEvent_getX(event, 0);
+				engine->state.y = AMotionEvent_getY(event, 0);
+
+				switch(AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK)
+				{
+				case AMOTION_EVENT_ACTION_DOWN:
+				case AMOTION_EVENT_ACTION_POINTER_DOWN:
+					{
+						//LOGI("down");
+						if(pindex >= g_touch.size())
+							g_touch.resize( pindex + 1 );
+						g_touch[pindex].on = true;
+						g_touch[pindex].x = AMotionEvent_getX(event, pindex);
+						g_touch[pindex].y = AMotionEvent_getY(event, pindex);
+					}break;
+				case AMOTION_EVENT_ACTION_CANCEL:
+				case AMOTION_EVENT_ACTION_UP:
+				case AMOTION_EVENT_ACTION_POINTER_UP:
+					{
+						//LOGI("up");
+						if(pindex >= g_touch.size())
+							g_touch.resize( pindex + 1 );
+						g_touch[pindex].on = false;
+						g_touch[pindex].x = AMotionEvent_getX(event, pindex);
+						g_touch[pindex].y = AMotionEvent_getY(event, pindex);
+					}break;
+				case AMOTION_EVENT_ACTION_MOVE :
+					{
+						//LOGI("move");
+						if(pindex >= g_touch.size())
+							g_touch.resize( pindex + 1 );
+						g_touch[pindex].on = true;
+						g_touch[pindex].x = AMotionEvent_getX(event, pindex);
+						g_touch[pindex].y = AMotionEvent_getY(event, pindex);
+					}break;
+				default:
+					break;
+				}
+			}break;
+		default: break;
+	}
+
+	//LOGI("repeat_count = %d", (int)AKeyEvent_getRepeatCount(event));
+
+		//switch(AKeyEvent_getAction(event))
+	
+
+    return 0;
+}
+
+/**
+ * Process the next main command.
+ */
+static void engine_handle_cmd(struct android_app* app, int32_t cmd) 
+{
+	LOGI("engine handle cmd %d", (int)cmd);
+
+    struct engine* engine = (struct engine*)app->userData;
+    switch (cmd) {
+        case APP_CMD_SAVE_STATE:
+            // The system has asked us to save our current state.  Do so.
+            engine->app->savedState = malloc(sizeof(struct saved_state));
+            *((struct saved_state*)engine->app->savedState) = engine->state;
+            engine->app->savedStateSize = sizeof(struct saved_state);
+            break;
+        case APP_CMD_INIT_WINDOW:
+            // The window is being shown, get it ready.
+            if (engine->app->window != NULL) 
+			{
+                engine_init_display(engine);
+                engine_draw_frame(engine);
+            }
+            break;
+        case APP_CMD_TERM_WINDOW:
+            // The window is being hidden or closed, clean it up.
+            engine_term_display(engine);
+            break;
+        case APP_CMD_GAINED_FOCUS:
+			
+            // When our app gains focus, we start monitoring the accelerometer.
+            if (engine->accelerometerSensor != NULL) 
+			{
+                ASensorEventQueue_enableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
+                // We'd like to get 60 events per second (in us).
+                ASensorEventQueue_setEventRate(engine->sensorEventQueue, engine->accelerometerSensor, (1000L/30)*1000);
+            }
+			
+            break;
+        case APP_CMD_LOST_FOCUS:
+			
+            // When our app loses focus, we stop monitoring the accelerometer.
+            // This is to avoid consuming battery while not being used.
+            if (engine->accelerometerSensor != NULL) {
+                ASensorEventQueue_disableSensor(engine->sensorEventQueue,
+                        engine->accelerometerSensor);
+            }
+            // Also stop animating.
+            engine->animating = 0;
+			
+            engine_draw_frame(engine);
+            break;
+    }
+}
+
+/**
+ * This is the main entry point of a native application that is using
+ * android_native_app_glue.  It runs in its own thread, with its own
+ * event loop for receiving input events and doing other things.
+ */
+void android_main(struct android_app* state) 
+{
+	LOGI("ANDROID MAIN");
+
+    struct engine engine;
+
+    // Make sure glue isn't stripped.
+    app_dummy();
+
+    memset(&engine, 0, sizeof(engine));
+    state->userData = &engine;
+    state->onAppCmd = engine_handle_cmd;
+    state->onInputEvent = engine_handle_input;
+    engine.app = state;
+
+	
+    // Prepare to monitor accelerometer
+    engine.sensorManager = ASensorManager_getInstance();
+    engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+    engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
+
+    if (state->savedState != NULL) 
+	{
+        // We are starting with a previous saved state; restore from it.
+        engine.state = *(struct saved_state*)state->savedState;
+    }
+
+	g_amgr = state->activity->assetManager;
+	Reload();
+
+    // loop waiting for stuff to do.
+    while (true) 
+	{
+        // Read all pending events.
+        int ident;
+        int events;
+        struct android_poll_source* source;
+
+        // If not animating, we will block forever waiting for events.
+        // If animating, we loop until all events are read, then continue
+        // to draw the next frame of animation.
+        while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0) 
+		{
+            // Process this event.
+            if (source != NULL) 
+			{
+                source->process(state, source);
+            }
+
+            // If a sensor has data, process it now.
+            if (ident == LOOPER_ID_USER) {
+                if (engine.accelerometerSensor != NULL) {
+                    ASensorEvent event;
+                    while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) {
+                        //LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+                    }
+                }
+            }
+
+            // Check if we are exiting.
+            if (state->destroyRequested != 0) 
+			{
+                engine_term_display(&engine);
+                return;
+            }
+        }
+
+        if (engine.animating) 
+		{
+            // Done with events; draw next animation frame.
+            engine.state.angle += .01f;
+            if (engine.state.angle > 1) 
+			{
+                engine.state.angle = 0;
+            }
+
+            // Drawing is throttled to the screen update rate, so there
+            // is no need to do timing here.
+            engine_draw_frame(&engine);
+        }
+    }
+}

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <jpeglib.h>
 #include "file.h"
+#include "main.h"
 
 class CTexture
 {

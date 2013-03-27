@@ -1,0 +1,66 @@
+
+
+#ifndef pathogen_Animations_h
+#define pathogen_Animations_h
+
+//	Door animations
+#define ANIM_OPENING_S		0
+#define ANIM_OPENING_E		29
+
+//	Lower animations
+#define ANIM_WALK_S			0
+#define ANIM_WALK_E			29
+#define ANIM_STRAFER_S		30
+#define ANIM_STRAFER_E		59
+#define ANIM_WALKFWR_S		60
+#define ANIM_WALKFWR_E		89
+#define ANIM_WALKFWL_S		90
+#define ANIM_WALKFWL_E		119
+#define ANIM_CWALK_S		120
+#define ANIM_CWALK_E		149
+#define ANIM_CSTRAFER_S		150
+#define ANIM_CSTRAFER_E		179
+#define ANIM_CWALKFWR_S		180
+#define ANIM_CWALKFWR_E		209
+#define ANIM_CWALKFWL_S		210
+#define ANIM_CWALKFWL_E		239
+#define ANIM_LDEATHFW_S		240
+#define ANIM_LDEATHFW_E		269
+#define ANIM_LDEATHBW_S		270
+#define ANIM_LDEATHBW_E		299
+
+//	Upper animations
+#define ANIM_UDEATHFW_S		0
+#define ANIM_UDEATHFW_E		29
+#define ANIM_UDEATHBW_S		30
+#define ANIM_UDEATHBW_E		59
+#define ANIM_SHOTSHOULDER_S	60
+#define ANIM_SHOTSHOULDER_E	69
+#define ANIM_RIFLERELOAD_S	70
+#define ANIM_RIFLERELOAD_E	149
+#define ANIM_ZGRASP_S		150
+#define ANIM_ZGRASP_E		159
+#define ANIM_PAIN_S			160
+#define ANIM_PAIN_E			169
+#define ANIM_BATSWING_S		170
+#define ANIM_BATSWING_E		179
+#define ANIM_SHOTGUNSHOT_S	180
+#define ANIM_SHOTGUNSHOT_E	209
+#define ANIM_SHOTGUNRELD_S	210
+#define ANIM_SHOTGUNRELD_M	220
+#define ANIM_SHOTGUNRELD_E	239
+#define ANIM_SHOTGUNCOCK_S	240
+#define ANIM_SHOTGUNCOCK_E	259
+#define ANIM_KNIFESTAB_S	260
+#define ANIM_KNIFESTAB_E	269
+#define ANIM_PISTOLSHOT_S	270
+#define ANIM_PISTOLSHOT_E	279
+#define ANIM_PISTOLRLD_S	280
+#define ANIM_PISTOLRLD_E	309
+
+#define ANIM_SHOTSHOULDER_R	2.0f
+#define ANIM_RIFLERELOAD_R	2.0f
+#define ANIM_SHOTGUNSHOT_R	1.0f
+#define ANIM_SHOTGUNRELD_R	1.0f
+
+#endif

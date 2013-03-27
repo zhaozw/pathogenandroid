@@ -2,6 +2,7 @@ package com.pathogengame.pathogen;
 
 import android.opengl.*;
 import android.app.Activity;
+import android.app.NativeActivity;
 import android.view.WindowManager;
 import android.content.Context;
 import android.view.Display;
@@ -24,7 +25,8 @@ import java.util.Vector;
 
 import android.view.View;
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback
+//public class MainActivity extends Activity//implements SurfaceHolder.Callback
+public class MainActivity extends NativeActivity//implements SurfaceHolder.Callback
 {
 	public static final float MIN_D = 1.0f;
 	public static final float MAX_D = 9000.0f;
@@ -146,12 +148,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 	native void helloLog(String logThis);
 	native String getString(int value1, int value2);  
 
+	/*
     public static native void nativeOnCreate();
     public static native void nativeOnResume();
     public static native void nativeOnPause();
     public static native void nativeOnStop();
     //public static native void nativeSetSurface(Surface surface);
-	static native void nativeInit(String apkPath, String tmpPath, AssetManager amgr);
+	static native void nativeInit(String apkPath, String tmpPath, AssetManager amgr);*/
 
     public static native void SurfChang(int width, int height);
     //public static native void SurfCreat();
@@ -3424,6 +3427,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
         //nativeSetSurface(null);
     }
     
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) 
     {
@@ -3432,37 +3436,28 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
         getWindow().setFlags(  
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,  
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        /*
-        mGLView = new MyGLSurfaceView(this);
-        mRenderer = new MyGL20Renderer();
-        mRenderer.mActivity = this;
-        mGLView.setRenderer(mRenderer);
-        setContentView(mGLView);*/
+        
+       // mGLView = new MyGLSurfaceView(this);
+        //mRenderer = new MyGL20Renderer();
+        //mRenderer.mActivity = this;
+       // mGLView.setRenderer(mRenderer);
+       // setContentView(mGLView);
+       // setContentView(R.layout.main);
         
 
         //mGLView = new MyGLSurfaceView(getApplication());
-        mGLView = new MyGLSurfaceView(this);
-        setContentView(mGLView);
+        //mGLView = new MyGLSurfaceView(this);
+        //setContentView(mGLView);
         
-        nativeOnCreate();
+        //nativeOnCreate();
         
         //setContentView(R.layout.main);
        // SurfaceView surfaceView = (SurfaceView)findViewById(R.id.surfaceview);
         //surfaceView.getHolder().addCallback(this);
-
-        /*
-    	AssetManager am = getAssets();
-    	try
-    	{
-    		System.out.println(am.list("gui/"));
-    	}
-    	catch(IOException e)
-    	{
-    		e.printStackTrace();
-    	}*/
     }
     
 
+    /*
     @Override
     protected void onResume() 
     {
@@ -3487,7 +3482,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
     	super.onDestroy();
     	nativeOnStop();
     }
-
+*/
+    /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) 
     {
@@ -3495,7 +3491,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
     }
-    
+    */
     public int NewTexture()
     {
     	for(int i=0; i<TEXTURES; i++)

@@ -7,6 +7,7 @@
 #include "gui.h"
 #include "file.h"
 #include "logger.h"
+#include "shader.h"
 
 class CQuake3BSP g_map;
 
@@ -121,7 +122,7 @@ GLuint CQuake3BSP::CreateLightmapTexture(byte *pImageBits, int width, int height
     
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     
     return texture;
 }
@@ -318,14 +319,18 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	m_numOfNodes = lumps[kNodes].length / sizeof(tBSPNode);
 	m_pNodes     = new tBSPNode [m_numOfNodes];
     
-	fseek(fp, lumps[kNodes].offset, SEEK_SET);
-	fread(m_pNodes, m_numOfNodes, sizeof(tBSPNode), fp);
+	//fseek(fp, lumps[kNodes].offset, SEEK_SET);
+	//fread(m_pNodes, m_numOfNodes, sizeof(tBSPNode), fp);
+	fp.seek(lumps[kNodes].offset);
+	fp.read((void*)m_pNodes, m_numOfNodes * sizeof(tBSPNode));
     
 	m_numOfLeafs = lumps[kLeafs].length / sizeof(tBSPLeaf);
 	m_pLeafs     = new tBSPLeaf [m_numOfLeafs];
     
-	fseek(fp, lumps[kLeafs].offset, SEEK_SET);
-	fread(m_pLeafs, m_numOfLeafs, sizeof(tBSPLeaf), fp);
+	//fseek(fp, lumps[kLeafs].offset, SEEK_SET);
+	//fread(m_pLeafs, m_numOfLeafs, sizeof(tBSPLeaf), fp);
+	fp.seek(lumps[kLeafs].offset);
+	fp.read((void*)m_pLeafs, m_numOfLeafs * sizeof(tBSPLeaf));
     
 	for(i = 0; i < m_numOfLeafs; i++)
 	{
@@ -399,7 +404,7 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	//fseek(fp, lumps[kBrushSides].offset, SEEK_SET);
 	//fread(m_pBrushSides, m_numOfBrushSides, sizeof(tBSPBrushSide), fp);
 	fp.seek(lumps[kBrushSides].offset);
-	fp.read(m_pBrushSides, m_numOfBrushSides, sizeof(tBSPBrushSide));
+	fp.read((void*)m_pBrushSides, m_numOfBrushSides * sizeof(tBSPBrushSide));
     
 	m_numOfLeafBrushes = lumps[kLeafBrushes].length / sizeof(int);
 	m_pLeafBrushes     = new int [m_numOfLeafBrushes];

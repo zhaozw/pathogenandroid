@@ -145,6 +145,10 @@ bool TriBoxOverlap(CVector3 vCenter, CVector3 vRadius, CTriangle tri);
 bool TriBoxOverlap2(CVector3 vScaleDown, CVector3 vCenter, CTriangle tri);
 float Clip(float n, float lower, float upper);
 float GetYaw(float dx, float dz);
+CMatrix gluLookAt2(float eyex, float eyey, float eyez,
+               float centerx, float centery, float centerz,
+               float upx, float upy, float upz);
+CMatrix BuildPerspProjMat(float fov, float aspect, float znear, float zfar);
 
 class CQuaternion
 {
