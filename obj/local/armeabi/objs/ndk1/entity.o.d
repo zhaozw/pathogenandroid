@@ -175,8 +175,6 @@ obj/local/armeabi/objs/ndk1/entity.o: jni/pathogen/entity.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/egl.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/eglplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
  jni/pathogen/../libpng/png.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zconf.h \
@@ -208,7 +206,9 @@ obj/local/armeabi/objs/ndk1/entity.o: jni/pathogen/entity.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/iostream \
  jni/pathogen/quake3bsp.h jni/pathogen/animations.h \
  jni/pathogen/physics.h jni/pathogen/script.h jni/pathogen/gui.h \
- jni/pathogen/menu.h jni/pathogen/shader.h \
+ jni/pathogen/logger.h jni/pathogen/menu.h jni/pathogen/shader.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/fstream \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_codecvt.h \
@@ -568,10 +568,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/incl
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h:
 
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h:
-
 jni/pathogen/../libpng/png.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h:
@@ -656,9 +652,15 @@ jni/pathogen/script.h:
 
 jni/pathogen/gui.h:
 
+jni/pathogen/logger.h:
+
 jni/pathogen/menu.h:
 
 jni/pathogen/shader.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/fstream:
 

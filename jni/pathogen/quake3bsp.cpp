@@ -146,7 +146,8 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	CFile fp(bsppath);
     
 	//if((fp = fopen(bspPath, "rb")) == NULL)
-	if(fp.fsize <= 0)
+	//if(fp.fsize <= 0)
+	if(!fp.mFile)
 	{
 		LOGE("Could not find BSP file %s", name);
 		return false;
@@ -453,6 +454,7 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	//fread(entities, lumps[kEntities].length, sizeof(char), fp);
 	fp.read((void*)entities, lumps[kEntities].length * sizeof(char));
 	//fclose(fp);
+	fp.close();
     
 	ReadEntities(entities);
 	delete entities;
@@ -587,6 +589,15 @@ CVector3 CQuake3BSP::LightVol(CVector3 vPos)
 		color.x = 0;
 		color.y = 0;
 		color.z = 0;
+
+		LOGI("out of light grid %f/%f-%f,%f/%f-%f,%f/%f-%f", //=%u/%u,%u/%u,%u/%u", 
+			vPos.x, m_bbox.min.x, m_bbox.max.x,
+			vPos.y, m_bbox.min.y, m_bbox.max.y,
+			vPos.z, m_bbox.min.z, m_bbox.max.z,
+			lx, num_lightvols.x, 
+			ly, num_lightvols.y, 
+			lz, num_lightvols.z);
+
 		return color;
 	}
     
@@ -1479,6 +1490,7 @@ void CQuake3BSP::RenderSky()
 
 void CQuake3BSP::RenderLevel(const CVector3 &vPos)
 {
+
 	tBSPLeaf* pLeaf;
 	int faceCount;
 	int faceIndex;
@@ -1490,6 +1502,10 @@ void CQuake3BSP::RenderLevel(const CVector3 &vPos)
 	int cluster = m_pLeafs[leafIndex].cluster;
 	int i = m_numOfLeafs;
     
+    glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
+
 	while(i--)
 	{
 		pLeaf = &m_pLeafs[i];
@@ -1527,6 +1543,10 @@ void CQuake3BSP::RenderLevel(const CVector3 &vPos)
 	glDisable(GL_TEXTURE_2D);
 	glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	glActiveTextureARB(GL_TEXTURE0_ARB);*/
+	
+    glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void CQuake3BSP::SortFaces(const CVector3 &vPos)
@@ -1627,6 +1647,10 @@ void CQuake3BSP::RenderLevel2(const CVector3 &vPos)
     char msg[128];
     sprintf(msg, "sort faces %d", (int)m_sortFaces.size());
     Chat(msg);*/
+
+    glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
     
 	//for(int i=m_sortFaces.size()-1; i>=0; i--)
 	for(int i=0; i<m_sortFaces.size(); i++)
@@ -1648,6 +1672,10 @@ void CQuake3BSP::RenderLevel2(const CVector3 &vPos)
 	glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	glFrontFace(GL_CCW);*/
+
+    glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void CQuake3BSP::Destroy(bool delTex)

@@ -364,6 +364,9 @@ public:
 	int FindLeaf(const CVector3 &vPos);
 	int FindCluster(const CVector3 &vPos);
 	CVector3  LightVol(CVector3 vPos);
+	
+    void RenderFace(int faceIndex);
+    void RenderSkyFace(int faceIndex);
 
 private:
     void ChangeGamma(byte *pImage, int size, float factor);
@@ -379,9 +382,6 @@ private:
     void CheckBrush(tBSPBrush *pBrush, CVector3 vStart, CVector3 vEnd);
 	void BreakNode(int nodeIndex, CVector3 vStart, CVector3 vEnd);
 	void BreakBrush(int brushIndex, tBSPBrush *pBrush, CVector3 vStart, CVector3 vEnd);
-
-    void RenderFace(int faceIndex);
-    void RenderSkyFace(int faceIndex);
 };
 
 extern bool g_dothis;

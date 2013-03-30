@@ -91,8 +91,6 @@ obj/local/armeabi/objs/ndk1/main.o: jni/pathogen/main.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/egl.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/eglplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
  jni/pathogen/../libpng/png.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zconf.h \
@@ -149,6 +147,8 @@ obj/local/armeabi/objs/ndk1/main.o: jni/pathogen/main.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_bvector.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h \
  jni/pathogen/../libzip/zip.h jni/pathogen/shader.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/iostream \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_ioserr.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_iosfwd.h \
@@ -401,10 +401,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/incl
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h:
 
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h:
-
 jni/pathogen/../libpng/png.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h:
@@ -518,6 +514,10 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_r
 jni/pathogen/../libzip/zip.h:
 
 jni/pathogen/shader.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/iostream:
 

@@ -89,8 +89,6 @@ obj/local/armeabi/objs/ndk1/3dmath.o: jni/pathogen/3dmath.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/egl.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/eglplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
  jni/pathogen/../libpng/png.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zconf.h \
@@ -380,10 +378,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/incl
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/eglplatform.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h:
 
 jni/pathogen/../libpng/png.h:
 

@@ -86,13 +86,13 @@ void CWidget::Button(const char* filepath, const char* t, int f, float left, flo
     font = f;
     float length = 0;
     for(int i=0; i<strlen(t); i++)
-        length += g_font[f].glyph[t[i]].w;
+        length += g_font[f].glyph[t[i]].w * g_scale;
     tpos[0] = (left+right)/2.0f - length/2.0f;
-    tpos[1] = (top+bottom)/2.0f - g_font[f].gheight/2.0f;
+    tpos[1] = (top+bottom)/2.0f - g_font[f].gheight*g_scale/2.0f;
 	over = false;
 	ldown = false;
 	tex = CreateTexture(filepath);
-	bgtex = CreateTexture("buttonbg");
+	bgtex = CreateTexture("gui/buttonbg");
 	//bgovertex = CreateTexture("buttonbgover");
 	pos[0] = left;
 	pos[1] = top;
@@ -110,13 +110,13 @@ void CWidget::Button(const char* filepath, const char* t, int f, float left, flo
     font = f;
     float length = 0;
     for(int i=0; i<strlen(t); i++)
-        length += g_font[f].glyph[t[i]].w;
+        length += g_font[f].glyph[t[i]].w * g_scale;
     tpos[0] = (left+right)/2.0f - length/2.0f;
-    tpos[1] = (top+bottom)/2.0f - g_font[f].gheight/2.0f;
+    tpos[1] = (top+bottom)/2.0f - g_font[f].gheight*g_scale/2.0f;
 	over = false;
 	ldown = false;
 	tex = CreateTexture(filepath);
-	bgtex = CreateTexture("buttonbg");
+	bgtex = CreateTexture("gui/buttonbg");
 	//bgovertex = CreateTexture("buttonbgover");
 	pos[0] = left;
 	pos[1] = top;
@@ -674,10 +674,10 @@ void RedoGUI()
 {
 	//g_GUI.view.clear();
     
-	float halign = g_width/2 - 80;
+	float halign = g_width/2 - 80*g_scale;
     
-    float fieldwidth = 280;
-    float buttonw = 120;
+    float fieldwidth = 280*g_scale;
+    float buttonw = 120*g_scale;
     float centerw = g_width/2;
     
     /*
@@ -687,145 +687,145 @@ void RedoGUI()
     */
     
     AddView("logo");
-    AddImage("logo", g_width/2 - g_height/2, 0, g_width/2 + g_height/2, g_height, 1, 1, 1, 0);
+    AddImage("gui/logo", g_width/2 - g_height/2, 0, g_width/2 + g_height/2, g_height, 1, 1, 1, 0);
     
     AddView("main");
-	AddImage("bg", 0, 0, g_width, g_height);
+	AddImage("gui/bg", 0, 0, g_width, g_height);
 	//AddImage("logo", 0, 0, g_width, g_height);
 	//AddImage("3levelsgreen2%", 0, 0, g_width, g_height);
-    AddButton("buttonbg", "Play Story", MSGOTHIC16, centerw-buttonw/2, 100.0f, centerw+buttonw/2, 144.0f, &Click_GoToStory, NULL, NULL);
-    //AddButton("buttonbg", "Play Online", MSGOTHIC16, centerw-buttonw/2, 140.0f, centerw+buttonw/2, 170.0f, &Click_GoToOnline, NULL, NULL);
-    AddButton("buttonbg", "Credits", MSGOTHIC16, centerw-buttonw/2, 180.0f, centerw+buttonw/2, 224.0f, &Click_GoToCredits, NULL, NULL);
+    AddButton("gui/buttonbg", "Play Story", MSGOTHIC16, centerw-buttonw/2, 100.0f*g_scale, centerw+buttonw/2, 144.0f*g_scale, &Click_GoToStory, NULL, NULL);
+    //AddButton("gui/buttonbg", "Play Online", MSGOTHIC16, centerw-buttonw/2, 140.0f*g_scale, centerw+buttonw/2, 170.0f*g_scale, &Click_GoToOnline, NULL, NULL);
+    AddButton("gui/buttonbg", "Credits", MSGOTHIC16, centerw-buttonw/2, 180.0f*g_scale, centerw+buttonw/2, 224.0f*g_scale, &Click_GoToCredits, NULL, NULL);
     
     AddView("online");
-	AddImage("bg", 0, 0, g_width, g_height);
-    AddButton("buttonbg", "Register", MSGOTHIC16, centerw-buttonw/2, 100.0f, centerw+buttonw/2, 130.0f, &Click_GoToRegister, NULL, NULL);
-    AddButton("buttonbg", "Login", MSGOTHIC16, centerw-buttonw/2, 140.0f, centerw+buttonw/2, 170.0f, &Click_GoToLogin, NULL, NULL);
-    AddButton("buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, 180.0f, centerw+buttonw/2, 210.0f, &Click_GoToMain, NULL, NULL);
+	AddImage("gui/bg", 0, 0, g_width, g_height);
+    AddButton("gui/buttonbg", "Register", MSGOTHIC16, centerw-buttonw/2, 100.0f*g_scale, centerw+buttonw/2, 130.0f*g_scale, &Click_GoToRegister, NULL, NULL);
+    AddButton("gui/buttonbg", "Login", MSGOTHIC16, centerw-buttonw/2, 140.0f*g_scale, centerw+buttonw/2, 170.0f*g_scale, &Click_GoToLogin, NULL, NULL);
+    AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, 180.0f*g_scale, centerw+buttonw/2, 210.0f*g_scale, &Click_GoToMain, NULL, NULL);
 
 	/*
     AddView("login");
-	AddImage("bg", 0, 0, g_width, g_height);
+	AddImage("gui/bg", 0, 0, g_width, g_height);
     AddTextField(@"Username", centerw-fieldwidth/2, 70.0f, fieldwidth, 31.0f, false, USERNAME);
     AddTextField(@"Password", centerw-fieldwidth/2, 120.0f, fieldwidth, 31.0f, true, PASSWORD);
-    AddButton("buttonbg", "Login", MSGOTHIC16, centerw-buttonw*3/5-buttonw/2, 170.0f, centerw-buttonw*3/5+buttonw/2, 200.0f, &Click_Login, NULL, NULL);
-    AddButton("buttonbg", "Back", MSGOTHIC16, centerw+buttonw*3/5-buttonw/2, 170.0f, centerw+buttonw*3/5+buttonw/2, 200.0f, &Click_GoToOnline, NULL, NULL);
+    AddButton("gui/buttonbg", "Login", MSGOTHIC16, centerw-buttonw*3/5-buttonw/2, 170.0f, centerw-buttonw*3/5+buttonw/2, 200.0f, &Click_Login, NULL, NULL);
+    AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw+buttonw*3/5-buttonw/2, 170.0f, centerw+buttonw*3/5+buttonw/2, 200.0f, &Click_GoToOnline, NULL, NULL);
     */
 	/*
     AddView("register");
-	AddImage("bg", 0, 0, g_width, g_height);
+	AddImage("gui/bg", 0, 0, g_width, g_height);
     AddTextField(@"Username", centerw-fieldwidth/2, 20.0f, fieldwidth, 31.0f, false, REGUSERNAME);
     AddTextField(@"Email address", centerw-fieldwidth/2, 55.0f, fieldwidth, 31.0f, false, REGEMAIL);
     AddTextField(@"Password", centerw-fieldwidth/2, 90.0f, fieldwidth, 31.0f, true, REGPASSWORD);
     AddTextField(@"Confirm password", centerw-fieldwidth/2, 125.0f, fieldwidth, 31.0f, true, REGPASSWORD2);
-    AddButton("buttonbg", "Register", MSGOTHIC16, centerw-buttonw*3/5-buttonw/2, 170.0f, centerw-buttonw*3/5+buttonw/2, 205.0f, &Click_Register, NULL, NULL);
-    AddButton("buttonbg", "Back", MSGOTHIC16, centerw+buttonw*3/5-buttonw/2, 170.0f, centerw+buttonw*3/5+buttonw/2, 205.0f, &Click_GoToOnline, NULL, NULL);
+    AddButton("gui/buttonbg", "Register", MSGOTHIC16, centerw-buttonw*3/5-buttonw/2, 170.0f, centerw-buttonw*3/5+buttonw/2, 205.0f, &Click_Register, NULL, NULL);
+    AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw+buttonw*3/5-buttonw/2, 170.0f, centerw+buttonw*3/5+buttonw/2, 205.0f, &Click_GoToOnline, NULL, NULL);
     */
 	AddView("credits");
-	AddImage("bg", 0, 0, g_width, g_height);
-	AddText("PROGRAMMING", MSGOTHIC16, halign - 100, g_height/2 - g_font[MSGOTHIC16].gheight*4);
-	AddText("Denis Ivanov", MSGOTHIC16, halign - 100, g_height/2 - g_font[MSGOTHIC16].gheight*3);
-	//AddText("Volodar", MSGOTHIC16, halign, g_height/2 - g_font[MSGOTHIC16].gheight*2);
-	AddText("MAPS", MSGOTHIC16, halign + 100, g_height/2 - g_font[MSGOTHIC16].gheight*4);
-	AddText("Robert Jarrett", MSGOTHIC16, halign + 100, g_height/2 - g_font[MSGOTHIC16].gheight*3);
-	AddText("MODELS", MSGOTHIC16, halign + 100, g_height/2 - g_font[MSGOTHIC16].gheight*1);
-	AddText("Robert Jarrett", MSGOTHIC16, halign + 100, g_height/2 - g_font[MSGOTHIC16].gheight*0);
-	AddText("Sergey Harchenko", MSGOTHIC16, halign + 100, g_height/2 + g_font[MSGOTHIC16].gheight*1);
-	AddText("Denis Ivanov", MSGOTHIC16, halign + 100, g_height/2 + g_font[MSGOTHIC16].gheight*2);
-	AddText("Andrei Shirokov", MSGOTHIC16, halign + 100, g_height/2 + g_font[MSGOTHIC16].gheight*3);
-	AddText("STORY", MSGOTHIC16, halign - 100, g_height/2 - g_font[MSGOTHIC16].gheight*1);
-	AddText("Ruslan Sabitov", MSGOTHIC16, halign - 100, g_height/2 - g_font[MSGOTHIC16].gheight*0);
-	AddText("VIDEO", MSGOTHIC16, halign - 100, g_height/2 + g_font[MSGOTHIC16].gheight*2);
-	AddText("Ruslan Sabitov", MSGOTHIC16, halign - 100, g_height/2 + g_font[MSGOTHIC16].gheight*3);
-    AddButton("buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, g_height-54, centerw+buttonw/2, g_height-10, &Click_GoToMain, NULL, NULL);
+	AddImage("gui/bg", 0, 0, g_width, g_height);
+	AddText("PROGRAMMING", MSGOTHIC16, halign - 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*4*g_scale);
+	AddText("Denis Ivanov", MSGOTHIC16, halign - 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*3*g_scale);
+	//AddText("Volodar", MSGOTHIC16, halign, g_height/2 - g_font[MSGOTHIC16].gheight*2*g_scale);
+	AddText("MAPS", MSGOTHIC16, halign + 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*4*g_scale);
+	AddText("Robert Jarrett", MSGOTHIC16, halign + 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*3*g_scale);
+	AddText("MODELS", MSGOTHIC16, halign + 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*1*g_scale);
+	AddText("Robert Jarrett", MSGOTHIC16, halign + 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*0*g_scale);
+	AddText("Sergey Harchenko", MSGOTHIC16, halign + 100*g_scale, g_height/2 + g_font[MSGOTHIC16].gheight*1*g_scale);
+	AddText("Denis Ivanov", MSGOTHIC16, halign + 100*g_scale, g_height/2 + g_font[MSGOTHIC16].gheight*2*g_scale);
+	AddText("Andrei Shirokov", MSGOTHIC16, halign + 100*g_scale, g_height/2 + g_font[MSGOTHIC16].gheight*3*g_scale);
+	AddText("STORY", MSGOTHIC16, halign - 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*1*g_scale);
+	AddText("Ruslan Sabitov", MSGOTHIC16, halign - 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*0*g_scale);
+	AddText("VIDEO", MSGOTHIC16, halign - 100*g_scale, g_height/2 + g_font[MSGOTHIC16].gheight*2*g_scale);
+	AddText("Ruslan Sabitov", MSGOTHIC16, halign - 100*g_scale, g_height/2 + g_font[MSGOTHIC16].gheight*3*g_scale);
+    AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, g_height-54*g_scale, centerw+buttonw/2, g_height-10*g_scale, &Click_GoToMain, NULL, NULL);
     
     //float dpadsize = 128.0f * (float)g_height / 320;
-    float dpadsize = 128.0f;
+    float dpadsize = 128.0f*g_scale;
     
 	AddView("play");
-	AddText("chat0", "", MSGOTHIC16, 5, 5+0*g_font[MSGOTHIC16].gheight);
-	AddText("chat1", "", MSGOTHIC16, 5, 5+1*g_font[MSGOTHIC16].gheight);
-	AddText("chat2", "", MSGOTHIC16, 5, 5+2*g_font[MSGOTHIC16].gheight);
-	AddText("chat3", "", MSGOTHIC16, 5, 5+3*g_font[MSGOTHIC16].gheight);
-	AddText("chat4", "", MSGOTHIC16, 5, 5+4*g_font[MSGOTHIC16].gheight);
-	AddText("chat5", "", MSGOTHIC16, 5, 5+5*g_font[MSGOTHIC16].gheight);
-	AddText("score", "Score: 0", MSGOTHIC16, 5, 5+6*g_font[MSGOTHIC16].gheight);
-	AddText("hp", "", MSGOTHIC16, 5, 5+7*g_font[MSGOTHIC16].gheight);
-	AddText("stamina", "Stamina: 1.00 / 1.0", MSGOTHIC16, 5, 5+8*g_font[MSGOTHIC16].gheight);
-	AddText("ammo", "", MSGOTHIC16, 5, 5+9*g_font[MSGOTHIC16].gheight);
-    AddDPad("rotational", "rotational", g_width-dpadsize, g_height-dpadsize, g_width, g_height, &Rotational);
-    AddDPad("movement", "rotational", 0, g_height-dpadsize, dpadsize, g_height, &Movement);
-	AddImage("crosshairtop", g_width/2 - 16, g_height/2 - 16, g_width/2 + 16, g_height/2 + 16);
-	AddImage("crosshairbottom", g_width/2 - 16, g_height/2 - 16, g_width/2 + 16, g_height/2 + 16);
-	AddImage("crosshairleft", g_width/2 - 16, g_height/2 - 16, g_width/2 + 16, g_height/2 + 16);
-	AddImage("crosshairright", g_width/2 - 16, g_height/2 - 16, g_width/2 + 16, g_height/2 + 16);
+	AddText("chat0", "", MSGOTHIC16, 5*g_scale, 5*g_scale+0*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("chat1", "", MSGOTHIC16, 5*g_scale, 5*g_scale+1*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("chat2", "", MSGOTHIC16, 5*g_scale, 5*g_scale+2*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("chat3", "", MSGOTHIC16, 5*g_scale, 5*g_scale+3*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("chat4", "", MSGOTHIC16, 5*g_scale, 5*g_scale+4*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("chat5", "", MSGOTHIC16, 5*g_scale, 5*g_scale+5*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("score", "Score: 0", MSGOTHIC16, 5*g_scale, 5*g_scale+6*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("hp", "", MSGOTHIC16, 5*g_scale, 5*g_scale+7*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("stamina", "Stamina: 1.00 / 1.0", MSGOTHIC16, 5*g_scale, 5*g_scale+8*g_font[MSGOTHIC16].gheight*g_scale);
+	AddText("ammo", "", MSGOTHIC16, 5*g_scale, 5*g_scale+9*g_font[MSGOTHIC16].gheight*g_scale);
+    AddDPad("rotational", "gui/rotational", g_width-dpadsize, g_height-dpadsize, g_width, g_height, &Rotational);
+    AddDPad("movement", "gui/rotational", 0, g_height-dpadsize, dpadsize, g_height, &Movement);
+	AddImage("gui/crosshairtop", g_width/2 - 16*g_scale, g_height/2 - 16*g_scale, g_width/2 + 16*g_scale, g_height/2 + 16*g_scale);
+	AddImage("gui/crosshairbottom", g_width/2 - 16*g_scale, g_height/2 - 16*g_scale, g_width/2 + 16*g_scale, g_height/2 + 16*g_scale);
+	AddImage("gui/crosshairleft", g_width/2 - 16*g_scale, g_height/2 - 16*g_scale, g_width/2 + 16*g_scale, g_height/2 + 16*g_scale);
+	AddImage("gui/crosshairright", g_width/2 - 16*g_scale, g_height/2 - 16*g_scale, g_width/2 + 16*g_scale, g_height/2 + 16*g_scale);
     
 	AddView("switch view");
-    //AddButton("buttonbg", "Switch View", MSGOTHIC16, g_width-buttonw, 0, g_width, 44, &Click_SwitchView, NULL, NULL);
-    AddButton("buttonbg", "Switch View", MSGOTHIC16, 0, 0, buttonw, 44, &Click_SwitchView, NULL, NULL);
+    //AddButton("gui/buttonbg", "Switch View", MSGOTHIC16, g_width-buttonw, 0, g_width, 44, &Click_SwitchView, NULL, NULL);
+    AddButton("gui/buttonbg", "Switch View", MSGOTHIC16, 0*g_scale, 0*g_scale, buttonw, 44*g_scale, &Click_SwitchView, NULL, NULL);
     
     AddView("shoot");
-    //AddButton("buttonbg", "Shoot", MSGOTHIC16, centerw-buttonw/2, g_height-90, centerw+buttonw/2, g_height-30, &Click_Shoot, NULL, &Unclick_Shoot);
-    AddButton("buttonbg", "Shoot", MSGOTHIC16, g_width-dpadsize-10-buttonw, g_height-90, g_width-dpadsize-10, g_height-30, &Click_Shoot, NULL, &Unclick_Shoot);
+    //AddButton("gui/buttonbg", "Shoot", MSGOTHIC16, centerw-buttonw/2, g_height-90, centerw+buttonw/2, g_height-30, &Click_Shoot, NULL, &Unclick_Shoot);
+    AddButton("gui/buttonbg", "Shoot", MSGOTHIC16, g_width-dpadsize-10*g_scale-buttonw, g_height-90*g_scale, g_width-dpadsize-10, g_height-30*g_scale, &Click_Shoot, NULL, &Unclick_Shoot);
     
     AddView("swing");
-    AddButton("buttonbg", "Swing", MSGOTHIC16, g_width-dpadsize-10-buttonw, g_height-90, g_width-dpadsize-10, g_height-30, &Click_Shoot, NULL, &Unclick_Shoot);
+    AddButton("gui/buttonbg", "Swing", MSGOTHIC16, g_width-dpadsize-10*g_scale-buttonw, g_height-90*g_scale, g_width-dpadsize-10*g_scale, g_height-30*g_scale, &Click_Shoot, NULL, &Unclick_Shoot);
     
     AddView("stab");
-    AddButton("buttonbg", "Stab", MSGOTHIC16, g_width-dpadsize-10-buttonw, g_height-90, g_width-dpadsize-10, g_height-30, &Click_Shoot, NULL, &Unclick_Shoot);
+    AddButton("gui/buttonbg", "Stab", MSGOTHIC16, g_width-dpadsize-10*g_scale-buttonw, g_height-90*g_scale, g_width-dpadsize-10*g_scale, g_height-30*g_scale, &Click_Shoot, NULL, &Unclick_Shoot);
     
     AddView("switch item");
-    //AddButton("buttonbg", "Switch Item", MSGOTHIC16, g_width-buttonw, 54, g_width, 98, &Click_EquipNext, NULL, NULL);
-    AddButton("buttonbg", "Switch Item", MSGOTHIC16, 0, 54, buttonw, 98, &Click_EquipNext, NULL, NULL);
+    //AddButton("gui/buttonbg", "Switch Item", MSGOTHIC16, g_width-buttonw, 54, g_width, 98, &Click_EquipNext, NULL, NULL);
+    AddButton("gui/buttonbg", "Switch Item", MSGOTHIC16, 0*g_scale, 54*g_scale, buttonw, 98*g_scale, &Click_EquipNext, NULL, NULL);
     
     AddView("reload");
-    AddButton("buttonbg", "Reload", MSGOTHIC16, g_width-buttonw, g_height-dpadsize-10-60, g_width, g_height-dpadsize-10, &Click_Reload, NULL, NULL);
+    AddButton("gui/buttonbg", "Reload", MSGOTHIC16, g_width-buttonw, g_height-dpadsize-10*g_scale-60*g_scale, g_width, g_height-dpadsize-10*g_scale, &Click_Reload, NULL, NULL);
     
     AddView("crouch");
-    //AddButton("buttonbg", "Crouch", MSGOTHIC16, g_width-buttonw*2-10, 0, g_width-buttonw-10, 60, &Click_Crouch, NULL, NULL);
-    AddButton("buttonbg", "Crouch", MSGOTHIC16, g_width-buttonw*3-20, 0, g_width-buttonw*2-20, 60,  &Click_Crouch, NULL, NULL);
+    //AddButton("gui/buttonbg", "Crouch", MSGOTHIC16, g_width-buttonw*2-10, 0, g_width-buttonw-10, 60, &Click_Crouch, NULL, NULL);
+    AddButton("gui/buttonbg", "Crouch", MSGOTHIC16, g_width-buttonw*3-20*g_scale, 0*g_scale, g_width-buttonw*2-20*g_scale, 60*g_scale,  &Click_Crouch, NULL, NULL);
     
     AddView("jump");
-    //AddButton("buttonbg", "Jump", MSGOTHIC16, buttonw+10, 00, buttonw*2+10, 60, &Click_Jump, NULL, &Unclick_Jump);
-    AddButton("buttonbg", "Jump", MSGOTHIC16, g_width-buttonw, 00, g_width, 60, &Click_Jump, NULL, &Unclick_Jump);
+    //AddButton("gui/buttonbg", "Jump", MSGOTHIC16, buttonw+10, 00, buttonw*2+10, 60, &Click_Jump, NULL, &Unclick_Jump);
+    AddButton("gui/buttonbg", "Jump", MSGOTHIC16, g_width-buttonw, 00*g_scale, g_width, 60*g_scale, &Click_Jump, NULL, &Unclick_Jump);
     
     AddView("run");
-    //AddButton("buttonbg", "Run", MSGOTHIC16, buttonw*2+20, 00, buttonw*3+20, 60, &Click_Run, NULL, NULL);
-    AddButton("buttonbg", "Run", MSGOTHIC16, g_width-buttonw*2-10, 0, g_width-buttonw-10, 60, &Click_Run, NULL, NULL);
+    //AddButton("gui/buttonbg", "Run", MSGOTHIC16, buttonw*2+20, 00, buttonw*3+20, 60, &Click_Run, NULL, NULL);
+    AddButton("gui/buttonbg", "Run", MSGOTHIC16, g_width-buttonw*2-10*g_scale, 0*g_scale, g_width-buttonw-10*g_scale, 60*g_scale, &Click_Run, NULL, NULL);
     
 	AddView("pick up");
-	AddImage("mp5icon", g_width-256, g_height/2-128, g_width, g_height/2+128);
-	AddText("+1", MSGOTHIC16, g_width-100, g_height/2+28);
+	AddImage("gui/mp5icon", g_width-256*g_scale, g_height/2-128*g_scale, g_width, g_height/2+128*g_scale);
+	AddText("+1", MSGOTHIC16, g_width-100*g_scale, g_height/2+28*g_scale);
     
 	AddView("open door");
-    AddButton("buttonbg", "Open", MSGOTHIC16, g_width/2 - 75, g_height/2 - 90, g_width/2 + 75, g_height/2 - 30, &Click_Action, NULL, NULL);
+    AddButton("gui/buttonbg", "Open", MSGOTHIC16, g_width/2 - 75*g_scale, g_height/2 - 90*g_scale, g_width/2 + 75*g_scale, g_height/2 - 30*g_scale, &Click_Action, NULL, NULL);
     
 	AddView("close door");
-    AddButton("buttonbg", "Close", MSGOTHIC16, g_width/2 - 75, g_height/2 - 90, g_width/2 + 75, g_height/2 - 30, &Click_Action, NULL, NULL);
+    AddButton("gui/buttonbg", "Close", MSGOTHIC16, g_width/2 - 75*g_scale, g_height/2 - 90*g_scale, g_width/2 + 75*g_scale, g_height/2 - 30*g_scale, &Click_Action, NULL, NULL);
     
 	AddView("game over");
-	AddText("Game Over", MSGOTHIC16, g_width/2 - 32, g_height/2 - 8);
-    AddButton("buttonbg", "Try Again", MSGOTHIC16, g_width/2 - 75, g_height/2 + 50, g_width/2 + 75, g_height/2 + 94, &Click_Retry, NULL, NULL);
+	AddText("Game Over", MSGOTHIC16, g_width/2 - 32*g_scale, g_height/2 - 8*g_scale);
+    AddButton("gui/buttonbg", "Try Again", MSGOTHIC16, g_width/2 - 75*g_scale, g_height/2 + 50*g_scale, g_width/2 + 75*g_scale, g_height/2 + 94*g_scale, &Click_Retry, NULL, NULL);
     
     AddView("message");
-	AddImage("bg", 0, 0, g_width, g_height);
+	AddImage("gui/bg", 0*g_scale, 0*g_scale, g_width, g_height);
     AddTextBox("error", "Hosho was the world's first commissioned ship to be designed and built as an aircraft carrier, and the first aircraft carrier of the Imperial Japanese Navy (IJN). Commissioned in 1922, the ship was used for testing aircraft and equipment, and to evaluate operational methods and tactics. She provided valuable lessons and experience for the IJN in early carrier air operations.", MSGOTHIC16, 50, 100, g_width-50, g_height-100);
-    AddButton("buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, g_height-45, centerw+buttonw/2, g_height-10, &Click_GoToMain, NULL, NULL);
+    AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, g_height-45*g_scale, centerw+buttonw/2, g_height-10*g_scale, &Click_GoToMain, NULL, NULL);
     
     AddView("dialog");
-	AddImage("bg", 0, 0, g_width, g_height);
-    AddTextBox("dialog", "", MSGOTHIC16, 50, 100, g_width-50, g_height-100);
-    AddButton("buttonbg", "Continue", MSGOTHIC16, centerw-20-buttonw, g_height-45, centerw-20, g_height-1, &Click_DialogContinue, NULL, NULL);
-    AddButton("buttonbg", "Don't Show Any More", MSGOTHIC16, centerw, g_height-45, centerw+buttonw*1.5f, g_height-1, &Click_DontShow, NULL, NULL);
+	AddImage("gui/bg", 0, 0, g_width, g_height);
+    AddTextBox("dialog", "", MSGOTHIC16, 50*g_scale, 100*g_scale, g_width-50*g_scale, g_height-100*g_scale);
+    AddButton("gui/buttonbg", "Continue", MSGOTHIC16, centerw-20*g_scale-buttonw, g_height-45*g_scale, centerw-20*g_scale, g_height-1, &Click_DialogContinue, NULL, NULL);
+    AddButton("gui/buttonbg", "Don't Show Any More", MSGOTHIC16, centerw, g_height-45*g_scale, centerw+buttonw*1.5f, g_height-1, &Click_DontShow, NULL, NULL);
     
     AddView("status");
-	AddImage("bg", 0, 0, g_width, g_height);
-    AddText("status", "Status...", MSGOTHIC16, halign, g_height/2 - g_font[MSGOTHIC16].gheight/2);
+	AddImage("gui/bg", 0, 0, g_width, g_height);
+    AddText("status", "Status...", MSGOTHIC16, halign, g_height/2 - g_font[MSGOTHIC16].gheight*g_scale/2);
     
     AddView("status back");
-	AddImage("bg", 0, 0, g_width, g_height);
-    AddText("status", "Status", MSGOTHIC16, halign, g_height/2 - g_font[MSGOTHIC16].gheight/2);
-    AddButton("buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, g_height-45, centerw+buttonw/2, g_height-10, &Click_GoToMain, NULL, NULL);
+	AddImage("gui/bg", 0, 0, g_width, g_height);
+    AddText("status", "Status", MSGOTHIC16, halign, g_height/2 - g_font[MSGOTHIC16].gheight*g_scale/2);
+    AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, g_height-45*g_scale, centerw+buttonw/2, g_height-10*g_scale, &Click_GoToMain, NULL, NULL);
     
 	//AddView("quit");	//Ask the player if they want to quit the multiplayer game
 	// TO DO

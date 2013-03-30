@@ -105,23 +105,31 @@ void LoadFont(int id, const char* fontfile)
 	CFile fp(fullfont);
 
     //if(!fp)
-	if(fp.fsize <= 0)
+	//if(fp.fsize <= 0)
+	if(!fp.mFile)
     {
         LOGE("Error loading font %s", fontfile);
         return;
     }
     
     //fseek(fp, 0, SEEK_END);
-	fp.seekend();
-    int size = fp.tell(); //ftell(fp);
+	//fp.seekend();
+    //int size = fp.tell(); //ftell(fp);
     //rewind(fp);
-	fp.seek(0);
+	//fp.seek(0);
+	//int size = fp.fsize;
+	int size = fp.remain();
     
-    char* file = new char[size];
+    //char* file = (char*)fp.data; //new char[size];
+	char* file = new char[size+1];
     fp.read((void*)file, size);
+	file[size] = '\0';
     //fclose(fp);
     
     //NSLog(@"%s", file);
+
+	//LOGI("font %s size=%d", fontfile, size);
+	//LOGI("%s", file);
     
     int i;
     string substr;
@@ -223,22 +231,22 @@ void DrawText(int font, float x, float y, const char* str)
     {
         g = &f->glyph[str[i]];
         left = x;
-        right = x + g->w;
+        right = x + g->w *g_scale;
         top = y;
-        bottom = y + g->h;
+        bottom = y + g->h *g_scale;
         texleft = g->x / f->width;
         texright = (g->x + g->w) / f->width;
         textop = g->y / f->height;
         texbottom = (g->y + g->h) / f->height;
         DrawGlyph(f->tex, left, top, right, bottom, texleft, textop, texright, texbottom);
-        x += g->w;
+        x += g->w *g_scale;
     }
 }
 
 void DrawShadowedText(int font, float x, float y, const char* str, float* color)
 {
     glUniform4f(g_slots[ORTHO][COLOR], 0, 0, 0, 1);
-    DrawText(font, x+1, y+1, str);
+    DrawText(font, x+1*g_scale, y+1*g_scale, str);
     
     if(color == NULL)
         glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
@@ -259,8 +267,8 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
     CGlyph* g2;
     int left, top, right, bottom;
     float texleft, textop, texright, texbottom;
-    int x = startx + 1;
-    int y = starty + 1;
+    int x = startx + 1*g_scale;
+    int y = starty + 1*g_scale;
     int nexti = 0;  //next [i] to skip line
     int lastspace;
     int j, x1;
@@ -275,8 +283,8 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
         {
             if(nexti != 0)
             {
-                x = startx+1;
-                y += f->gheight;
+                x = startx+1*g_scale;
+                y += f->gheight*g_scale;
             }
             
             lastspace = -1;
@@ -285,7 +293,7 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
             for(j=i; j<size; j++)
             {
                 g2 = &f->glyph[str[j]];
-                x1 += g2->w;
+                x1 += g2->w *g_scale;
                 
                 if(str[j] == ' ' || str[j] == '\t')
                     lastspace = j;
@@ -302,15 +310,15 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
         }
         
         left = x;
-        right = x + g->w;
+        right = x + g->w *g_scale;
         top = y;
-        bottom = y + g->h;
+        bottom = y + g->h *g_scale;
         texleft = g->x / f->width;
         texright = (g->x + g->w) / f->width;
         textop = g->y / f->height;
         texbottom = (g->y + g->h) / f->height;
         DrawGlyph(f->tex, left, top, right, bottom, texleft, textop, texright, texbottom);
-        x += g->w;
+        x += g->w *g_scale;
     }
     
     nexti = 0;
@@ -331,7 +339,7 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
             if(nexti != 0)
             {
                 x = startx;
-                y += f->gheight;
+                y += f->gheight *g_scale;
             }
             
             lastspace = -1;
@@ -340,7 +348,7 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
             for(j=i; j<size; j++)
             {
                 g2 = &f->glyph[str[j]];
-                x1 += g2->w;
+                x1 += g2->w *g_scale;
                 
                 if(str[j] == ' ' || str[j] == '\t')
                     lastspace = j;
@@ -357,15 +365,15 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
         }
         
         left = x;
-        right = x + g->w;
+        right = x + g->w *g_scale;
         top = y;
-        bottom = y + g->h;
+        bottom = y + g->h *g_scale;
         texleft = g->x / f->width;
         texright = (g->x + g->w) / f->width;
         textop = g->y / f->height;
         texbottom = (g->y + g->h) / f->height;
         DrawGlyph(f->tex, left, top, right, bottom, texleft, textop, texright, texbottom);
-        x += g->w;
+        x += g->w *g_scale;
     }
 }
 

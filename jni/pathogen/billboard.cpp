@@ -32,7 +32,9 @@ int NewBillboard(char* tex)
 	char rawtex[64];
 	StripPathExtension(tex, rawtex);
 	strcpy(t.name, rawtex);
-    t.tex = CreateTexture(rawtex);
+	char fullpath[128];
+	sprintf(fullpath, "billboards/%s", rawtex);
+    t.tex = CreateTexture(fullpath);
 	g_billbT.push_back(t);
 	return g_billbT.size() - 1;
 }
@@ -185,9 +187,9 @@ void DrawBillboards()
 		else
 			size = billb->size;
         
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, t->tex);
-        glUniform1i(g_slots[BILLBOARD][TEXTURE], 0);
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, t->tex);
+        //glUniform1i(g_slots[BILLBOARD][TEXTURE], 0);
         
 		vert = vertical*size;
 		horiz = horizontal*size;
@@ -208,14 +210,22 @@ void DrawBillboards()
             d.x, d.y, d.z,          0, 0,
             a.x, a.y, a.z,          1, 0
         };
+
+		//GLubyte indices[] =
+		//{
+		//	0, 1, 2, 3, 4, 5
+		//};
         
         glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
         glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
         
         glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+
+		return;
     }
     
-    glUniform4f(g_slots[MODEL][COLOR], 1, 1, 1, 1);
+    //glUniform4f(g_slots[BILLBOARD][COLOR], 1, 1, 1, 1);
     
 	CEntity* e;
 	CPlayer* p;

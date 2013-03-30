@@ -14,21 +14,23 @@
     
     <uses-permission android:name="com.android.vending.CHECK_LICENSE" />
 
+    
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/ExampleTheme" >
         <activity
             android:name="android.app.NativeActivity"
             android:screenOrientation="landscape"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <meta-data android:name="android.app.lib_name"
                     android:value="ndk1" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter> 
+            
         </activity>
     </application>
     

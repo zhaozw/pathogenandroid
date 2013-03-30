@@ -12,3 +12,4 @@ int string menu_settings 0x7f040001
 int string title_activity_display_message 0x7f040005
 int style AppBaseTheme 0x7f050000
 int style AppTheme 0x7f050001
+int style ExampleTheme 0x7f050002

@@ -20,7 +20,8 @@ string LoadTextFile(const char* strFile)
 
 	//if(!fin)
 	//if(!file)
-	if(file.fsize <= 0)
+	//if(file.fsize <= 0)
+	if(!file.mFile)
 		return "";
 
 	//string strLine = "";
@@ -66,7 +67,7 @@ bool CompileShader(unsigned int* shader, GLenum type, const char* file)
 
 	//LOGI("%s", szShader);
 
-    if (!szShader)
+    if (!szShader || !szShader[0])
     {
         LOGE("Failed to load shader %s", file);
         return false;
@@ -78,8 +79,8 @@ bool CompileShader(unsigned int* shader, GLenum type, const char* file)
 
 	//return false;
     
-#define DEBUG
-#if defined(DEBUG)
+//#define DEBUG
+//#if defined(DEBUG)
     int logLength;
     glGetShaderiv(*shader, GL_INFO_LOG_LENGTH, &logLength);
     if (logLength > 0)
@@ -91,7 +92,7 @@ bool CompileShader(unsigned int* shader, GLenum type, const char* file)
     }
 	//else
 	//	LOGI("No shader compile log");
-#endif
+//#endif
     
     glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
     if (status == 0)
@@ -108,8 +109,8 @@ bool LinkProgram(unsigned int prog)
     int status;
     glLinkProgram(prog);
     
-#define DEBUG
-#if defined(DEBUG)
+//#define DEBUG
+//#if defined(DEBUG)
     GLint logLength;
     glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLength);
     if (logLength > 0)
@@ -119,7 +120,7 @@ bool LinkProgram(unsigned int prog)
         LOGI("Program link log:\n%s", log);
         free(log);
     }
-#endif
+//#endif
     
     glGetProgramiv(prog, GL_LINK_STATUS, &status);
     if (status == 0)

@@ -1,9 +1,9 @@
 obj/local/armeabi/objs/ndk1/utils.o: jni/pathogen/utils.cpp \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/stdint.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stddef.h \
+ jni/pathogen/../libpng/png.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zconf.h \
+ jni/pathogen/../libpng/pngconf.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/limits.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_cprolog.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/config/features.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_stlport_version.h \
@@ -15,15 +15,6 @@ obj/local/armeabi/objs/ndk1/utils.o: jni/pathogen/utils.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/config/_gcc.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/config/stl_confix.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/config/_native_headers.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_epilog.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_config_compat_post.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/_types.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/machine/_types.h \
- jni/pathogen/../libpng/png.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zconf.h \
- jni/pathogen/../libpng/pngconf.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/limits.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/limits.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/cdefs.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/cdefs_elf.h \
@@ -34,9 +25,15 @@ obj/local/armeabi/objs/ndk1/utils.o: jni/pathogen/utils.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/machine/limits.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/syslimits.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/asm/page.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_epilog.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_config_compat_post.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stdio.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/stdio.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/types.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stddef.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/stdint.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/_types.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/machine/_types.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/linux/posix_types.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/linux/stddef.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/linux/compiler.h \
@@ -100,6 +97,7 @@ obj/local/armeabi/objs/ndk1/utils.o: jni/pathogen/utils.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/asm-generic/errno-base.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/egl.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/eglplatform.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES2/gl2.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES2/gl2platform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES2/gl2ext.h \
@@ -150,15 +148,15 @@ obj/local/armeabi/objs/ndk1/utils.o: jni/pathogen/utils.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h \
  jni/pathogen/../libzip/zip.h
 
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h:
+jni/pathogen/../libpng/png.h:
 
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h:
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h:
 
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h:
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zconf.h:
 
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/stdint.h:
+jni/pathogen/../libpng/pngconf.h:
 
-C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stddef.h:
+C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/limits.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_cprolog.h:
 
@@ -182,24 +180,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/co
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/config/_native_headers.h:
 
-C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_epilog.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_config_compat_post.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/_types.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/machine/_types.h:
-
-jni/pathogen/../libpng/png.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zconf.h:
-
-jni/pathogen/../libpng/pngconf.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/limits.h:
-
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/limits.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/cdefs.h:
@@ -220,11 +200,23 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/incl
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/asm/page.h:
 
+C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_epilog.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_config_compat_post.h:
+
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stdio.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/stdio.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/types.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stddef.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/stdint.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/sys/_types.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/machine/_types.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/linux/posix_types.h:
 
@@ -351,6 +343,8 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/incl
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/egl.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/eglplatform.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES2/gl2.h:
 

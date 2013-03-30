@@ -39,14 +39,16 @@ float g_height;
 float g_near = 1;
 float g_far = 9000;
 float g_fov = 90;
+float g_scale;
 
-double g_FrameInterval;
+//double g_FrameInterval;
 GAMEMODE g_mode = LOGO;
 
 float g_reddening = 0;
 bool g_arrest = false;
 int g_viewmode = FIRSTPERSON;
 int g_score = 0;
+bool g_quit = false;
 
 zip* APKArchive;
 char g_path[256];
@@ -55,29 +57,44 @@ JNIEnv* g_env;
 AAssetManager* g_amgr;
 vector<CTouch> g_touch;
 bool g_inited = false;
+long g_tick = 0;
 
-
-static void printGLString(const char *name, GLenum s) {
+static void printGLString(const char *name, GLenum s) 
+{
     const char *v = (const char *) glGetString(s);
     LOGI("GL %s = %s\n", name, v);
 }
 
-static void checkGlError(const char* op) {
-    for (GLint error = glGetError(); error; error
-            = glGetError()) {
-        LOGI("after %s() glError (0x%x)\n", op, error);
+static void checkGlError(const char* op) 
+{
+    for (GLint error = glGetError(); error; error = glGetError()) 
+	{
+        //LOGI("after %s() glError (0x%x)\n", op, error);
+        LOGI("after %s() glGetError (%d)\n", op, error);
     }
 }
 
 unsigned int timeGetTime() 
 { 
+	/*
 	struct timeval now; 
 	gettimeofday(&now, NULL); 
 	return now.tv_usec/1000; 
+	*/
+	return g_tick;
 } 
 unsigned int GetTickCount()
 {
-	return timeGetTime();
+	//return timeGetTime();
+	return g_tick;
+}
+
+long long GetTickCount2()
+{	
+	struct timeval now; 
+	gettimeofday(&now, NULL); 
+	//return now.tv_usec/1000; 
+	return (now.tv_sec * 1000) + (now.tv_usec / 1000);
 }
 
 void Deinit()
@@ -110,8 +127,6 @@ void Deinit()
 
 void Reload()
 {
-	LoadShaders();
-	    
 	srand(GetTickCount());
     
 	glClearColor(0, 0, 0, 1);
@@ -119,25 +134,46 @@ void Reload()
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
+    //glFrontFace(GL_CW);
+	glDisable(GL_CULL_FACE);
     
+	LoadShaders();
     LoadFonts();
 
+	LOGI("Entities();....");
 	Entities();
+
+	LOGI("Items();....");
 	Items();
+
+	LOGI("Effects();....");
 	Effects();
+	load
+	LOGI("Particles();....");
 	Particles();
+	
+	LOGI("Decals();....");
 	Decals();
+	
+	LOGI("RedoGUI();....");
 	RedoGUI();
+	
+	LOGI("Keymap();....");
 	Keymap();
+	
+	LOGI("LoadSounds();....");
 	LoadSounds();
 	//InitNet();
+	
+	LOGI("ScriptFuncs();....");
 	ScriptFuncs();
 	//PlayIntro();
 
 	g_inited = true;
+
+	Click_GoToStory();
 }
 
 JNIEXPORT void Java_com_pathogengame_pathogen_MainActivity_helloLog(JNIEnv * env, jobject jthis, jstring logThis)  
@@ -220,7 +256,7 @@ bool Resize(int w, int h)
     printGLString("Renderer", GL_RENDERER);
     printGLString("Extensions", GL_EXTENSIONS);
 
-    LOGI("setupGraphics(%d, %d)", w, h);
+    //LOGI("setupGraphics(%d, %d)", w, h);
 	/*
     gProgram = createProgram(gVertexShader, gFragmentShader);
     if (!gProgram) {
@@ -238,6 +274,8 @@ bool Resize(int w, int h)
 
 	g_width = w;
 	g_height = h;
+	LOGI("w,h = %d,%d", w, h);
+	RedoGUI();
 
     return true;
 }
@@ -322,8 +360,15 @@ void CalculateFrameRate()
 }
 */
 
+void UpdateTicks()
+{
+	g_tick += 1000.0f * FRAME_INTERVAL;
+}
+
 void Update()
 {
+	UpdateTicks();
+
     if(g_mode == PLAY)
         UpdateGameState();
     if(g_mode == LOGO)
@@ -358,10 +403,14 @@ void Draw()
     checkGlError("glDrawArrays");*/
 
     //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	
+	//glClearColor((float)(rand()%255)/255.0f, (float)(rand()%255)/255.0f, (float)(rand()%255)/255.0f, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if(g_mode == PLAY)
     {
+		//glEnable(GL_DEPTH_TEST);
+
         float aspect = fabsf(g_width / g_height);
 		CMatrix projection = BuildPerspProjMat(g_fov, aspect, g_near, g_far);
         //GLKMatrix4 projection = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(g_fov), aspect, g_near, g_far);
@@ -393,12 +442,12 @@ void Draw()
             color[1] = 1.0f - g_reddening;
             color[2] = 1.0f - g_reddening;
             
-            g_reddening -= g_FrameInterval;
+            g_reddening -= FRAME_INTERVAL;
         }
-        
+        /*
         glUseProgram(g_program[SKY]);
         glUniformMatrix4fv(g_slots[SKY][PROJECTION], 1, 0, projection.getMatrix());
-        //glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[SKY][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[SKY][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[SKY][POSITION]);
@@ -407,7 +456,7 @@ void Draw()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         //g_map.RenderSky();
         DrawSkyBox(posvec2);
-        
+        *//*
         glUseProgram(g_program[MAP]);
         glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -416,19 +465,25 @@ void Draw()
         glEnableVertexAttribArray(g_slots[MAP][POSITION]);
         glEnableVertexAttribArray(g_slots[MAP][TEXCOORD]);
         glEnableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
-        g_map.RenderLevel(posvec);
-        
+        //g_map.RenderLevel(posvec);
+		g_map.RenderFace(0);
+        */
         glUseProgram(g_program[MODEL]);
-        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
+        //glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
         //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
-        glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+        //glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+        //glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
         glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
-        SortEntities();
-        DrawEntities(false);
-        DrawEntities(true);
-        
+		//glActiveTexture(GL_TEXTURE0);
+		//glEnable(GL_TEXTURE_2D);
+        //SortEntities();
+        //DrawEntities(false);
+        //DrawEntities(true);
+		g_model[0].Draw(0, CVector3(0,0,0), 0, 0);
+        //glDisableVertexAttribArray(g_slots[MODEL][POSITION]);
+        //glDisableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+        /*
         glUseProgram(g_program[MAP]);
         glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -439,18 +494,22 @@ void Draw()
         glEnableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
         g_map.SortFaces(posvec);
         g_map.RenderLevel2(posvec);
+		glActiveTexture(GL_TEXTURE0);
+		glDisableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
         
-        glUseProgram(g_program[MODEL]);
-        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
-        //glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
-        glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+        glUseProgram(g_program[BILLBOARD]);
+        glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[BILLBOARD][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[BILLBOARD][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
+        glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		//glEnableClientState(GL_VERTEX_ARRAY);
         DrawDecals();
-        
+		//glDisableClientState(GL_VERTEX_ARRAY);
+        */
         glUseProgram(g_program[BILLBOARD]);
         glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -461,9 +520,11 @@ void Draw()
         glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        SortBillboards();
+		//glEnableClientState(GL_VERTEX_ARRAY);
+        //SortBillboards();
         DrawBillboards();
-        
+		//glDisableClientState(GL_VERTEX_ARRAY);
+		/*
         glUseProgram(g_program[MODEL]);
         glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
         //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -472,9 +533,12 @@ void Draw()
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
         glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
         DrawHands();
+		*/
     }
+	checkGlError("start Draw");
     
-    glDisable(GL_DEPTH_TEST);
+	//if(g_mode != PLAY)
+	glDisable(GL_DEPTH_TEST);
     glUseProgram(g_program[ORTHO]);
     glUniform1f(g_slots[ORTHO][WIDTH], (float)g_width);
     glUniform1f(g_slots[ORTHO][HEIGHT], (float)g_height);
@@ -483,9 +547,18 @@ void Draw()
     glEnableVertexAttribArray(g_slots[ORTHO][TEXCOORD]);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glActiveTexture(GL_TEXTURE0);
+	//glEnable(GL_TEXTURE_2D);
+	//glEnableClientState(GL_VERTEX_ARRAY);
+	DrawImage(CreateTexture("models/human2"), 0, 0, 100, 100);
+	if(g_mode != PLAY)
     g_GUI.draw();
     //DrawShadowedText(MSGOTHIC16, 0, 0, "Hello world. My name is Denis.");
+	//void DrawImage(unsigned int tex, float left, float top, float right, float bottom)
+	//glDisableClientState(GL_VERTEX_ARRAY);
     glEnable(GL_DEPTH_TEST);
+
+	checkGlError("Draw");
 }
 
 JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_SurfChang(JNIEnv * env, jobject obj,  jint width, jint height)
@@ -559,6 +632,200 @@ JNIEXPORT void Java_com_pathogengame_pathogen_MainActivity_nativeInit(JNIEnv * e
   glColor4f(1,1,1,1);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);*/
+}
+
+/**
+ * Initialize an EGL context for the current display.
+ */
+static int engine_init_display(struct engine* engine) 
+{
+    // initialize OpenGL ES and EGL
+
+    /*
+     * Here specify the attributes of the desired configuration.
+     * Below, we select an EGLConfig with at least 8 bits per color
+     * component compatible with on-screen windows
+     */
+    const EGLint attribs[] = 
+	{
+			EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+			EGL_DEPTH_SIZE, 24,
+            EGL_BLUE_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_RED_SIZE, 8,
+            EGL_NONE
+    };
+
+    EGLint w, h, dummy, format;
+    EGLint numConfigs;
+    EGLConfig config;
+    EGLSurface surface;
+    EGLContext context;
+
+    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
+    eglInitialize(display, 0, 0);
+
+    /* Here, the application chooses the configuration it desires. In this
+     * sample, we have a very simplified selection process, where we pick
+     * the first EGLConfig that matches our criteria */
+    eglChooseConfig(display, attribs, &config, 1, &numConfigs);
+
+    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+     * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+     * As soon as we picked a EGLConfig, we can safely reconfigure the
+     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
+    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
+
+    ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+
+    surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
+
+	EGLint contextAttrs[] = {
+		 EGL_CONTEXT_CLIENT_VERSION, 2,
+		 EGL_NONE
+	};
+
+    context = eglCreateContext(display, config, NULL, contextAttrs);
+
+    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) 
+	{
+        LOGW("Unable to eglMakeCurrent");
+        return -1;
+    }
+
+    eglQuerySurface(display, surface, EGL_WIDTH, &w);
+    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
+
+    engine->display = display;
+    engine->context = context;
+    engine->surface = surface;
+    engine->width = w;
+    engine->height = h;
+    engine->state.angle = 0;
+
+	g_width = w;
+	g_height = h;
+
+	LOGI("w,h = %d,%d", w, h);
+
+	g_scale = 1;
+	if(h > 320)
+		g_scale = 2;
+
+    // Initialize GL state.
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+    //glEnable(GL_CULL_FACE);
+    //glShadeModel(GL_SMOOTH);
+    //glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
+	
+	g_amgr = engine->app->activity->assetManager;
+	Reload();
+
+	engine->animating = 1;
+
+    return 0;
+}
+
+bool AnimateNextFrame(int desiredFrameRate)
+{
+	/*
+	static double lastTime = GetTickCount2() * 0.001f;
+	static double elapsedTime = 0.0f;
+
+	double currentTime = GetTickCount2() * 0.001f; // Get the time (milliseconds = seconds * .001)
+	double deltaTime = currentTime - lastTime; // Get the slice of time
+	double desiredFPS = 1.0 / desiredFrameRate; // Store 1 / desiredFrameRate
+
+	elapsedTime += deltaTime; // Add to the elapsed time
+	lastTime = currentTime; // Update lastTime
+
+	// Check if the time since we last checked is greater than our desiredFPS
+	if( elapsedTime > desiredFPS )
+	{
+		elapsedTime -= desiredFPS; // Adjust the elapsed time
+
+		// Return true, to animate the next frame of animation
+		return true;
+	}
+
+	// We don't animate right now.
+	return false;*/
+
+	static long long lastTime = GetTickCount2();
+	static int elapsedTime = 0;
+
+	long long currentTime = GetTickCount2();
+	int deltaTime = currentTime - lastTime;
+	
+	int desiredFPMS = 1000/desiredFrameRate;
+	
+	elapsedTime += deltaTime; // Add to the elapsed time
+	lastTime = currentTime; // Update lastTime
+
+	if(elapsedTime > desiredFPMS)
+	{
+		elapsedTime -= desiredFPMS;
+		return true;
+	}
+
+	//LOGI("deltaTime %d, elapsedTime %d", deltaTime, elapsedTime);
+	//LOGI("not anim %lld", elapsedTime);
+
+	return false;
+}
+
+/**
+ * Just the current frame in the display.
+ */
+static void engine_draw_frame(struct engine* engine) 
+{
+    if (engine->display == NULL) 
+	{
+        // No display.
+        return;
+    }
+	
+	g_amgr = engine->app->activity->assetManager;
+
+	Update();
+
+    // Just fill the screen with a color.
+    //glClearColor(((float)engine->state.x)/engine->width, engine->state.angle, ((float)engine->state.y)/engine->height, 1);
+    //glClear(GL_COLOR_BUFFER_BIT);
+
+	Draw();
+
+    eglSwapBuffers(engine->display, engine->surface);
+}
+
+/**
+ * Tear down the EGL context currently associated with the display.
+ */
+static void engine_term_display(struct engine* engine) 
+{
+	Deinit();
+
+    if (engine->display != EGL_NO_DISPLAY) 
+	{
+        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (engine->context != EGL_NO_CONTEXT) 
+		{
+            eglDestroyContext(engine->display, engine->context);
+        }
+        if (engine->surface != EGL_NO_SURFACE) 
+		{
+            eglDestroySurface(engine->display, engine->surface);
+        }
+        eglTerminate(engine->display);
+    }
+
+    engine->animating = 0;
+    engine->display = EGL_NO_DISPLAY;
+    engine->context = EGL_NO_CONTEXT;
+    engine->surface = EGL_NO_SURFACE;
 }
 
 /*
@@ -683,125 +950,6 @@ JNIEXPORT void Java_com_pathogengame_pathogen_MainActivity_nativeInit(JNIEnv * e
 }
 */
 
-/**
- * Initialize an EGL context for the current display.
- */
-static int engine_init_display(struct engine* engine) 
-{
-    // initialize OpenGL ES and EGL
-
-    /*
-     * Here specify the attributes of the desired configuration.
-     * Below, we select an EGLConfig with at least 8 bits per color
-     * component compatible with on-screen windows
-     */
-    const EGLint attribs[] = 
-	{
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_BLUE_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_RED_SIZE, 8,
-            EGL_NONE
-    };
-    EGLint w, h, dummy, format;
-    EGLint numConfigs;
-    EGLConfig config;
-    EGLSurface surface;
-    EGLContext context;
-
-    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-    eglInitialize(display, 0, 0);
-
-    /* Here, the application chooses the configuration it desires. In this
-     * sample, we have a very simplified selection process, where we pick
-     * the first EGLConfig that matches our criteria */
-    eglChooseConfig(display, attribs, &config, 1, &numConfigs);
-
-    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-     * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-     * As soon as we picked a EGLConfig, we can safely reconfigure the
-     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
-    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-
-    ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
-
-    surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
-    context = eglCreateContext(display, config, NULL, NULL);
-
-    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) 
-	{
-        LOGW("Unable to eglMakeCurrent");
-        return -1;
-    }
-
-    eglQuerySurface(display, surface, EGL_WIDTH, &w);
-    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
-
-    engine->display = display;
-    engine->context = context;
-    engine->surface = surface;
-    engine->width = w;
-    engine->height = h;
-    engine->state.angle = 0;
-
-    // Initialize GL state.
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-    glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
-    glDisable(GL_DEPTH_TEST);
-
-    return 0;
-}
-
-/**
- * Just the current frame in the display.
- */
-static void engine_draw_frame(struct engine* engine) 
-{
-    if (engine->display == NULL) 
-	{
-        // No display.
-        return;
-    }
-
-	Update();
-
-    // Just fill the screen with a color.
-    //glClearColor(((float)engine->state.x)/engine->width, engine->state.angle, ((float)engine->state.y)/engine->height, 1);
-    //glClear(GL_COLOR_BUFFER_BIT);
-
-	Draw();
-
-    eglSwapBuffers(engine->display, engine->surface);
-}
-
-/**
- * Tear down the EGL context currently associated with the display.
- */
-static void engine_term_display(struct engine* engine) 
-{
-	Deinit();
-
-    if (engine->display != EGL_NO_DISPLAY) 
-	{
-        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (engine->context != EGL_NO_CONTEXT) 
-		{
-            eglDestroyContext(engine->display, engine->context);
-        }
-        if (engine->surface != EGL_NO_SURFACE) 
-		{
-            eglDestroySurface(engine->display, engine->surface);
-        }
-        eglTerminate(engine->display);
-    }
-
-    engine->animating = 0;
-    engine->display = EGL_NO_DISPLAY;
-    engine->context = EGL_NO_CONTEXT;
-    engine->surface = EGL_NO_SURFACE;
-}
 
 /**
  * Process the next input event.
@@ -817,7 +965,18 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 
     struct engine* engine = (struct engine*)app->userData;
 
-	unsigned int pindex = AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK;
+	unsigned int pindex = (AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+	//CTouch* touch;
+	CTouch newt;
+    CTouch* t;
+
+    int j;
+    int nearest;
+    float nearestD;
+    float D;
+    int k;
+    vector<int> modified;
+    bool found;
 
     switch(AInputEvent_getType(event))
 	{
@@ -833,38 +992,129 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 				case AMOTION_EVENT_ACTION_DOWN:
 				case AMOTION_EVENT_ACTION_POINTER_DOWN:
 					{
+						/*
+						if(pindex > 1)
+							break;
+
 						//LOGI("down");
 						if(pindex >= g_touch.size())
 							g_touch.resize( pindex + 1 );
-						g_touch[pindex].on = true;
-						g_touch[pindex].x = AMotionEvent_getX(event, pindex);
-						g_touch[pindex].y = AMotionEvent_getY(event, pindex);
+						touch = &g_touch[pindex];
+						touch->on = true;
+						touch->x = AMotionEvent_getX(event, pindex);
+						touch->y = AMotionEvent_getY(event, pindex);
+						g_GUI.lbuttondown(touch->x, touch->y);
+						//LOGI("Event down pointer#%d/%d", (int)pindex, (int)g_touch.size());*/
+
+						newt = CTouch(AMotionEvent_getX(event, pindex),  AMotionEvent_getY(event, pindex));
+						g_touch.push_back(newt);
+						g_GUI.lbuttondown(newt.x, newt.y);
+
 					}break;
 				case AMOTION_EVENT_ACTION_CANCEL:
 				case AMOTION_EVENT_ACTION_UP:
 				case AMOTION_EVENT_ACTION_POINTER_UP:
 					{
+						/*
+						if(pindex > 1)
+							break;
+
 						//LOGI("up");
 						if(pindex >= g_touch.size())
 							g_touch.resize( pindex + 1 );
-						g_touch[pindex].on = false;
-						g_touch[pindex].x = AMotionEvent_getX(event, pindex);
-						g_touch[pindex].y = AMotionEvent_getY(event, pindex);
+						touch = &g_touch[pindex];
+						touch->on = false;
+						touch->x = AMotionEvent_getX(event, pindex);
+						touch->y = AMotionEvent_getY(event, pindex);
+						g_GUI.lbuttonup(touch->x, touch->y);
+						//LOGI("Event up pointer#%d/%d", (int)pindex, (int)g_touch.size());*/
+
+						//touch = [[allTouches objectAtIndex:i] locationInView:self.view];
+        
+						newt = CTouch(AMotionEvent_getX(event, pindex),  AMotionEvent_getY(event, pindex));
+						nearestD = 999999999.0;
+						nearest = -1;
+						for(j=0; j<g_touch.size(); j++)
+						{
+							t = &g_touch[j];
+							D = Magnitude2(t->x - newt.x, t->y - newt.y);
+				            
+							if(D < nearestD)
+								nearest = j;
+						}
+				        
+						if(nearest >= 0)
+							g_touch.erase( g_touch.begin() + nearest );
+				        
+						g_GUI.lbuttonup(newt.x, newt.y);
+						
+						g_GUI.touchcheck();
 					}break;
 				case AMOTION_EVENT_ACTION_MOVE :
 					{
+						/*
+						if(pindex > 1)
+							break;
+
 						//LOGI("move");
 						if(pindex >= g_touch.size())
 							g_touch.resize( pindex + 1 );
-						g_touch[pindex].on = true;
-						g_touch[pindex].x = AMotionEvent_getX(event, pindex);
-						g_touch[pindex].y = AMotionEvent_getY(event, pindex);
+						touch = &g_touch[pindex];
+						//touch->on = true;
+						touch->x = AMotionEvent_getX(event, pindex);
+						touch->y = AMotionEvent_getY(event, pindex);
+						g_GUI.mousemove(touch->x, touch->y);
+						//LOGI("Event move pointer#%d/%d", (int)pindex, (int)g_touch.size());
+						*/
+
+						//touch = [[allTouches objectAtIndex:i] locationInView:self.view];
+						newt = CTouch(AMotionEvent_getX(event, pindex),  AMotionEvent_getY(event, pindex));
+        
+						nearestD = 999999999.0;
+						nearest = -1;
+						for(j=0; j<g_touch.size(); j++)
+						{
+							found = false;
+							for(k=0; k<modified.size(); k++)
+							{
+								if(modified[k] != j)
+									continue;
+				                
+								found = true;
+								break;
+							}
+							if(found)
+								continue;
+				            
+							t = &g_touch[j];
+							D = Magnitude2(t->x - newt.x, t->y - newt.y);
+				            
+							if(D < nearestD)
+								nearest = j;
+						}
+				        
+						if(nearest >= 0)
+						{
+							g_touch[nearest] = newt;
+							modified.push_back(nearest);
+						}
+						else
+						{
+							g_touch.push_back(newt);
+							modified.push_back(g_touch.size()-1);
+						}
+				        
+						g_GUI.mousemove(newt.x, newt.y);
+						g_GUI.touchcheck();
 					}break;
 				default:
 					break;
 				}
 			}break;
-		default: break;
+		default: 
+			{
+				//LOGI("Event #%d pointer#%d/%d", (int)AInputEvent_getType(event), (int)pindex, (int)g_touch.size());
+			}break;
 	}
 
 	//LOGI("repeat_count = %d", (int)AKeyEvent_getRepeatCount(event));
@@ -880,7 +1130,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
  */
 static void engine_handle_cmd(struct android_app* app, int32_t cmd) 
 {
-	LOGI("engine handle cmd %d", (int)cmd);
+	//LOGI("engine handle cmd %d", (int)cmd);
 
     struct engine* engine = (struct engine*)app->userData;
     switch (cmd) {
@@ -891,16 +1141,18 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
             engine->app->savedStateSize = sizeof(struct saved_state);
             break;
         case APP_CMD_INIT_WINDOW:
+			// http://stackoverflow.com/questions/5352910/how-to-use-native-activity-can-it-be-combined-with-traditional-activity
             // The window is being shown, get it ready.
             if (engine->app->window != NULL) 
 			{
                 engine_init_display(engine);
-                engine_draw_frame(engine);
+                //engine_draw_frame(engine);
             }
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
             engine_term_display(engine);
+			g_quit = true;
             break;
         case APP_CMD_GAINED_FOCUS:
 			
@@ -949,7 +1201,6 @@ void android_main(struct android_app* state)
     state->onInputEvent = engine_handle_input;
     engine.app = state;
 
-	
     // Prepare to monitor accelerometer
     engine.sensorManager = ASensorManager_getInstance();
     engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
@@ -962,10 +1213,9 @@ void android_main(struct android_app* state)
     }
 
 	g_amgr = state->activity->assetManager;
-	Reload();
 
     // loop waiting for stuff to do.
-    while (true) 
+    while (!g_quit) 
 	{
         // Read all pending events.
         int ident;
@@ -1010,9 +1260,15 @@ void android_main(struct android_app* state)
                 engine.state.angle = 0;
             }
 
-            // Drawing is throttled to the screen update rate, so there
-            // is no need to do timing here.
-            engine_draw_frame(&engine);
+			if(AnimateNextFrame(FRAME_RATE))
+			{
+				//LOGI("animate");
+				// Drawing is throttled to the screen update rate, so there
+				// is no need to do timing here.
+				engine_draw_frame(&engine);
+			}
         }
     }
+
+	ANativeActivity_finish(state->activity);
 }

@@ -20,6 +20,7 @@ varying vec2 TexCoordOut;
 
 void main(void)
 {
-    gl_Position = Projection * (View * (Model * Position));
+    //gl_Position = Projection * (View * (Model * Position));
+    gl_Position = vec4(0,0,0,1);
     TexCoordOut = TexCoordIn;
 }

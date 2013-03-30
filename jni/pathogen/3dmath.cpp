@@ -1432,7 +1432,8 @@ void CCamera::CalcPitch()
 
 void CCamera::Step()
 {
-	CVector3 vNew = m_vPosition + m_vVelocity * g_FrameInterval;
+	//CVector3 vNew = m_vPosition + m_vVelocity * g_FrameInterval;
+	CVector3 vNew = m_vPosition + m_vVelocity * FRAME_INTERVAL;
 	MoveTo(vNew);
 }
 

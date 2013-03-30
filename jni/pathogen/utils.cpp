@@ -1,4 +1,4 @@
-#include <GLES/gl.h>
+//#include <GLES/gl.h>
 extern "C" 
 {
 #include <png.h>

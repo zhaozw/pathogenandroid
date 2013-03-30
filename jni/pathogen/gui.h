@@ -6,10 +6,11 @@
 #include <vector>
 #include <string>
 #include "main.h"
+#include "logger.h"
 
 using namespace std;
 
-inline void DrawImage(unsigned int tex, float left, float top, float right, float bottom);
+void DrawImage(unsigned int tex, float left, float top, float right, float bottom);
 
 #define MAX_OPTIONS_SHOWN	5
 
@@ -181,8 +182,13 @@ public:
 		{
 			ldown = true;
 
+			//LOGI("button down");
+
 			if(clickfunc != NULL)
+			{
+			//LOGI("clickfunc");
 				clickfunc();
+			}
             
 			if(clickfunc2 != NULL)
 				clickfunc2(param);

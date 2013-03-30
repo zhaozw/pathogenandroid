@@ -12,6 +12,7 @@
 #include "item.h"
 #include "decal.h"
 #include "3dmath.h"
+#include "logger.h"
 
 void Shot(int player)
 {
@@ -19,8 +20,13 @@ void Shot(int player)
 	CHold* h = &p->items[p->equipped];
 	CItemType* t = &g_itemType[h->type];
     
+	//LOGI("shot0");
+
 	if(GetTickCount() - p->last < t->delay)
+	{
+		//LOGI("delay return");
 		return;
+	}
     
 	p->last = GetTickCount();
 	h->clip -= 1.0f;
@@ -29,7 +35,9 @@ void Shot(int player)
 		RedoAmmo();
     
 	CEntity* e = &g_entity[p->entity];
-    
+
+	//LOGI("shot1");
+
 	//if(t->ammo == ITEM::PRIMARYAMMO)
 	if(t->ammo == PRIMARYAMMO)
 		e->frame[BODY_UPPER] = ANIM_SHOTSHOULDER_S;
@@ -41,7 +49,10 @@ void Shot(int player)
 		e->frame[BODY_UPPER] = ANIM_PISTOLSHOT_S;
 	//else if(h->type == ITEM::BBAT)
 	else if(h->type == BBAT)
+	{
+		//LOGI("bat swing p=%d e=%d local=%d", player, p->entity, g_localP);
 		e->frame[BODY_UPPER] = ANIM_BATSWING_S;
+	}
 	//else if(h->type == ITEM::KNIFE)
 	else if(h->type == KNIFE)
 		e->frame[BODY_UPPER] = ANIM_KNIFESTAB_S;
@@ -49,6 +60,8 @@ void Shot(int player)
 	if(t->shotSound.size() > 0)
 		t->shotSound[ rand()%t->shotSound.size() ].Play();
     
+	//LOGI("shot2");
+
 	CCamera* c = &e->camera;
     
 	CVector3 d = Normalize(c->View() - c->Position());
@@ -63,9 +76,12 @@ void Shot(int player)
 	CEntity* e2;
 	int hit;
 	CVector3 trace;
+
+	//LOGI("shot3");
     
 	for(int s=0; s<t->split; s++)
 	{
+	//LOGI("shot4 split%d", s);
 		horiz = horizontal * (t->inacc * (rand()%1000-500)/500.0f);
 		vert = vertical * (t->inacc * (rand()%1000-500)/500.0f);
 		vLine[1] = c->Position() + d * t->range + horiz + vert;

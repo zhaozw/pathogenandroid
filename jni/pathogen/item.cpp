@@ -75,30 +75,30 @@ void ItemSound(int type, const char* filepath)
 void Items()
 {
 	//Item(int i, char* model, char* icon, bool equip, int delay, int ammo, int clip, int reloadrate, float damage, float range, int split, float inacc)
-	Item(MP5, "mp5", "mp5icon", true, 75, PRIMARYAMMO, 30, 30, 10.0f, 1000.0f, 1, 50.0f);	// 800 RPM = 13.33 RPS -> 1000 / 13.33 = 75 ms
+	Item(MP5, "mp5", "gui/mp5icon", true, 75, PRIMARYAMMO, 30, 30, 10.0f, 1000.0f, 1, 50.0f);	// 800 RPM = 13.33 RPS -> 1000 / 13.33 = 75 ms
 	ItemSound(SHOT, "mp5shot1");
 	ItemSound(SHOT, "mp5shot2");
 	ItemSound(SHOT, "mp5shot3");
 	ItemSound(SHOT, "mp5shot4");
 	ItemSound(RELOAD, "mp5reload");
 	ItemSound(DRYFIRE, "dryfire");
-	Item(MOSSBERG500, "mossberg500", "mossberg500icon", true, 1000, SECONDARYAMMO, 6, 1, 30.0f, 500.0f, 8, 150.0f);
+	Item(MOSSBERG500, "mossberg500", "gui/mossberg500icon", true, 1000, SECONDARYAMMO, 6, 1, 30.0f, 500.0f, 8, 150.0f);
 	ItemSound(SHOT, "moss500shotcock");
 	ItemSound(RELOAD, "moss500load");
 	ItemSound(COCK, "moss500cock");
 	ItemSound(DRYFIRE, "dryfire");
-	Item(M1911, "m1911", "m1911icon", true, 0, TERTAMMO, 7, 7, 30.0f, 1000.0f, 1, 0.0f);
+	Item(M1911, "m1911", "gui/m1911icon", true, 0, TERTAMMO, 7, 7, 30.0f, 1000.0f, 1, 0.0f);
 	ItemSound(SHOT, "gun_pistol1");
 	ItemSound(RELOAD, "pistolreload");
 	ItemSound(DRYFIRE, "dryfire");
-	Item(PRIMARYAMMO, "ammo1", "ammo1icon", false, -1, NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
-	Item(SECONDARYAMMO, "ammo2", "ammo2icon", false, -1, NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
-	Item(TERTAMMO, "ammo3", "ammo3icon", false, -1, NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
-	Item(BBAT, "bbat", "bbaticon", true, 0, NOAMMO, -1, -1, 45.0f, INTERACTION_D, 1, 0.0f);
+	Item(PRIMARYAMMO, "ammo1", "gui/ammo1icon", false, -1, NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+	Item(SECONDARYAMMO, "ammo2", "gui/ammo2icon", false, -1, NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+	Item(TERTAMMO, "ammo3", "gui/ammo3icon", false, -1, NOAMMO, -1, -1, 0.0f, 0, -1, -1.0f);
+	Item(BBAT, "bbat", "gui/bbaticon", true, 0, NOAMMO, -1, -1, 45.0f, INTERACTION_D, 1, 0.0f);
 	ItemSound(HIT, "thud");
-	Item(KNIFE, "knife", "knifeicon", true, 0, NOAMMO, -1, -1, 30.0f, INTERACTION_D, 1, 0.0f);
+	Item(KNIFE, "knife", "gui/knifeicon", true, 0, NOAMMO, -1, -1, 30.0f, INTERACTION_D, 1, 0.0f);
 	ItemSound(HIT, "stab");
-	Item(WTALKIE, "wtalkie", "wtalkieicon", false, 0, NOAMMO, -1, -1, 0.0f, 0.0f, 0, 0.0f);
+	Item(WTALKIE, "wtalkie", "gui/wtalkieicon", false, 0, NOAMMO, -1, -1, 0.0f, 0.0f, 0, 0.0f);
     
     //NSLog(@"1 reld sz = %d", (int)g_itemType[ITEM::M1911].reloadSound.size());
 }

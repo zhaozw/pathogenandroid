@@ -96,10 +96,10 @@ void DrawDecals()
         glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
         glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
         
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     
-    glUniform4f(g_slots[MODEL][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
+    glUniform4f(g_slots[BILLBOARD][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
 }
 
 int NewDecal()

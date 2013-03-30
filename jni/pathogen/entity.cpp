@@ -549,23 +549,24 @@ void DrawEntities(bool transp)
         
 		if(foundt != transp)
 			continue;
+		
+        bounds[0] = c->Position() + t->vMin;
+        bounds[1] = c->Position() + t->vMax;
+        
+		if(!g_frustum.BoxInFrustum(bounds[0].x, bounds[0].y, bounds[0].z, bounds[1].x, bounds[1].y, bounds[1].z))
+			continue;
         
         if(e->nolightvol)
 			colorv = CVector3(1, 1, 1);
 		else
 			colorv = g_map.LightVol(c->Position() + t->vCenterOff);
+		//	colorv = g_map.LightVol(c->Position());
         
 		colorf[0] = colorv.x;
 		colorf[1] = precolor[1] * colorv.y;
 		colorf[2] = precolor[2] * colorv.z;
         
         glUniform4f(g_slots[MODEL][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
-        
-        bounds[0] = c->Position() + t->vMin;
-        bounds[1] = c->Position() + t->vMax;
-        
-		if(!g_frustum.BoxInFrustum(bounds[0].x, bounds[0].y, bounds[0].z, bounds[1].x, bounds[1].y, bounds[1].z))
-			continue;
         
         if(t->model[BODY_LOWER] >= 0)
         {
@@ -717,6 +718,7 @@ void Entity(int category, int item, const char* lowermodel, const char* uppermod
 	t->jump = jump;
 	t->crouch = crouch;
 	t->animrate = animrate;
+	t->vCenterOff = (t->vMin + t->vMax)/2.0f;
     t->collider = -1;
 }
 

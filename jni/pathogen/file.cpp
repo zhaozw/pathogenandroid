@@ -3,6 +3,7 @@
 #include "font.h"
 #include "image.h"
 #include "file.h"
+#include "logger.h"
 
 void StripPathExtension(const char* n, char* o)
 {
@@ -42,13 +43,33 @@ void StripPath(const char* n, char* o)
 
 CFile::CFile()
 {
-	data = NULL;
-	fsize = 0;
-	position = 0;
+	//data = NULL;
+	//fsize = 0;
+	//position = 0;
+	mFile = NULL;
 }
 
-CFile::CFile(const char* filepath)
+void CFile::close()
 {
+	/*
+	if(data)
+		delete [] data;
+
+	fsize = 0;
+	position = 0;
+	*/
+	if(mFile)
+	{
+		AAsset_close(mFile);
+		mFile = 0;
+	}
+}
+
+// http://minigamestudio.googlecode.com/svn-history/r407/trunk/source/render/android/ola_afile.cpp
+
+CFile::CFile(const char* filepath, int mode)
+{
+	/*
 	data = NULL;
 	fsize = 0;
 	position = 0;
@@ -59,67 +80,118 @@ CFile::CFile(const char* filepath)
 	//if(!file)
 	if(!asset_file)
 		return;
-
-	char buff[256];
-	char* oldbuf = NULL;
-	char* newbuf = NULL;
+*/
+	/*
+	unsigned char buff[256];
+	unsigned char* oldbuf = NULL;
+	unsigned char* newbuf = NULL;
 
 	int r=0;
 	//while((r=zip_fread(file, buff, 256)) > 0)
 	while((r = AAsset_read(asset_file, buff, 256)) > 0)
 	{
-		newbuf = new char[fsize+r];
+		newbuf = new unsigned char[fsize+r];
 
-		if(oldbuf)
+		//buff[r] = '\0';
+		//LOGI("%s", buff);
+
+		LOGI("read %d", r);
+
+		//if(oldbuf)
+		if(fsize > 0)
 		{
 			memcpy(newbuf, oldbuf, fsize);
 		}
 
 		memcpy(&newbuf[fsize], buff, r);
 
-		delete [] oldbuf;
+		//if(oldbuf)
+		if(fsize > 0)
+		{
+			delete [] oldbuf;
+		}
 		oldbuf = newbuf;
 
 		fsize += r;
 	}
 
 	data = newbuf;
+	*/
+/*
+	fsize = AAsset_getLength(asset_file);
+	data = new unsigned char[fsize+1];
+	AAsset_read(asset_file, data, fsize);
+	data[fsize] = '\0';
+
+	for(int i=0; i<fsize; i++)
+	{
+		if((char)data[i] == '\0')
+			data[i] = (unsigned char)'!';
+	}
+	
+	LOGI("%s size=%d", filepath, fsize);
+
+	//char show[fsize];
+	//memcpy(show, data, fsize);
+	LOGI("%s", (char*)data);
 
 	//zip_fclose(file);
 	AAsset_close(asset_file);
+	*/
+
+	
+	//LOGI("file() %s 0", filepath);
+
+	//mFile = AAssetManager_open(g_amgr, filepath, AASSET_MODE_UNKNOWN);
+	mFile = AAssetManager_open(g_amgr, filepath, mode);
+
+	//LOGI("file() %s 1", filepath);
 }
 
 void CFile::write(const char* filepath, char* nativepath)
 {
+	/*
 	char raw[32];
 	StripPath(filepath, raw);
 	sprintf(nativepath, "%s/%s", g_tempPath, raw);
 	FILE* fp = fopen(nativepath, "wb");
 	fwrite(data, fsize, 1, fp);
-	fclose(fp);
+	fclose(fp);*/
 }
 
 CFile::~CFile()
 {
+	/*
 	if(data)
 	{
 		delete [] data;
 		data = NULL;
+	}*/
+	//close();
+}
+
+int CFile::seek(int off, int origin)
+{
+	//position = off;
+	
+	if(mFile)
+	{
+		//int origin = SEEK_SET;
+		//SEEK_SET
+		return AAsset_seek(mFile, off, origin);
+		//return AAsset_seek(mFile, off, SEEK_SET);
 	}
+	return 0;
 }
 
-void CFile::seek(int off)
-{
-	position = off;
-}
-
-void CFile::seekend()
-{
-	position = fsize;
-}
+//void CFile::seekend()
+//{
+	//position = fsize;
+//}
 
 int CFile::read(void* to, int amt)
 {
+	/*
 	int read = amt;
 
 	if(read > fsize-position)
@@ -128,10 +200,31 @@ int CFile::read(void* to, int amt)
 	memcpy(to, &data[position], read);
 	position += read;
 
-	return read;
+	return read;*/
+	if(mFile)
+	{
+		return AAsset_read(mFile, to, amt);
+	}
+	return 0;
 }
 
 int CFile::tell()
 {
-	return position;
+	//return position;
+	if(mFile)
+	{
+		off_t asset_l = AAsset_getLength(mFile);
+		off_t asset_r = AAsset_getRemainingLength(mFile);
+		return asset_l - asset_r;
+	}
+	return 0;
+}
+
+int CFile::remain()
+{
+	if(mFile)
+	{
+		return AAsset_getRemainingLength(mFile);
+	}
+	return 0;
 }

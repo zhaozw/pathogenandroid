@@ -51,6 +51,6 @@ void LoadSounds()
 	g_zdeathSnd.push_back(CSound("sounds/creature_snarl1.wav"));
 	g_zgraspSnd.push_back(CSound("sounds/creature_snarl2.wav"));
 	//g_zpainSnd.push_back(CSound("sounds\\zpain.wav"));
-    g_doorKnock = CSound("doorknock");
-    g_staticSound = CSound("static");
+    g_doorKnock = CSound("sounds/doorknock");
+    g_staticSound = CSound("sounds/static");
 }

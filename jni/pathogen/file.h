@@ -16,18 +16,21 @@ using namespace std;
 class CFile
 {
 public:
-	char* data;
-	int fsize;
-	int position;
+	//unsigned char* data;
+	//int fsize;
+	//int position;
+	AAsset* mFile;
 
 	CFile();
-	CFile(const char* filepath);
+	CFile(const char* filepath, int mode=AASSET_MODE_UNKNOWN);
 	~CFile();
 	void write(const char* filepath, char* nativepath);
-	void seek(int off);
-	void seekend();
+	int seek(int off, int origin=SEEK_SET);
+	//void seekend();
 	int read(void* to, int amt);
 	int tell();
+	int remain();
+	void close();
 };
 
 void StripPathExtension(const char* n, char* o);

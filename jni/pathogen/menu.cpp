@@ -13,6 +13,7 @@
 #include "script.h"
 #include "item.h"
 #include "animations.h"
+#include "logger.h"
 
 bool g_showdialog = true;
 
@@ -21,9 +22,9 @@ void SkipLogo()
     if(g_mode != LOGO)
         return;
     
-    //g_mode = MENU;
-    //OpenSoleView("main");
-    PlayIntro();
+    g_mode = MENU;
+    OpenSoleView("main");
+    //PlayIntro();
 }
 
 void UpdateLogo()
@@ -267,12 +268,16 @@ void Click_EquipNext()
 
 void Click_Shoot()
 {
+	//LOGI("shoot");
+
     if(g_mode != PLAY)
         return;
     
     if(g_arrest)
         return;
-    
+   
+	//LOGI("shoot2");
+
     CPlayer* p = &g_player[g_localP];
     
 	if(p->reload)
@@ -286,6 +291,8 @@ void Click_Shoot()
     
 	//if(t->ammo == ITEM::NOAMMO)
 	//	return;
+
+	//LOGI("shoot3");
     
 	if(t->damage == 0.0f)
 		return;
@@ -298,13 +305,18 @@ void Click_Shoot()
 		return;
 	}
     
+	//LOGI("shoot4");
+
 	if(t->delay > 0 && GetTickCount() - p->last < t->delay)
 		return;
+	
+	//LOGI("shoot5");
     
 	if(t->ammo == PRIMARYAMMO)
 		p->shoot = true;
 	else //if(t->ammo == ITEM::SECONDARYAMMO)
 	{
+		//LOGI("shoot6");
 		p->shoot = false;
 		Shot(g_localP);
 	}
@@ -528,6 +540,8 @@ void Movement(float dx, float dy)
     
     if(g_arrest)
         return;
+
+	//LOGI("movement");
     
     if(dx < -MOV_THRESH)
         Left();
@@ -651,7 +665,8 @@ void UpdateGUI()
     
 	CWidget* w = &v->widget[0];
     
-	w->rgba[3] -= g_FrameInterval;
+	//w->rgba[3] -= g_FrameInterval;
+	w->rgba[3] -= FRAME_INTERVAL;
     
 	if(w->rgba[3] <= 0.0f)
 		v->opened = false;

@@ -16,7 +16,7 @@
 #include <android_native_app_glue.h>
 #include <errno.h>
 #include <EGL/egl.h>
-#include <GLES/gl.h>
+//#include <GLES/gl.h>
 
 extern "C" {
 #include <png.h>
@@ -44,13 +44,13 @@ struct CVector2i;
 
 using namespace std;
 
-//#define SERVER_ADDR         @"pathogen-game.com"
-//#define SERVER_ADDR         @"24.87.135.215"    //Test server
-#define SERVER_ADDR         @"pathogen.myftp.org"   //Test server
+//#define SERVER_ADDR         "pathogen-game.com"
+//#define SERVER_ADDR         "24.87.135.215"    //Test server
+#define SERVER_ADDR         "pathogen.myftp.org"   //Test server
 #define PORT                19023
 
 #define FRAME_RATE          30
-#define FRAME_INTERVAL		(1000.0f/(float)FRAME_RATE)
+#define FRAME_INTERVAL		(1.0f/(float)FRAME_RATE)
 
 #define RETRY_DELAY         20
 #define CLIENT_TIMEOUT      (60*1000)
@@ -124,8 +124,10 @@ extern float g_height;
 extern float g_near;
 extern float g_far;
 extern float g_fov;
+extern float g_scale;
+extern bool g_quit;
 
-extern double g_FrameInterval;
+//extern double g_FrameInterval;
 
 enum GAMEMODE{LOGO, INTRO, MENU, CONNECTING, PLAY};
 extern enum GAMEMODE g_mode;

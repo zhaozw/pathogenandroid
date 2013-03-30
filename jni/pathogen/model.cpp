@@ -13,13 +13,14 @@ void CModel::Load(const char* n, CVector3 scale)
     char raw[64];
 	StripPathExtension(n, raw);
 	char filepath[128];
-	sprintf(filepath, "assets/models/%s.md2", raw);
+	sprintf(filepath, "models/%s.md2", raw);
     
     //FILE* fp = fopen (filepath, "rb");
     CFile fp(filepath);
 
     //if(!fp)
-	if(fp.fsize <= 0)
+	//if(fp.fsize <= 0)
+	if(!fp.mFile)
     {
         //int ferr = ferror(fp);
         LOGE("Couldn't load model %s / %s", raw, filepath);
@@ -44,6 +45,7 @@ void CModel::Load(const char* n, CVector3 scale)
     {
         LOGE("Bad version or identifier for model %s", name);
         //fclose(fp);
+		fp.close();
         return;
     }
     
@@ -53,6 +55,8 @@ void CModel::Load(const char* n, CVector3 scale)
     triangles = new md2_triangle_t[ header.num_tris ];
     frames = new md2_frame_t[ header.num_frames ];
     glcmds = new int[ header.num_glcmds ];
+
+	//LOGI("%s skins%d,st%d,tris%d,frames%d", name, header.num_skins, header.num_st, header.num_tris, header.num_frames);
     
     /* Read model data */
     //fseek (fp, header.offset_skins, SEEK_SET);
@@ -91,11 +95,12 @@ void CModel::Load(const char* n, CVector3 scale)
 		
         fp.read ((void*)frames[i].scale, sizeof (vec3_t));
         fp.read ((void*)frames[i].translate, sizeof (vec3_t));
-        fp.read ((void*)frames[i].name, sizeof (char));
+        fp.read ((void*)frames[i].name, sizeof (char)*16);
         fp.read ((void*)frames[i].verts, sizeof (struct md2_vertex_t)*header.num_vertices);
     }
     
     //fclose (fp);
+	fp.close();
     on = true;
     
     char texn[64];
@@ -294,17 +299,17 @@ void CModel::Draw(int frame, CVector3 pos, float pitch, float yaw)
     rotation.setRotationRadians(radians);
     modelmat.postMultiply(rotation);
     
-    glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+    //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
     
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, tex_id);
+    //glUniform1i(g_slots[MODEL][TEXTURE], 0);
+
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[frame]);
-    glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
+    //glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
     glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,texcoord));
     
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex_id);
-    glUniform1i(g_slots[MODEL][TEXTURE], 0);
-    
-    glDrawArrays(GL_TRIANGLES, 0, numverts);
+    //glDrawArrays(GL_TRIANGLES, 0, numverts);
 }
 
 //used for drawing the upper part of characters
@@ -324,13 +329,13 @@ void CModel::Draw2(int frame, CVector3 pos, float pitch, float yaw)
     
     glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[frame]);
-    glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
-    glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,texcoord));
-    
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex_id);
     glUniform1i(g_slots[MODEL][TEXTURE], 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[frame]);
+    glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
+    glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,texcoord));
     
     glDrawArrays(GL_TRIANGLES, 0, numverts);
 }
@@ -458,6 +463,8 @@ void ModelMinMax(int model, CVector3* vMin, CVector3* vMax)
      vMax->z = vMax->x;*/
 	vMin->x = vMin->z = -maxextent;
 	vMax->x = vMax->z = maxextent;
+
+	//LOGI("%s maxex=%f", m->name, maxextent);
 }
 
 CVector3 ModelFront(int model, int from, int to)

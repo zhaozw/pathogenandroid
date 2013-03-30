@@ -25,11 +25,11 @@ public:
 #define TGA_A		 3		// This tells us it's a ALPHA file
 #define TGA_RLE		10		// This tells us that the targa is Run-Length Encoded (RLE)
 
-#define JPEG_BUFFER_SIZE (8 << 10)
-
 #define png_infopp_NULL (png_infopp)NULL
 #define int_p_NULL (int*)NULL
 #define png_voidp_NULL	(png_voidp)NULL
+
+#define JPEG_BUFFER_SIZE (8 << 10)
 
 typedef struct 
 {

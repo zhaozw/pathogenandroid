@@ -89,7 +89,7 @@ void BloodSplat(CParticle* part, CBillboard* billb, CVector3 trace, CVector3 nor
 
 void Particles()
 {
-	Particle(BLOODPART, "bloodpart", 500, 0.05f, CVector3(-1.5f, -0.5f, -1.5f), CVector3(1.5f, 1.8f, 1.5f), CVector3(0, -0.1f, 0), CVector3(0.0f, -0.3f, 0.0f), 5.0f, 10.0f, &BloodSplat);
+	Particle(BLOODPART, "billboards/bloodpart", 500, 0.05f, CVector3(-1.5f, -0.5f, -1.5f), CVector3(1.5f, 1.8f, 1.5f), CVector3(0, -0.1f, 0), CVector3(0.0f, -0.3f, 0.0f), 5.0f, 10.0f, &BloodSplat);
 }
 
 void UpdateParticles()

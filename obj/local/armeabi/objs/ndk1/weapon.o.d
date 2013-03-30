@@ -89,8 +89,6 @@ obj/local/armeabi/objs/ndk1/weapon.o: jni/pathogen/weapon.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/egl.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/eglplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
  jni/pathogen/../libpng/png.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zlib.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/zconf.h \
@@ -198,8 +196,9 @@ obj/local/armeabi/objs/ndk1/weapon.o: jni/pathogen/weapon.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_num_get.c \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_io.c \
  jni/pathogen/quake3bsp.h jni/pathogen/menu.h jni/pathogen/animations.h \
- jni/pathogen/gui.h jni/pathogen/model.h jni/pathogen/billboard.h \
- jni/pathogen/3DMath.h jni/pathogen/particle.h jni/pathogen/decal.h
+ jni/pathogen/gui.h jni/pathogen/logger.h jni/pathogen/model.h \
+ jni/pathogen/billboard.h jni/pathogen/3DMath.h jni/pathogen/particle.h \
+ jni/pathogen/decal.h
 
 jni/pathogen/main.h:
 
@@ -380,10 +379,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/incl
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/EGL/eglplatform.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h:
-
-C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h:
 
 jni/pathogen/../libpng/png.h:
 
@@ -612,6 +607,8 @@ jni/pathogen/menu.h:
 jni/pathogen/animations.h:
 
 jni/pathogen/gui.h:
+
+jni/pathogen/logger.h:
 
 jni/pathogen/model.h:
 
