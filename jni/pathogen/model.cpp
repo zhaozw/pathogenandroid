@@ -268,6 +268,7 @@ void CModel::Load(const char* n, CVector3 scale)
 
 void CModel::DrawSky(int frame, CVector3 pos)
 {
+	/*
     CMatrix modelmat;
     modelmat.setTranslation((const float*)&pos);
     
@@ -281,17 +282,11 @@ void CModel::DrawSky(int frame, CVector3 pos)
     glBindTexture(GL_TEXTURE_2D, tex_id);
     glUniform1i(g_slots[MODEL][TEXTURE], 0);
     
-    glDrawArrays(GL_TRIANGLES, 0, numverts);
+    glDrawArrays(GL_TRIANGLES, 0, numverts);*/
 }
 
 void CModel::Draw(int frame, CVector3 pos, float pitch, float yaw)
 {
-    if(!on)
-    {
-        //NSLog(@"draw null %@", name);
-        return;
-    }
-    
     CMatrix modelmat;
     float radians[] = {pitch, yaw, 0};
     modelmat.setTranslation((const float*)&pos);
@@ -299,17 +294,30 @@ void CModel::Draw(int frame, CVector3 pos, float pitch, float yaw)
     rotation.setRotationRadians(radians);
     modelmat.postMultiply(rotation);
     
-    //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+#ifndef USE_OMNI
+    glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+#else
+    glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+#endif
     
-    //glActiveTexture(GL_TEXTURE0);
-    //glBindTexture(GL_TEXTURE_2D, tex_id);
-    //glUniform1i(g_slots[MODEL][TEXTURE], 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex_id);
+#ifndef USE_OMNI
+    glUniform1i(g_slots[MODEL][TEXTURE], 0);
+#else
+    glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[frame]);
-    //glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
+#ifndef USE_OMNI
+    glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
     glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,texcoord));
-    
-    //glDrawArrays(GL_TRIANGLES, 0, numverts);
+#else
+	glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
+    glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,texcoord));
+#endif
+
+    glDrawArrays(GL_TRIANGLES, 0, numverts);
 }
 
 //used for drawing the upper part of characters
@@ -328,14 +336,18 @@ void CModel::Draw2(int frame, CVector3 pos, float pitch, float yaw)
     modelmat.postMultiply(translation);
     
     glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+    //glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex_id);
     glUniform1i(g_slots[MODEL][TEXTURE], 0);
+    //glUniform1i(g_slots[OMNI][TEXTURE], 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[frame]);
     glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
     glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,texcoord));
+    //glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,vertex));
+    //glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(CVertexArray2), (void*)offsetof(CVertexArray2,texcoord));
     
     glDrawArrays(GL_TRIANGLES, 0, numverts);
 }

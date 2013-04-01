@@ -13,6 +13,7 @@
 #include "menu.h"
 #include "quake3bsp.h"
 #include "shader.h"
+#include "logger.h"
 
 vector<CBillboardType> g_billbT;
 CBillboard g_billb[BILLBOARDS];
@@ -166,6 +167,8 @@ void DrawBillboards()
         if(!billb->on)
             continue;
         
+		//LOGI("billb");
+
         t = &g_billbT[billb->type];
         
         if(billb->nolightvol)
@@ -176,8 +179,12 @@ void DrawBillboards()
 		colorf[0] = colorv.x;
 		colorf[1] = precolor[1] * colorv.y;
 		colorf[2] = precolor[2] * colorv.z;
-        glUniform4f(g_slots[BILLBOARD][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
-        
+#ifndef USE_OMNI
+        glUniform4f(g_slots[MODEL][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+#else
+        glUniform4f(g_slots[OMNI][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+#endif
+
 		if(billb->particle >= 0)
 		{
 			part = &g_particle[billb->particle];
@@ -187,10 +194,15 @@ void DrawBillboards()
 		else
 			size = billb->size;
         
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, t->tex);
-        //glUniform1i(g_slots[BILLBOARD][TEXTURE], 0);
-        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, t->tex);
+        //glBindTexture(GL_TEXTURE_2D, g_muzzle[0]);
+#ifndef USE_OMNI
+        glUniform1i(g_slots[MODEL][TEXTURE], 0);
+#else
+		glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
+
 		vert = vertical*size;
 		horiz = horizontal*size;
         
@@ -216,16 +228,21 @@ void DrawBillboards()
 		//	0, 1, 2, 3, 4, 5
 		//};
         
-        glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
-        glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#ifndef USE_OMNI
+        glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#else
+        glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#endif
         
         glDrawArrays(GL_TRIANGLES, 0, 6);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
 
-		return;
+		//return;
     }
     
-    //glUniform4f(g_slots[BILLBOARD][COLOR], 1, 1, 1, 1);
+    glUniform4f(g_slots[MODEL][COLOR], 1, 1, 1, 1);
     
 	CEntity* e;
 	CPlayer* p;
@@ -263,7 +280,11 @@ void DrawBillboards()
         
         glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, g_muzzle[rand()%4]);
-        glUniform1i(g_slots[BILLBOARD][TEXTURE], 0);
+#ifndef USE_OMNI
+        glUniform1i(g_slots[MODEL][TEXTURE], 0);
+#else
+        glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
         
 		cam = &e->camera;
         
@@ -291,8 +312,13 @@ void DrawBillboards()
             a.x, a.y, a.z,          1, 0
         };
         
-        glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
-        glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#ifndef USE_OMNI
+        glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#else
+        glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#endif
         
         glDrawArrays(GL_TRIANGLES, 0, 6);
 	}

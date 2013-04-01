@@ -74,12 +74,20 @@ void DrawDecals()
 		colorf[1] = precolor[1] * colorv.y;
 		colorf[2] = precolor[2] * colorv.z;
 		colorf[3] = d->life;
-        glUniform4f(g_slots[BILLBOARD][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
-        
+#ifndef USE_OMNI
+        glUniform4f(g_slots[MODEL][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+#else
+		glUniform4f(g_slots[OMNI][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+#endif
+
         t = &g_decalT[d->type];
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, t->tex);
-        glUniform1i(g_slots[BILLBOARD][TEXTURE], 0);
+#ifndef USE_OMNI
+        glUniform1i(g_slots[MODEL][TEXTURE], 0);
+#else
+        glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
         
         float vertices[] =
         {
@@ -93,13 +101,22 @@ void DrawDecals()
             d->a.x, d->a.y, d->a.z,          1, 0
         };
         
-        glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
-        glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
-        
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
+#ifndef USE_OMNI
+        glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#else
+        glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#endif
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     
-    glUniform4f(g_slots[BILLBOARD][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
+#ifndef USE_OMNI
+    glUniform4f(g_slots[MODEL][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
+#else
+    glUniform4f(g_slots[OMNI][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
+#endif
 }
 
 int NewDecal()

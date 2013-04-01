@@ -12,8 +12,12 @@ void DrawImage(unsigned int tex, float left, float top, float right, float botto
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
+#ifndef USE_OMNI
     glUniform1i(g_slots[ORTHO][TEXTURE], 0);
-    
+#else
+    glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
+
     float vertices[] =
     {
         //posx, posy    texx, texy
@@ -25,11 +29,24 @@ void DrawImage(unsigned int tex, float left, float top, float right, float botto
         left, bottom,0,       0, 1,
         left, top,0,          0, 0
     };
+
+	GLubyte indices[] =
+		{
+			0, 1, 2, 3, 4, 5
+		};
     
+#ifndef USE_OMNI
     glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
     glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
-    
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+#else
+        //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        //glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+    glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+    glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#endif
+
+    //glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
 }
 
 inline void DrawSquare(float r, float g, float b, float a, float left, float top, float right, float bottom)
@@ -210,9 +227,17 @@ float CWidget::scrollspace()
 
 void CWidget::Image_draw()
 {
+#ifndef USE_OMNI
     glUniform4f(g_slots[ORTHO][COLOR], rgba[0], rgba[1], rgba[2], rgba[3]);
+#else
+    glUniform4f(g_slots[OMNI][COLOR], rgba[0], rgba[1], rgba[2], rgba[3]);
+#endif
 	DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
+#ifndef USE_OMNI
     glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
+#else
+    glUniform4f(g_slots[OMNI][COLOR], 1, 1, 1, 1);
+#endif
 }
 
 void CWidget::Button_draw()

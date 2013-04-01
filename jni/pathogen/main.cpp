@@ -132,6 +132,9 @@ void Reload()
 	glClearColor(0, 0, 0, 1);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE1);
+    glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glEnable(GL_CULL_FACE);
@@ -150,7 +153,7 @@ void Reload()
 
 	LOGI("Effects();....");
 	Effects();
-	load
+	
 	LOGI("Particles();....");
 	Particles();
 	
@@ -173,7 +176,7 @@ void Reload()
 
 	g_inited = true;
 
-	Click_GoToStory();
+	//Click_GoToStory();
 }
 
 JNIEXPORT void Java_com_pathogengame_pathogen_MainActivity_helloLog(JNIEnv * env, jobject jthis, jstring logThis)  
@@ -377,6 +380,33 @@ void Update()
     //ResendPackets();
 }
 
+void DrawBImage(unsigned int tex, float left, float top, float right, float bottom)
+{
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, tex);
+    //glUniform1i(g_slots[ORTHO][TEXTURE], 0);
+    
+    float vertices[] =
+    {
+        //posx, posy    texx, texy
+        left, top,0,          0, 0,
+        right, top,0,         1, 0,
+        right, bottom,0,      1, 1,
+        
+        right, bottom,0,      1, 1,
+        left, bottom,0,       0, 1,
+        left, top,0,          0, 0
+    };
+    
+    //glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+    //glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+	
+        glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+    
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 void Draw() 
 {
 	/*
@@ -407,8 +437,32 @@ void Draw()
 	//glClearColor((float)(rand()%255)/255.0f, (float)(rand()%255)/255.0f, (float)(rand()%255)/255.0f, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//glDisable(GL_DEPTH_TEST);
+    glUseProgram(g_program[OMNI]);
+	
+/*
+	glUseProgram(g_program[ORTHO]);
+    glUniform1f(g_slots[ORTHO][WIDTH], (float)g_width);
+    glUniform1f(g_slots[ORTHO][HEIGHT], (float)g_height);
+    glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
+    glEnableVertexAttribArray(g_slots[ORTHO][POSITION]);
+    glEnableVertexAttribArray(g_slots[ORTHO][TEXCOORD]);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glActiveTexture(GL_TEXTURE0);
+	//glEnable(GL_TEXTURE_2D);
+	//glEnableClientState(GL_VERTEX_ARRAY);
+	DrawImage(CreateTexture("models/human2"), 0, 0, 100, 100);
+	if(g_mode != PLAY)
+    g_GUI.draw();
+*/
+	//static bool didonce = false;
+
+	//if(g_mode == PLAY && !didonce)
 	if(g_mode == PLAY)
     {
+	//	didonce = true;
+
 		//glEnable(GL_DEPTH_TEST);
 
         float aspect = fabsf(g_width / g_height);
@@ -444,19 +498,35 @@ void Draw()
             
             g_reddening -= FRAME_INTERVAL;
         }
-        /*
-        glUseProgram(g_program[SKY]);
-        glUniformMatrix4fv(g_slots[SKY][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[SKY][VIEWMAT], 1, 0, viewmat.getMatrix());
-        glUniform4f(g_slots[SKY][COLOR], color[0], color[1], color[2], color[3]);
-        glEnableVertexAttribArray(g_slots[SKY][POSITION]);
-        glEnableVertexAttribArray(g_slots[SKY][TEXCOORD]);
+        
+#ifndef USE_OMNI
+        glUseProgram(g_program[MODEL]);
+        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
+        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         //g_map.RenderSky();
         DrawSkyBox(posvec2);
-        *//*
+        //checkGlError("DrawSkyBox");
+#else
+		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
+        glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        DrawSkyBox(posvec2);
+		//checkGlError("DrawSkyBox");
+#endif
+	
+#ifndef USE_OMNI
         glUseProgram(g_program[MAP]);
         glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -465,25 +535,68 @@ void Draw()
         glEnableVertexAttribArray(g_slots[MAP][POSITION]);
         glEnableVertexAttribArray(g_slots[MAP][TEXCOORD]);
         glEnableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
-        //g_map.RenderLevel(posvec);
-		g_map.RenderFace(0);
-        */
+        g_map.RenderLevel(posvec);
+		//g_map.RenderFace(0);
+		//checkGlError("RenderLevel");
+        g_map.SortFaces(posvec);
+        //g_map.RenderLevel2(posvec);
+#else
+		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MAP);
+        glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD2]);
+        g_map.RenderLevel(posvec);
+		//checkGlError("RenderLevl");
+#endif
+	
+#ifndef USE_OMNI
         glUseProgram(g_program[MODEL]);
-        //glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
-        //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
-        //glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
-        //glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
         glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		//glActiveTexture(GL_TEXTURE0);
 		//glEnable(GL_TEXTURE_2D);
-        //SortEntities();
-        //DrawEntities(false);
-        //DrawEntities(true);
-		g_model[0].Draw(0, CVector3(0,0,0), 0, 0);
+        SortEntities();
+        DrawEntities(false);
+        DrawEntities(true);
+		//g_model[0].Draw(0, CVector3(0,0,0), 0, 0);
         //glDisableVertexAttribArray(g_slots[MODEL][POSITION]);
         //glDisableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
-        /*
+		//checkGlError("DrawEntities");
+	/*
+        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		DrawDecals();
+		//checkGlError("DrawDec");
+        SortBillboards();
+        DrawBillboards();
+		//checkGlError("DrawBillb");*/
+#else
+		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
+        glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
+        SortEntities();
+        DrawEntities(false);
+        DrawEntities(true);
+		//checkGlError("DrawEnts");
+#endif
+        //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, NULL);
+        //glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, NULL);
+
+#ifndef USE_OMNI
         glUseProgram(g_program[MAP]);
         glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -494,35 +607,96 @@ void Draw()
         glEnableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
         g_map.SortFaces(posvec);
         g_map.RenderLevel2(posvec);
-		glActiveTexture(GL_TEXTURE0);
-		glDisableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
-        
-        glUseProgram(g_program[BILLBOARD]);
-        glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[BILLBOARD][VIEWMAT], 1, 0, viewmat.getMatrix());
-        glUniform4f(g_slots[BILLBOARD][COLOR], color[0], color[1], color[2], color[3]);
-        glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
-        glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
+		//glActiveTexture(GL_TEXTURE0);
+		//glDisableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
+		//checkGlError("RenderLevel2");
+#else
+		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MAP);
+        glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD2]);
+        g_map.SortFaces(posvec);
+        g_map.RenderLevel2(posvec);
+		//checkGlError("RenderLevl2");
+#endif
+
+#ifndef USE_OMNI
+        glUseProgram(g_program[MODEL]);
+        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
+        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		//glEnableClientState(GL_VERTEX_ARRAY);
         DrawDecals();
 		//glDisableClientState(GL_VERTEX_ARRAY);
-        */
-        glUseProgram(g_program[BILLBOARD]);
-        glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[BILLBOARD][VIEWMAT], 1, 0, viewmat.getMatrix());
-        //glUniform3f(g_slots[BILLBOARD][CAMERAPOS], posvec.x, posvec.y, posvec.z);
-        glUniform4f(g_slots[BILLBOARD][COLOR], color[0], color[1], color[2], color[3]);
-        glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
-        glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
+		//checkGlError("DrawDecals");
+#else
+		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
+        glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		//glEnableClientState(GL_VERTEX_ARRAY);
-        //SortBillboards();
+        DrawDecals();
+		//checkGlError("DrawDecals");
+#endif
+
+#ifndef USE_OMNI
+		/*
+        glUseProgram(g_program[MODEL]);
+        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+        //glUniform3f(g_slots[BILLBOARD][CAMERAPOS], posvec.x, posvec.y, posvec.z);
+        glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
+        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/
+        SortBillboards();
+        DrawBillboards();/*
+        //glDisableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
+        //glDisableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
+    //glUniform1f(g_slots[BILLBOARD][WIDTH], (float)g_width);
+    //glUniform1f(g_slots[BILLBOARD][HEIGHT], (float)g_height);
+    //glUniform4f(g_slots[BILLBOARD][COLOR], 1, 1, 1, 1);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//glActiveTexture(GL_TEXTURE0);
+	//glEnable(GL_TEXTURE_2D);
+	//glEnableClientState(GL_VERTEX_ARRAY);
+	//DrawBImage(CreateTexture("models/human2"), 100, 100, 200, 200);
+		//checkGlError("DrawBillb");
+		*/
+#else
+
+		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
+        glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+		glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        SortBillboards();
         DrawBillboards();
+		//checkGlError("DrawBillbs");
+#endif
+
+#ifndef USE_OMNI
+        //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, NULL);
+        //glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, NULL);
 		//glDisableClientState(GL_VERTEX_ARRAY);
 		/*
         glUseProgram(g_program[MODEL]);
@@ -531,12 +705,39 @@ void Draw()
         glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
+        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);*/
         DrawHands();
-		*/
+		//checkGlError("DrawHands");		
+#else
+		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
+        glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
+        glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
+        DrawHands();
+		//checkGlError("DrawHands");
+#endif
+
+		//glFinish();
     }
-	checkGlError("start Draw");
-    
+	//checkGlError("start Draw");
+/*
+	glUseProgram(g_program[BILLBOARD]);
+    glUniform1f(g_slots[BILLBOARD][WIDTH], (float)g_width);
+    glUniform1f(g_slots[BILLBOARD][HEIGHT], (float)g_height);
+    glUniform4f(g_slots[BILLBOARD][COLOR], 1, 1, 1, 1);
+    glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
+    glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//glActiveTexture(GL_TEXTURE0);
+	//glEnable(GL_TEXTURE_2D);
+	//glEnableClientState(GL_VERTEX_ARRAY);
+	DrawBImage(NULL, 100, 100, 200, 200);
+	*/
+#ifndef USE_OMNI
 	//if(g_mode != PLAY)
 	glDisable(GL_DEPTH_TEST);
     glUseProgram(g_program[ORTHO]);
@@ -547,16 +748,35 @@ void Draw()
     glEnableVertexAttribArray(g_slots[ORTHO][TEXCOORD]);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glActiveTexture(GL_TEXTURE0);
+	//glActiveTexture(GL_TEXTURE0);
 	//glEnable(GL_TEXTURE_2D);
 	//glEnableClientState(GL_VERTEX_ARRAY);
-	DrawImage(CreateTexture("models/human2"), 0, 0, 100, 100);
-	if(g_mode != PLAY)
+	//DrawImage(CreateTexture("models/human2"), 0, 0, 100, 100);
+	//if(g_mode != PLAY)
     g_GUI.draw();
     //DrawShadowedText(MSGOTHIC16, 0, 0, "Hello world. My name is Denis.");
 	//void DrawImage(unsigned int tex, float left, float top, float right, float bottom)
 	//glDisableClientState(GL_VERTEX_ARRAY);
+	//checkGlError("GUI Draw");
+#else
+	glDisable(GL_DEPTH_TEST);
+    //glUseProgram(g_program[OMNI]);
+    glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_ORTHO);
+    glUniform1f(g_slots[OMNI][WIDTH], (float)g_width);
+    glUniform1f(g_slots[OMNI][HEIGHT], (float)g_height);
+    glUniform4f(g_slots[OMNI][COLOR], 1, 1, 1, 1);
+    glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
+    glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//DrawImage(CreateTexture("models/human2"), 0, 0, 100, 100);
+	//if(g_mode != PLAY)
+    g_GUI.draw();
+	//checkGlError("DrawGUI");
+#endif
     glEnable(GL_DEPTH_TEST);
+	
+	//glFinish();
 
 	checkGlError("Draw");
 }
@@ -720,6 +940,7 @@ static int engine_init_display(struct engine* engine)
     //glShadeModel(GL_SMOOTH);
     //glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 	
 	g_amgr = engine->app->activity->assetManager;
 	Reload();
@@ -788,7 +1009,7 @@ static void engine_draw_frame(struct engine* engine)
         return;
     }
 	
-	g_amgr = engine->app->activity->assetManager;
+	//g_amgr = engine->app->activity->assetManager;
 
 	Update();
 
@@ -827,129 +1048,6 @@ static void engine_term_display(struct engine* engine)
     engine->context = EGL_NO_CONTEXT;
     engine->surface = EGL_NO_SURFACE;
 }
-
-/*
-- (void) touchesBegan:(NSSet*)touches withEvent:(UIEvent*)event
-{
-    [self.view endEditing:YES];
-    
-    [super touchesBegan:touches withEvent:event];
-    
-    NSArray *allTouches = [touches allObjects];
-    //UITouch *touch = [touches anyObject];
-    //if([touch tapCount] < 2)
-    
-    int count = [allTouches count];
-    CGPoint touch;
-    
-    for(int i=0; i<count; i++)
-    {
-        touch = [[allTouches objectAtIndex:i] locationInView:self.view];
-        
-        g_touch.push_back(touch);
-        g_GUI.lbuttondown(touch.x, touch.y);
-    }
-}
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    [super touchesMoved:touches withEvent:event];
-    
-    NSArray *allTouches = [touches allObjects];
-    int count = [allTouches count];
-    CGPoint touch;
-    CGPoint* t;
-    int j;
-    int nearest;
-    float nearestD;
-    float D;
-    int k;
-    vector<int> modified;
-    bool found;
-    
-    for(int i=0; i<count; i++)
-    {
-        touch = [[allTouches objectAtIndex:i] locationInView:self.view];
-        
-        nearestD = 999999999.0;
-        nearest = -1;
-        for(j=0; j<g_touch.size(); j++)
-        {
-            found = false;
-            for(k=0; k<modified.size(); k++)
-            {
-                if(modified[k] != j)
-                    continue;
-                
-                found = true;
-                break;
-            }
-            if(found)
-                continue;
-            
-            t = &g_touch[j];
-            D = Magnitude2(t->x - touch.x, t->y - touch.y);
-            
-            if(D < nearestD)
-                nearest = j;
-        }
-        
-        if(nearest >= 0)
-        {
-            g_touch[nearest] = touch;
-            modified.push_back(nearest);
-        }
-        else
-        {
-            g_touch.push_back(touch);
-            modified.push_back(g_touch.size()-1);
-        }
-        
-        g_GUI.mousemove(touch.x, touch.y);
-    }
-    
-    g_GUI.touchcheck();
-}
-
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    [super touchesEnded:touches withEvent:event];
-    
-    NSArray *allTouches = [touches allObjects];
-    int count = [allTouches count];
-    
-    CGPoint touch;
-    CGPoint* t;
-    int j;
-    int nearest;
-    float nearestD;
-    float D;
-    
-    for(int i=0; i<count; i++)
-    {
-        touch = [[allTouches objectAtIndex:i] locationInView:self.view];
-        
-        nearestD = 999999999.0;
-        nearest = -1;
-        for(j=0; j<g_touch.size(); j++)
-        {
-            t = &g_touch[j];
-            D = Magnitude2(t->x - touch.x, t->y - touch.y);
-            
-            if(D < nearestD)
-                nearest = j;
-        }
-        
-        if(nearest >= 0)
-            g_touch.erase( g_touch.begin() + nearest );
-        
-        g_GUI.lbuttonup(touch.x, touch.y);
-    }
-    
-    g_GUI.touchcheck();
-}
-*/
-
 
 /**
  * Process the next input event.
@@ -1188,7 +1286,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
  */
 void android_main(struct android_app* state) 
 {
-	LOGI("ANDROID MAIN");
+	//LOGI("ANDROID MAIN");
 
     struct engine engine;
 

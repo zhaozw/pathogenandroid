@@ -20,6 +20,6 @@ void main(void)
                      Position.y * -2.0 / Height + 1.0,
                      Position.z, 
                      1.0);
-                     
+    //gl_Position = Position;
     TexCoordOut = TexCoordIn;
 }

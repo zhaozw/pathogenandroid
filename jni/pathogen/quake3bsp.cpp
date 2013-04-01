@@ -1437,21 +1437,41 @@ void CQuake3BSP::RenderFace(int faceIndex)
 	tBSPFace *pFace = &m_pFaces[faceIndex];
     
     glBindBuffer(GL_ARRAY_BUFFER, m_pVertexBuffers[faceIndex]);
+#ifndef USE_OMNI
     glVertexAttribPointer(g_slots[MAP][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vPosition));
-    
+#else
+	glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vPosition));
+#endif
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_textures[pFace->textureID]);
+#ifndef USE_OMNI
     glUniform1i(g_slots[MAP][TEXTURE], 0);
-    
+#else
+    glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
+
+#ifndef USE_OMNI
     glVertexAttribPointer(g_slots[MAP][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vTextureCoord));
-    
+#else
+	glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vTextureCoord));
+#endif
+
     glActiveTexture(GL_TEXTURE1);
-    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, m_lightmaps[pFace->lightmapID]);
+#ifndef USE_OMNI
     glUniform1i(g_slots[MAP][TEXTURE2], 1);
+#else
+    glUniform1i(g_slots[OMNI][TEXTURE2], 1);
+#endif
     
+#ifndef USE_OMNI
     glVertexAttribPointer(g_slots[MAP][TEXCOORD2], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vLightmapCoord));
-    
+#else
+	glVertexAttribPointer(g_slots[OMNI][TEXCOORD2], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vLightmapCoord));
+#endif
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pIndexBuffers[faceIndex]);
     glDrawElements(GL_TRIANGLES, pFace->numOfIndices, GL_UNSIGNED_INT, (void*)0);
 }
@@ -1459,15 +1479,17 @@ void CQuake3BSP::RenderFace(int faceIndex)
 void CQuake3BSP::RenderSkyFace(int faceIndex)
 {
     tBSPFace *pFace = &m_pFaces[faceIndex];
-    
+    /*
     glBindBuffer(GL_ARRAY_BUFFER, m_pVertexBuffers[faceIndex]);
-    glVertexAttribPointer(g_slots[SKY][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vPosition));
-    glVertexAttribPointer(g_slots[SKY][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vTextureCoord));
+    //glVertexAttribPointer(g_slots[SKY][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vPosition));
+    //glVertexAttribPointer(g_slots[SKY][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vTextureCoord));
+    glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vPosition));
+    glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vTextureCoord));
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_textures[pFace->textureID]);
     glUniform1i(g_slots[SKY][TEXTURE], 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pIndexBuffers[faceIndex]);
-    glDrawElements(GL_TRIANGLES, pFace->numOfIndices, GL_UNSIGNED_INT, (void*)0);
+    glDrawElements(GL_TRIANGLES, pFace->numOfIndices, GL_UNSIGNED_INT, (void*)0);*/
 }
 
 void CQuake3BSP::RenderSky()
@@ -1502,9 +1524,9 @@ void CQuake3BSP::RenderLevel(const CVector3 &vPos)
 	int cluster = m_pLeafs[leafIndex].cluster;
 	int i = m_numOfLeafs;
     
-    glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE1);
+	//glEnable(GL_TEXTURE_2D);
+    //glActiveTexture(GL_TEXTURE0);
 
 	while(i--)
 	{
@@ -1544,9 +1566,9 @@ void CQuake3BSP::RenderLevel(const CVector3 &vPos)
 	glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	glActiveTextureARB(GL_TEXTURE0_ARB);*/
 	
-    glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE1);
+	//glDisable(GL_TEXTURE_2D);
+    //glActiveTexture(GL_TEXTURE0);
 }
 
 void CQuake3BSP::SortFaces(const CVector3 &vPos)
@@ -1648,9 +1670,9 @@ void CQuake3BSP::RenderLevel2(const CVector3 &vPos)
     sprintf(msg, "sort faces %d", (int)m_sortFaces.size());
     Chat(msg);*/
 
-    glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE1);
+	//glEnable(GL_TEXTURE_2D);
+    //glActiveTexture(GL_TEXTURE0);
     
 	//for(int i=m_sortFaces.size()-1; i>=0; i--)
 	for(int i=0; i<m_sortFaces.size(); i++)
@@ -1673,9 +1695,9 @@ void CQuake3BSP::RenderLevel2(const CVector3 &vPos)
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	glFrontFace(GL_CCW);*/
 
-    glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE1);
+	//glDisable(GL_TEXTURE_2D);
+    //glActiveTexture(GL_TEXTURE0);
 }
 
 void CQuake3BSP::Destroy(bool delTex)

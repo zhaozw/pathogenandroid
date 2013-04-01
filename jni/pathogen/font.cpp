@@ -197,8 +197,12 @@ void DrawGlyph(unsigned int tex, float left, float top, float right, float botto
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
+#ifndef USE_OMNI
     glUniform1i(g_slots[ORTHO][TEXTURE], 0);
-    
+#else
+    glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
+
     float vertices[] =
     {
         //posx, posy    texx, texy
@@ -211,9 +215,14 @@ void DrawGlyph(unsigned int tex, float left, float top, float right, float botto
         left, top,0,          texleft, textop
     };
     
+#ifndef USE_OMNI
     glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
     glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
-    
+#else
+    glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+    glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#endif
+
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -245,16 +254,32 @@ void DrawText(int font, float x, float y, const char* str)
 
 void DrawShadowedText(int font, float x, float y, const char* str, float* color)
 {
+#ifndef USE_OMNI
     glUniform4f(g_slots[ORTHO][COLOR], 0, 0, 0, 1);
+#else
+    glUniform4f(g_slots[OMNI][COLOR], 0, 0, 0, 1);
+#endif
     DrawText(font, x+1*g_scale, y+1*g_scale, str);
     
     if(color == NULL)
+#ifndef USE_OMNI
         glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
+#else
+        glUniform4f(g_slots[OMNI][COLOR], 1, 1, 1, 1);
+#endif
     else
+#ifndef USE_OMNI
         glUniform4f(g_slots[ORTHO][COLOR], color[0], color[1], color[2], color[3]);
+#else
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+#endif
     DrawText(font, x, y, str);
     
+#ifndef USE_OMNI
     glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
+#else
+    glUniform4f(g_slots[OMNI][COLOR], 1, 1, 1, 1);
+#endif
 }
 
 void DrawBoxShadText(int font, float startx, float starty, float width, float height, const char* str, float* color)
@@ -273,7 +298,11 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
     int lastspace;
     int j, x1;
     
+#ifndef USE_OMNI
     glUniform4f(g_slots[ORTHO][COLOR], 0, 0, 0, 1);
+#else
+    glUniform4f(g_slots[OMNI][COLOR], 0, 0, 0, 1);
+#endif
     
     for(int i=0; i<size; i++)
     {
@@ -326,10 +355,18 @@ void DrawBoxShadText(int font, float startx, float starty, float width, float he
     y = starty;
     
     if(color == NULL)
+#ifndef USE_OMNI
         glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
+#else
+        glUniform4f(g_slots[OMNI][COLOR], 1, 1, 1, 1);
+#endif
     else
+#ifndef USE_OMNI
         glUniform4f(g_slots[ORTHO][COLOR], color[0], color[1], color[2], color[3]);
-    
+#else
+        glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+#endif
+
     for(int i=0; i<size; i++)
     {
         g = &f->glyph[str[i]];

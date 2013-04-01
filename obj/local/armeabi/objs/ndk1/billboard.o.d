@@ -209,7 +209,8 @@ obj/local/armeabi/objs/ndk1/billboard.o: jni/pathogen/billboard.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/fstream \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_codecvt.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c \
+ jni/pathogen/logger.h
 
 jni/pathogen/billboard.h:
 
@@ -654,3 +655,5 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_f
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_codecvt.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c:
+
+jni/pathogen/logger.h:

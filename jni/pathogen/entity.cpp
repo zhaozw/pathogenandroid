@@ -158,6 +158,7 @@ void DrawHands()
 	colorf[1] = precolor[1] * colorv.y;
 	colorf[2] = precolor[2] * colorv.z;
     glUniform4f(g_slots[MODEL][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+    //glUniform4f(g_slots[OMNI][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
     
     m = &g_model[t->model[BODY_UPPER]];
     m->Draw(e->frame[BODY_UPPER], c->Position(), -c->Pitch(), c->Yaw());
@@ -560,13 +561,14 @@ void DrawEntities(bool transp)
 			colorv = CVector3(1, 1, 1);
 		else
 			colorv = g_map.LightVol(c->Position() + t->vCenterOff);
-		//	colorv = g_map.LightVol(c->Position());
+			//colorv = g_map.LightVol(c->Position());
         
 		colorf[0] = colorv.x;
 		colorf[1] = precolor[1] * colorv.y;
 		colorf[2] = precolor[2] * colorv.z;
         
         glUniform4f(g_slots[MODEL][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+        //glUniform4f(g_slots[OMNI][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
         
         if(t->model[BODY_LOWER] >= 0)
         {
@@ -590,6 +592,7 @@ void DrawEntities(bool transp)
     }
     
     glUniform4f(g_slots[MODEL][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
+    //glUniform4f(g_slots[OMNI][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
 }
 
 int NewEntity()

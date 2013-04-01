@@ -190,6 +190,10 @@ bool LoadShader(unsigned int* program, unsigned int* slots, const char* vert, co
     slots[POSITION] = glGetAttribLocation(*program, "Position");
     slots[TEXCOORD] = glGetAttribLocation(*program, "TexCoordIn");
     slots[TEXCOORD2] = glGetAttribLocation(*program, "TexCoordIn2");
+
+	LOGI("%s%s slots[POSITION]=%u", vert, frag, slots[POSITION]);
+	LOGI("%s%s slots[TEXCOORD]=%u", vert, frag, slots[TEXCOORD]);
+	LOGI("%s%s slots[TEXCOORD2]=%u", vert, frag, slots[TEXCOORD2]);
     
     slots[PROJECTION] = glGetUniformLocation(*program, "Projection");
     slots[MODELMAT] = glGetUniformLocation(*program, "Model");
@@ -201,6 +205,11 @@ bool LoadShader(unsigned int* program, unsigned int* slots, const char* vert, co
     slots[HEIGHT] = glGetUniformLocation(*program, "Height");
     slots[CAMERAPOS] = glGetUniformLocation(*program, "CameraPos");
     slots[SCALE] = glGetUniformLocation(*program, "Scale");
+    slots[SHADERMODE] = glGetUniformLocation(*program, "ShaderMode");
+
+	LOGI("%s%s slots[TEXTURE]=%u", vert, frag, slots[TEXTURE]);
+	LOGI("%s%s slots[WIDTH]=%u", vert, frag, slots[WIDTH]);
+	LOGI("%s%s slots[HEIGHT]=%u", vert, frag, slots[HEIGHT]);
     
     // Release vertex and fragment shaders.
     if (vertShader)
@@ -214,7 +223,7 @@ bool LoadShader(unsigned int* program, unsigned int* slots, const char* vert, co
         glDeleteShader(fragShader);
     }
 
-	LOGI("%s %s", vert, frag);
+	LOGI("%s %s %ud", vert, frag, (*program));
     
     return true;
 }
@@ -222,9 +231,13 @@ bool LoadShader(unsigned int* program, unsigned int* slots, const char* vert, co
 
 void LoadShaders()
 {	
+#ifndef USE_OMNI
+    LoadShader(&g_program[ORTHO], g_slots[ORTHO], "shaders/ortho.vert", "shaders/ortho.frag");
     LoadShader(&g_program[SKY], g_slots[SKY], "shaders/sky.vert", "shaders/sky.frag");
     LoadShader(&g_program[MAP], g_slots[MAP], "shaders/map.vert", "shaders/map.frag");
     LoadShader(&g_program[MODEL], g_slots[MODEL], "shaders/model.vert", "shaders/model.frag");
-    LoadShader(&g_program[ORTHO], g_slots[ORTHO], "shaders/ortho.vert", "shaders/ortho.frag");
     LoadShader(&g_program[BILLBOARD], g_slots[BILLBOARD], "shaders/billboard.vert", "shaders/billboard.frag");
+#else
+    LoadShader(&g_program[OMNI], g_slots[OMNI], "shaders/omni.vert", "shaders/omni.frag");
+#endif
 }

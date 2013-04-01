@@ -41,7 +41,11 @@ void DrawQuad(unsigned int tex, CVector3 a, CVector2 ta, CVector3 b, CVector2 tb
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
-    glUniform1i(g_slots[SKY][TEXTURE], 0);
+#ifndef USE_OMNI
+    glUniform1i(g_slots[MODEL][TEXTURE], 0);
+#else
+    glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
     
     float vertices[] =
     {
@@ -55,9 +59,14 @@ void DrawQuad(unsigned int tex, CVector3 a, CVector2 ta, CVector3 b, CVector2 tb
         a.x, a.y, a.z,          ta.x, ta.y
     };
     
-    glVertexAttribPointer(g_slots[SKY][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
-    glVertexAttribPointer(g_slots[SKY][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
-    
+#ifndef USE_OMNI
+    glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+    glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#else
+    glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+    glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#endif
+
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -71,8 +80,12 @@ void DrawSkyBox(CVector3 pos)
 	CMatrix modelmat;
 	float trans[] = {pos.x, pos.y, pos.z};
 	modelmat.setTranslation(trans);
-	glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.getMatrix());
-    
+#ifndef USE_OMNI
+	glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+#else
+	glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+#endif
+
     DrawQuad(g_right,
              CVector3(-SKYBOX_SIZE, SKYBOX_SIZE, -SKYBOX_SIZE), CVector2(SKY_TEX_0, SKY_TEX_0),
              CVector3(SKYBOX_SIZE, SKYBOX_SIZE, -SKYBOX_SIZE), CVector2(SKY_TEX_1, SKY_TEX_0),
