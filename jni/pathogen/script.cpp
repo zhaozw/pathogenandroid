@@ -183,7 +183,7 @@ void DoScriptFunc(int script)
 	//char msg[128];
 	//sprintf(msg, "func_proxy #%d", script);
 	//Chat(msg);
-    return;
+    //return;
 
 	NoMove();
     
