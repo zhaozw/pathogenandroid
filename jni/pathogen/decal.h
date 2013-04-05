@@ -20,6 +20,12 @@ public:
 	CVector3 a, b, c, d;
 	CVector3 lpos;
 	float life;
+	unsigned int vbo;
+
+	CDecal()
+	{
+		vbo = 0;
+	}
 };
 
 #define DECALS 128
@@ -29,3 +35,5 @@ void Decals();
 void UpdateDecals();
 void DrawDecals();
 void PlaceDecal(int type, CVector3 pos, CVector3 norm);
+void MakeDecalVBO();
+void DelDecalVBO();

@@ -193,7 +193,7 @@ obj/local/armeabi/objs/ndk1/gui.o: jni/pathogen/gui.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wctype.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wctype.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/logger.h jni/pathogen/image.h \
+ jni/pathogen/logger.h jni/pathogen/image.h \
  jni/pathogen/../jpeg8d/jpeglib.h jni/pathogen/../jpeg8d/jconfig.h \
  jni/pathogen/../jpeg8d/jmorecfg.h jni/pathogen/file.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/sstream \
@@ -597,8 +597,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wctype
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wctype.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h:
-
-jni/pathogen/../libzip/zip.h:
 
 jni/pathogen/logger.h:
 

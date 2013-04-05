@@ -10,6 +10,7 @@
 #include "quake3bsp.h"
 #include "billboard.h"
 #include "file.h"
+#include "shader.h"
 
 vector<CFuncMap> g_funcmap;
 vector<CFuncProxy> g_funcproxy;
@@ -242,6 +243,7 @@ void UnloadMap()
 void GoToMap(int funcmap)
 {
 	CFuncMap* f = &g_funcmap[funcmap];
+	LOGI("unloading map");
 	//g_log<<"unloading map"<<endl;
 	//g_log.flush();
 	//g_log<<"loading bsp "<<f->map<<endl;
@@ -253,16 +255,21 @@ void GoToMap(int funcmap)
         return;
     
 	UnloadMap();
+	
+	LOGI("loading bsp %d", f->map);
 	g_map.LoadBSP(map);
 	//g_log<<"spawning players"<<endl;
 	//g_log.flush();
+	LOGI("Spawning players");
 	SpawnPlayer();
 	//g_log<<"spawning zombies"<<endl;
 	//g_log.flush();
+	LOGI("Spawning zombies");
 	SpawnZombies();
 	//g_log<<"GoToMap done"<<endl;
 	//g_log.flush();
 	//g_debug3 = true;
+	LOGI("gotomap done");
     
     CPlayer* p = &g_player[g_localP];
     if(p->equipped >= 0)
@@ -271,6 +278,8 @@ void GoToMap(int funcmap)
         CItemType* t = &g_itemType[h->type];
         EquipFrame(p, p->equipped, t);
     }
+
+	//LoadShaders();
 }
 
 void CheckFuncs()

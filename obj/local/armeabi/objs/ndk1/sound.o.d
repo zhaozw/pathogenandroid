@@ -146,7 +146,7 @@ obj/local/armeabi/objs/ndk1/sound.o: jni/pathogen/sound.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wchar.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_mbstate_t.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/gui.h \
+ jni/pathogen/gui.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/string \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_fwd.h \
@@ -490,8 +490,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wchar.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_mbstate_t.h:
-
-jni/pathogen/../libzip/zip.h:
 
 jni/pathogen/gui.h:
 

@@ -24,6 +24,7 @@ public:
 	CFile();
 	CFile(const char* filepath, int mode=AASSET_MODE_UNKNOWN);
 	~CFile();
+	void open(const char* filepath, int mode=AASSET_MODE_UNKNOWN);
 	void write(const char* filepath, char* nativepath);
 	int seek(int off, int origin=SEEK_SET);
 	//void seekend();

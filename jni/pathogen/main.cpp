@@ -41,7 +41,7 @@ float g_far = 9000;
 float g_fov = 90;
 float g_scale;
 
-//double g_FrameInterval;
+double g_FrameInterval;
 GAMEMODE g_mode = LOGO;
 
 float g_reddening = 0;
@@ -50,14 +50,73 @@ int g_viewmode = FIRSTPERSON;
 int g_score = 0;
 bool g_quit = false;
 
-zip* APKArchive;
-char g_path[256];
-char g_tempPath[256];
-JNIEnv* g_env;
+//zip* APKArchive;
+//char g_path[256];
+//char g_tempPath[256];
+//JNIEnv* g_env;
 AAssetManager* g_amgr;
 vector<CTouch> g_touch;
 bool g_inited = false;
-long g_tick = 0;
+//long g_tick = 0;
+unsigned int g_img = 0;
+unsigned int g_VBO = 0;
+
+void DummyVBO(unsigned int* vbo, GLenum usage)
+{
+	//LOGI("make v");
+	float vertices[] =
+    {
+        //posx, posy    texx, texy
+        10, 12,0,          0, 0,
+        300, 12,0,         1, 0,
+        300, 312,0,      1, 1,
+        
+        300, 312,0,      1, 1,
+        10, 312,0,       0, 1,
+        10, 12,0,          0, 0
+    };
+
+	//glGenBuffers(1, &g_VBO);
+    //glBindBuffer(GL_ARRAY_BUFFER, g_VBO);
+	glGenBuffers(1, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, usage);
+}
+
+void DeleteVBO()
+{
+	glDeleteBuffers(1, &g_VBO);
+}
+
+void DrawVBO()
+{
+	//LOGI("draw v");
+
+    glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, g_img);
+    glBindTexture(GL_TEXTURE_2D, g_GUI.view[0].widget[0].tex);
+#ifndef USE_OMNI
+    glUniform1i(g_slots[ORTHO][TEXTURE], 0);
+#else
+    glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
+
+	//LOGI("gvbo %u", g_VBO);
+	//LOGI("draw vbo %u", g_GUI.view[0].widget[0].vbo);
+
+    //glBindBuffer(GL_ARRAY_BUFFER, g_VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, g_GUI.view[0].widget[0].vbo);
+#ifndef USE_OMNI
+    glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*0));
+    glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*3));
+#else
+	glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*0));
+    glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*3));
+#endif
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 
 static void printGLString(const char *name, GLenum s) 
 {
@@ -65,7 +124,7 @@ static void printGLString(const char *name, GLenum s)
     LOGI("GL %s = %s\n", name, v);
 }
 
-static void checkGlError(const char* op) 
+void checkGlError(const char* op) 
 {
     for (GLint error = glGetError(); error; error = glGetError()) 
 	{
@@ -76,17 +135,17 @@ static void checkGlError(const char* op)
 
 unsigned int timeGetTime() 
 { 
-	/*
+	
 	struct timeval now; 
 	gettimeofday(&now, NULL); 
-	return now.tv_usec/1000; 
-	*/
-	return g_tick;
+	return (now.tv_sec * 1000) + (now.tv_usec / 1000);
+	
+	//return g_tick;
 } 
 unsigned int GetTickCount()
 {
-	//return timeGetTime();
-	return g_tick;
+	return timeGetTime();
+	//return g_tick;
 }
 
 long long GetTickCount2()
@@ -99,8 +158,16 @@ long long GetTickCount2()
 
 void Deinit()
 {
+	g_GUI.delvbo();
+
+	DelSky();
+	DelBillbVBO();
+	DelDecalVBO();
+
+	DeleteVBO();
     //ClearPackets();
     //g_map.Destroy(true);
+
 	UnloadMap();
     
     for(int i=0; i<MODELS; i++)
@@ -131,10 +198,10 @@ void Reload()
     
 	glClearColor(0, 0, 0, 1);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE1);
-    glEnable(GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE0);
+    //glEnable(GL_TEXTURE_2D);
+    //glActiveTexture(GL_TEXTURE1);
+    //glEnable(GL_TEXTURE_2D);
+    //glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glEnable(GL_CULL_FACE);
@@ -142,8 +209,14 @@ void Reload()
     //glFrontFace(GL_CW);
 	glDisable(GL_CULL_FACE);
     
+	LOGI("Load shaders...");
 	LoadShaders();
+
+	LOGI("Load fonts...");
     LoadFonts();
+	
+	g_img = CreateTexture("models/human2.jpg");
+	//MakeVBO();
 
 	LOGI("Entities();....");
 	Entities();
@@ -162,6 +235,16 @@ void Reload()
 	
 	LOGI("RedoGUI();....");
 	RedoGUI();
+
+	//MakeVBO(&g_GUI.view[0].widget[0].vbo);
+	//g_GUI.view[0].widget[0].pos[0] = 10;
+	//g_GUI.view[0].widget[0].pos[1] = 10;
+	//g_GUI.view[0].widget[0].pos[2] = 300;
+	//g_GUI.view[0].widget[0].pos[3] = 300;
+	//LOGE("pos %f, %f, %f, %f", g_GUI.view[0].widget[0].pos[0], g_GUI.view[0].widget[0].pos[1],
+	//	g_GUI.view[0].widget[0].pos[2], g_GUI.view[0].widget[0].pos[3]);
+	//LOGE("before %u", g_GUI.view[0].widget[0].vbo);
+	//g_GUI.view[0].widget[0].Image_fillVBO();
 	
 	LOGI("Keymap();....");
 	Keymap();
@@ -174,90 +257,21 @@ void Reload()
 	ScriptFuncs();
 	//PlayIntro();
 
+	MakeSky();
+	MakeBillbVBO();
+	MakeDecalVBO();
+
 	g_inited = true;
 
 	//Click_GoToStory();
 }
 
-JNIEXPORT void Java_com_pathogengame_pathogen_MainActivity_helloLog(JNIEnv * env, jobject jthis, jstring logThis)  
-{  
-	/*
-    jboolean isCopy;  
-    const char * szLogThis = (*env)->GetStringUTFChars(env, logThis, &isCopy);  
-    __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG, "NDK:LC: [%s]", szLogThis);  
-    (*env)->ReleaseStringUTFChars(env, logThis, szLogThis);  */
-} 
-
-JNIEXPORT jstring Java_com_pathogengame_pathogen_MainActivity_getString(JNIEnv * env, jobject jthis, jint value1, jint value2)  
-{  
-	/*
-    char *szFormat = "The sum of the two numbers is: %i";  
-    char *szResult;  
-    // add the two values  
-    jlong sum = value1+value2;  
-    // malloc room for the resulting string  
-    szResult = malloc(sizeof(szFormat) + 20);  
-    // standard sprintf  
-    sprintf(szResult, szFormat, sum);  
-    // get an object string  */
-    //jstring result = (*env)->NewStringUTF(env, szResult); 
-    jstring result = env->NewStringUTF("test");  
-    // cleanup  
-    //free(szResult);  
-    return result;  
-} 
-
-JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_nativeOnCreate(JNIEnv* jenv, jobject obj)
-{
-    LOGI("nativeOnResume");
-    //renderer = new Renderer();
-    return;
-}
-
-JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_nativeOnResume(JNIEnv* jenv, jobject obj)
-{
-    LOGI("nativeOnResume");
-    //renderer->start();
-    return;
-}
-
-JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_nativeOnPause(JNIEnv* jenv, jobject obj)
-{
-    LOGI("nativeOnPause");
-    //renderer->stop();
-    return;
-}
-
-JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_nativeOnStop(JNIEnv* jenv, jobject obj)
-{
-    LOGI("nativeOnStop");
-    //delete renderer;
-    //renderer = 0;
-	Deinit();
-    return;
-}
-
-/*
-JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_nativeSetSurface(JNIEnv* jenv, jobject obj, jobject surface)
-{
-    if (surface != 0) {
-        window = ANativeWindow_fromSurface(jenv, surface);
-        LOG_INFO("Got window %p", window);
-        renderer->setWindow(window);
-    } else {
-        LOG_INFO("Releasing window");
-        ANativeWindow_release(window);
-    }
-
-    return;
-}*/
-
 bool Resize(int w, int h) 
 {
-    printGLString("Version", GL_VERSION);
-    printGLString("Vendor", GL_VENDOR);
-    printGLString("Renderer", GL_RENDERER);
-    printGLString("Extensions", GL_EXTENSIONS);
+    //printGLString("Version", GL_VERSION);
+    //printGLString("Vendor", GL_VENDOR);
+    //printGLString("Renderer", GL_RENDERER);
+   // printGLString("Extensions", GL_EXTENSIONS);
 
     //LOGI("setupGraphics(%d, %d)", w, h);
 	/*
@@ -285,6 +299,8 @@ bool Resize(int w, int h)
 
 void UpdateGameState()
 {
+	//return;
+
     Unforward();
     Unback();
     Unleft();
@@ -311,7 +327,7 @@ void UpdateGameState()
     CheckFuncs();
 }
 
-/*
+
 void CalculateFrameRate()
 {
 	static double framesPerSecond   = 0.0f;		// This will store our fps
@@ -347,6 +363,7 @@ void CalculateFrameRate()
 		char msg[128];
 		sprintf(msg, "FPS: %f, %fs", (float)framesPerSecond, (float)(currentTime - lastTime)/(float)framesPerSecond);
 		g_GUI.getview("chat")->gettext("fps")->text = msg;
+		g_GUI.getview("chat")->gettext("fps")->fillvbo();
 
 		// Here we set the lastTime to the currentTime
 	    lastTime = currentTime;
@@ -361,16 +378,18 @@ void CalculateFrameRate()
         framesPerSecond = 0;
     }
 }
-*/
 
+/*
 void UpdateTicks()
 {
 	g_tick += 1000.0f * FRAME_INTERVAL;
 }
-
+*/
 void Update()
 {
-	UpdateTicks();
+	//LOGI("start Update()");
+
+	//UpdateTicks();
 
     if(g_mode == PLAY)
         UpdateGameState();
@@ -378,8 +397,11 @@ void Update()
         UpdateLogo();
     
     //ResendPackets();
+	
+	//LOGI("end Update()");
 }
 
+/*
 void DrawBImage(unsigned int tex, float left, float top, float right, float bottom)
 {
     //glActiveTexture(GL_TEXTURE0);
@@ -405,11 +427,12 @@ void DrawBImage(unsigned int tex, float left, float top, float right, float bott
         glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
     
     glDrawArrays(GL_TRIANGLES, 0, 6);
-}
+}*/
 
 void Draw() 
 {
-	/*
+	//LOGI("start Draw()");
+/*
     static float grey;
     grey += 0.01f;
     if (grey > 1.0f) 
@@ -421,7 +444,7 @@ void Draw()
     glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     checkGlError("glClear");
 
-	/*
+/*
     glUseProgram(gProgram);
     checkGlError("glUseProgram");
 
@@ -430,15 +453,17 @@ void Draw()
     glEnableVertexAttribArray(gvPositionHandle);
     checkGlError("glEnableVertexAttribArray");
     glDrawArrays(GL_TRIANGLES, 0, 3);
-    checkGlError("glDrawArrays");*/
-
+    checkGlError("glDrawArrays");
+*/
     //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
 	//glClearColor((float)(rand()%255)/255.0f, (float)(rand()%255)/255.0f, (float)(rand()%255)/255.0f, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//glDisable(GL_DEPTH_TEST);
+#ifdef USE_OMNI
     glUseProgram(g_program[OMNI]);
+#endif
 	
 /*
 	glUseProgram(g_program[ORTHO]);
@@ -474,21 +499,32 @@ void Draw()
 		float translation[] = {0, 0, 0};
         modelmat.setTranslation(translation);
 
+	//LOGI("start g_cam->");
         CVector3 viewvec = g_camera->View();
         CVector3 posvec = g_camera->Position();
         CVector3 posvec2 = g_camera->LookPos();
         CVector3 upvec = g_camera->UpVector();
-        
+	//LOGI("end g_cam->");
+
         CMatrix viewmat = gluLookAt2(posvec2.x, posvec2.y, posvec2.z,
                                     viewvec.x, viewvec.y, viewvec.z,
                                     upvec.x, upvec.y, upvec.z);
+
+/*
+        CMatrix viewmat = gluLookAt2(0, 0, 0,
+                                    0, 0, 1,
+                                    0, 1, 0);*/
+
         
         CMatrix modelview;
         modelview.set(modelmat.getMatrix());
         modelview.postMultiply(viewmat);
         
+	//LOGI("start frus");
         g_frustum.CalculateFrustum(projection.getMatrix(), modelview.getMatrix());
-        
+	//LOGI("end frus");
+
+
         float color[] = {1,1,1,1};
         
         if(g_reddening > 0.0f)
@@ -498,39 +534,55 @@ void Draw()
             
             g_reddening -= FRAME_INTERVAL;
         }
-        
+
+/*
+		float color[4];
+		color[0] = 1;
+		color[1] = 1;
+		color[2] = 1;
+		color[3] = 1;*/
+	//LOGI("end redenning");
 #ifndef USE_OMNI
-        glUseProgram(g_program[MODEL]);
-        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
-        glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
-        glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//LOGI("start DrawSkyBox()");
+        glUseProgram(g_program[SKY]);
+        glUniformMatrix4fv(g_slots[SKY][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[SKY][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[SKY][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[SKY][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[SKY][POSITION]);
+        glEnableVertexAttribArray(g_slots[SKY][TEXCOORD]);
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ARRAY_BUFFER, g_VBO);
         //g_map.RenderSky();
-        DrawSkyBox(posvec2);
+        //DrawSkyBox(posvec2);
+		//DrawSkyBox(CVector3(0,0,0));
         //checkGlError("DrawSkyBox");
+        //glDisableVertexAttribArray(g_slots[SKY][POSITION]);
+        //glDisableVertexAttribArray(g_slots[SKY][TEXCOORD]);
 #else
+	//LOGI("start DrawSkyBox()");
 		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
         glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
+	//LOGI("start DrawSkyBox() 1");
         glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
         glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//LOGI("it DrawSkyBox()");
         DrawSkyBox(posvec2);
 		//checkGlError("DrawSkyBox");
 #endif
 	
 #ifndef USE_OMNI
+	//LOGI("start RenderLevel()");
         glUseProgram(g_program[MAP]);
-        glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
+        //glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
+        //glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
+        //glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[MAP][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MAP][POSITION]);
         glEnableVertexAttribArray(g_slots[MAP][TEXCOORD]);
@@ -538,22 +590,26 @@ void Draw()
         g_map.RenderLevel(posvec);
 		//g_map.RenderFace(0);
 		//checkGlError("RenderLevel");
-        g_map.SortFaces(posvec);
+        //g_map.SortFaces(posvec);
         //g_map.RenderLevel2(posvec);
+		//checkGlError("RenderLevl");
 #else
+	//LOGI("start RenderLevel()");
 		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MAP);
-        glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
+        //glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
+        //glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
+        //glUniformMatrix4fv(g_slots[OMNI][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[OMNI][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[OMNI][POSITION]);
         glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD]);
         glEnableVertexAttribArray(g_slots[OMNI][TEXCOORD2]);
         g_map.RenderLevel(posvec);
 		//checkGlError("RenderLevl");
+		glDisableVertexAttribArray(g_slots[OMNI][TEXCOORD2]);
 #endif
 	
 #ifndef USE_OMNI
+	//LOGI("start DrawEntities()");
         glUseProgram(g_program[MODEL]);
         glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -561,7 +617,7 @@ void Draw()
         glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
         glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		//glActiveTexture(GL_TEXTURE0);
 		//glEnable(GL_TEXTURE_2D);
         SortEntities();
@@ -571,16 +627,18 @@ void Draw()
         //glDisableVertexAttribArray(g_slots[MODEL][POSITION]);
         //glDisableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
 		//checkGlError("DrawEntities");
-	/*
-        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		DrawDecals();
+		//DrawVBO();
+	
+        //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		//DrawDecals();
 		//checkGlError("DrawDec");
-        SortBillboards();
-        DrawBillboards();
-		//checkGlError("DrawBillb");*/
+        //SortBillboards();
+        //DrawBillboards();
+		//checkGlError("DrawBillb");
 #else
+	//LOGI("start DrawEntities()");
 		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
         glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -597,6 +655,7 @@ void Draw()
         //glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, NULL);
 
 #ifndef USE_OMNI
+	//LOGI("start RenderLevel2()");
         glUseProgram(g_program[MAP]);
         glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -611,6 +670,7 @@ void Draw()
 		//glDisableVertexAttribArray(g_slots[MAP][TEXCOORD2]);
 		//checkGlError("RenderLevel2");
 #else
+	//LOGI("start RenderLevel2()");
 		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MAP);
         glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -622,23 +682,27 @@ void Draw()
         g_map.SortFaces(posvec);
         g_map.RenderLevel2(posvec);
 		//checkGlError("RenderLevl2");
+		glDisableVertexAttribArray(g_slots[OMNI][TEXCOORD2]);
 #endif
 
 #ifndef USE_OMNI
-        glUseProgram(g_program[MODEL]);
-        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
-        glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
-        glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//LOGI("start DrawDecals()");
+        glUseProgram(g_program[BILLBOARD]);
+        glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[BILLBOARD][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniform4f(g_slots[BILLBOARD][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
+        glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ARRAY_BUFFER, g_VBO);
 		//glEnableClientState(GL_VERTEX_ARRAY);
         DrawDecals();
 		//glDisableClientState(GL_VERTEX_ARRAY);
 		//checkGlError("DrawDecals");
 #else
+	//LOGI("start DrawDecals()");
 		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
         glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -653,19 +717,20 @@ void Draw()
 #endif
 
 #ifndef USE_OMNI
-		/*
-        glUseProgram(g_program[MODEL]);
-        glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
-        glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
+	//LOGI("start DrawBillboards()");
+        glUseProgram(g_program[BILLBOARD]);
+        glUniformMatrix4fv(g_slots[BILLBOARD][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[BILLBOARD][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[BILLBOARD][VIEWMAT], 1, 0, viewmat.getMatrix());
         //glUniform3f(g_slots[BILLBOARD][CAMERAPOS], posvec.x, posvec.y, posvec.z);
-        glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
-        glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/
+        glUniform4f(g_slots[BILLBOARD][COLOR], color[0], color[1], color[2], color[3]);
+        glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
+        glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ARRAY_BUFFER, g_VBO);
         SortBillboards();
-        DrawBillboards();/*
+        DrawBillboards();
         //glDisableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
         //glDisableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
     //glUniform1f(g_slots[BILLBOARD][WIDTH], (float)g_width);
@@ -677,9 +742,9 @@ void Draw()
 	//glEnableClientState(GL_VERTEX_ARRAY);
 	//DrawBImage(CreateTexture("models/human2"), 100, 100, 200, 200);
 		//checkGlError("DrawBillb");
-		*/
+		//checkGlError("DrawBillb");
 #else
-
+	//LOGI("start DrawBillboards()");
 		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
         glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -695,20 +760,21 @@ void Draw()
 #endif
 
 #ifndef USE_OMNI
+	//LOGI("start DrawHands()");
         //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, NULL);
         //glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, NULL);
 		//glDisableClientState(GL_VERTEX_ARRAY);
-		/*
         glUseProgram(g_program[MODEL]);
         glUniformMatrix4fv(g_slots[MODEL][PROJECTION], 1, 0, projection.getMatrix());
         //glUniformMatrix4fv(g_slots[MODEL][MODELMAT], 1, 0, modelmat.getMatrix());
         glUniformMatrix4fv(g_slots[MODEL][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[MODEL][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MODEL][POSITION]);
-        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);*/
+        glEnableVertexAttribArray(g_slots[MODEL][TEXCOORD]);
         DrawHands();
 		//checkGlError("DrawHands");		
 #else
+	//LOGI("start DrawHands()");
 		glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_MODEL);
         glUniformMatrix4fv(g_slots[OMNI][PROJECTION], 1, 0, projection.getMatrix());
         glUniformMatrix4fv(g_slots[OMNI][MODELMAT], 1, 0, modelmat.getMatrix());
@@ -723,21 +789,22 @@ void Draw()
 		//glFinish();
     }
 	//checkGlError("start Draw");
-/*
-	glUseProgram(g_program[BILLBOARD]);
-    glUniform1f(g_slots[BILLBOARD][WIDTH], (float)g_width);
-    glUniform1f(g_slots[BILLBOARD][HEIGHT], (float)g_height);
-    glUniform4f(g_slots[BILLBOARD][COLOR], 1, 1, 1, 1);
-    glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
-    glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	//glActiveTexture(GL_TEXTURE0);
-	//glEnable(GL_TEXTURE_2D);
-	//glEnableClientState(GL_VERTEX_ARRAY);
-	DrawBImage(NULL, 100, 100, 200, 200);
-	*/
+
+	//glUseProgram(g_program[BILLBOARD]);
+    //glUniform1f(g_slots[BILLBOARD][WIDTH], (float)g_width);
+    //glUniform1f(g_slots[BILLBOARD][HEIGHT], (float)g_height);
+    //glUniform4f(g_slots[BILLBOARD][COLOR], 1, 1, 1, 1);
+    //glEnableVertexAttribArray(g_slots[BILLBOARD][POSITION]);
+    //glEnableVertexAttribArray(g_slots[BILLBOARD][TEXCOORD]);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    ////glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	////glActiveTexture(GL_TEXTURE0);
+	////glEnable(GL_TEXTURE_2D);
+	////glEnableClientState(GL_VERTEX_ARRAY);
+	//DrawBImage(NULL, 100, 100, 200, 200);
+	
 #ifndef USE_OMNI
+	//LOGI("start DrawGUI()");
 	//if(g_mode != PLAY)
 	glDisable(GL_DEPTH_TEST);
     glUseProgram(g_program[ORTHO]);
@@ -746,19 +813,23 @@ void Draw()
     glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
     glEnableVertexAttribArray(g_slots[ORTHO][POSITION]);
     glEnableVertexAttribArray(g_slots[ORTHO][TEXCOORD]);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, g_VBO);
 	//glActiveTexture(GL_TEXTURE0);
 	//glEnable(GL_TEXTURE_2D);
 	//glEnableClientState(GL_VERTEX_ARRAY);
 	//DrawImage(CreateTexture("models/human2"), 0, 0, 100, 100);
+	//DrawImage(g_img, 0, 0, 300, 300);
 	//if(g_mode != PLAY)
     g_GUI.draw();
+	//DrawVBO();
     //DrawShadowedText(MSGOTHIC16, 0, 0, "Hello world. My name is Denis.");
 	//void DrawImage(unsigned int tex, float left, float top, float right, float bottom)
 	//glDisableClientState(GL_VERTEX_ARRAY);
 	//checkGlError("GUI Draw");
 #else
+	//LOGI("start DrawGUI()");
 	glDisable(GL_DEPTH_TEST);
     //glUseProgram(g_program[OMNI]);
     glUniform1i(g_slots[OMNI][SHADERMODE], SHMODE_ORTHO);
@@ -778,94 +849,18 @@ void Draw()
 	
 	//glFinish();
 
-	checkGlError("Draw");
+	//checkGlError("Draw");
 }
 
-JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_SurfChang(JNIEnv * env, jobject obj,  jint width, jint height)
-{
-    Resize(width, height);
-	Reload();
-}
 
-JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_SurfCreat(JNIEnv * env, jobject obj,  jint width, jint height)
-{
-
-}
-
-JNIEXPORT void JNICALL Java_com_pathogengame_pathogen_MainActivity_Step(JNIEnv * env, jobject obj)
-{
-	Update();
-    Draw();
-}
-
-static void loadAPK (const char* apkPath) 
-{
-  LOGI("Loading APK %s", apkPath);
-  APKArchive = zip_open(apkPath, 0, NULL);
-  if (APKArchive == NULL) 
-  {
-    LOGE("Error loading APK");
-    return;
-  }
-
-  //Just for debug, print APK contents
-  int numFiles = zip_get_num_files(APKArchive);
-  for (int i=0; i<numFiles; i++) 
-  {
-    const char* name = zip_get_name(APKArchive, i, 0);
-    if (name == NULL) 
-	{
-      LOGE("Error reading zip file name at index %i : %s", zip_strerror(APKArchive));
-      return;
-    }
-    LOGI("File %i : %s\n", i, name);
-  }
-}
-
-JNIEXPORT void Java_com_pathogengame_pathogen_MainActivity_nativeInit(JNIEnv * env, jclass cls, jstring apkPath, jstring tmpPath, jobject amgr) 
-{
-  const char* str;
-  jboolean isCopy;
-  str = env->GetStringUTFChars(apkPath, &isCopy);
-  //loadAPK(str);
-  strcpy(g_path, str);
-  str = env->GetStringUTFChars(tmpPath, &isCopy);
-  strcpy(g_tempPath, str);
-  g_amgr = AAssetManager_fromJava(env, amgr);
-  g_env = env;
-
-  /*
-  int width, height;
-  texture = loadTextureFromPNG("assets/sprites/texture.png", width, height);
-
-  printGLString("Version", GL_VERSION);
-  printGLString("Vendor", GL_VENDOR);
-  printGLString("Renderer", GL_RENDERER);
-  printGLString("Extensions", GL_EXTENSIONS);
-
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glEnable(GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_TEXTURE_2D);
-  glClearColor(1,0,0,0);
-  glColor4f(1,1,1,1);
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);*/
-}
-
-/**
- * Initialize an EGL context for the current display.
- */
+// Initialize an EGL context for the current display.
 static int engine_init_display(struct engine* engine) 
 {
     // initialize OpenGL ES and EGL
 
-    /*
-     * Here specify the attributes of the desired configuration.
-     * Below, we select an EGLConfig with at least 8 bits per color
-     * component compatible with on-screen windows
-     */
+    // Here specify the attributes of the desired configuration.
+    // Below, we select an EGLConfig with at least 8 bits per color
+    // component compatible with on-screen windows
     const EGLint attribs[] = 
 	{
 			EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
@@ -974,7 +969,7 @@ bool AnimateNextFrame(int desiredFrameRate)
 
 	// We don't animate right now.
 	return false;*/
-
+/*
 	static long long lastTime = GetTickCount2();
 	static int elapsedTime = 0;
 
@@ -994,6 +989,21 @@ bool AnimateNextFrame(int desiredFrameRate)
 
 	//LOGI("deltaTime %d, elapsedTime %d", deltaTime, elapsedTime);
 	//LOGI("not anim %lld", elapsedTime);
+
+	return false;
+	*/
+
+	static long long lastTime = GetTickCount2();
+	long long currentTime = GetTickCount2();
+	int desiredFPMS = 1000/desiredFrameRate;
+	int deltaTime = currentTime - lastTime;
+	
+	if(deltaTime > desiredFPMS)
+	{
+		g_FrameInterval = (float)deltaTime/1000.0f + 0.005f;
+		lastTime = currentTime;
+		return true;
+	}
 
 	return false;
 }
@@ -1049,9 +1059,7 @@ static void engine_term_display(struct engine* engine)
     engine->surface = EGL_NO_SURFACE;
 }
 
-/**
- * Process the next input event.
- */
+// Process the next input event.
 // http://stackoverflow.com/questions/12500825/android-ndk-multitouch
 // http://mobilepearls.com/labs/native-android-api/include/android/input.h
 // http://stackoverflow.com/questions/13707664/keyboard-input-in-android-ndk-using-nativeactivity
@@ -1090,20 +1098,6 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 				case AMOTION_EVENT_ACTION_DOWN:
 				case AMOTION_EVENT_ACTION_POINTER_DOWN:
 					{
-						/*
-						if(pindex > 1)
-							break;
-
-						//LOGI("down");
-						if(pindex >= g_touch.size())
-							g_touch.resize( pindex + 1 );
-						touch = &g_touch[pindex];
-						touch->on = true;
-						touch->x = AMotionEvent_getX(event, pindex);
-						touch->y = AMotionEvent_getY(event, pindex);
-						g_GUI.lbuttondown(touch->x, touch->y);
-						//LOGI("Event down pointer#%d/%d", (int)pindex, (int)g_touch.size());*/
-
 						newt = CTouch(AMotionEvent_getX(event, pindex),  AMotionEvent_getY(event, pindex));
 						g_touch.push_back(newt);
 						g_GUI.lbuttondown(newt.x, newt.y);
@@ -1113,22 +1107,6 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 				case AMOTION_EVENT_ACTION_UP:
 				case AMOTION_EVENT_ACTION_POINTER_UP:
 					{
-						/*
-						if(pindex > 1)
-							break;
-
-						//LOGI("up");
-						if(pindex >= g_touch.size())
-							g_touch.resize( pindex + 1 );
-						touch = &g_touch[pindex];
-						touch->on = false;
-						touch->x = AMotionEvent_getX(event, pindex);
-						touch->y = AMotionEvent_getY(event, pindex);
-						g_GUI.lbuttonup(touch->x, touch->y);
-						//LOGI("Event up pointer#%d/%d", (int)pindex, (int)g_touch.size());*/
-
-						//touch = [[allTouches objectAtIndex:i] locationInView:self.view];
-        
 						newt = CTouch(AMotionEvent_getX(event, pindex),  AMotionEvent_getY(event, pindex));
 						nearestD = 999999999.0;
 						nearest = -1;
@@ -1150,22 +1128,6 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 					}break;
 				case AMOTION_EVENT_ACTION_MOVE :
 					{
-						/*
-						if(pindex > 1)
-							break;
-
-						//LOGI("move");
-						if(pindex >= g_touch.size())
-							g_touch.resize( pindex + 1 );
-						touch = &g_touch[pindex];
-						//touch->on = true;
-						touch->x = AMotionEvent_getX(event, pindex);
-						touch->y = AMotionEvent_getY(event, pindex);
-						g_GUI.mousemove(touch->x, touch->y);
-						//LOGI("Event move pointer#%d/%d", (int)pindex, (int)g_touch.size());
-						*/
-
-						//touch = [[allTouches objectAtIndex:i] locationInView:self.view];
 						newt = CTouch(AMotionEvent_getX(event, pindex),  AMotionEvent_getY(event, pindex));
         
 						nearestD = 999999999.0;
@@ -1219,7 +1181,6 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 
 		//switch(AKeyEvent_getAction(event))
 	
-
     return 0;
 }
 

@@ -16,5 +16,7 @@ extern unsigned int g_back;
 
 struct CVector3;
 
+void MakeSky();
+void DelSky();
 void DrawSkyBox(CVector3 pos);
 void LoadSkyBox(const char* basename);

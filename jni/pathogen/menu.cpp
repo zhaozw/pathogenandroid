@@ -14,6 +14,8 @@
 #include "item.h"
 #include "animations.h"
 #include "logger.h"
+#include "script.h"
+#include "main.h"
 
 bool g_showdialog = true;
 
@@ -30,7 +32,7 @@ void SkipLogo()
 void UpdateLogo()
 {
 	static int stage = 0;
-    
+
 	if(stage < 60)
 	{
 		float a = (float)stage / 60.0f;
@@ -51,16 +53,6 @@ void UpdateLogo()
 
 void Click_Login()
 {
-	/*
-    CView* v = g_GUI.getview("login");
-    UITextField* unf = v->gettextfield(USERNAME);
-    UITextField* pwf = v->gettextfield(PASSWORD);
-    NSString* un = unf.text;
-    NSString* pw = pwf.text;
-    
-    Status("Sending data...");
-    Login(un, pw);
-	*/
 }
 
 void Click_GoToRegister()
@@ -70,26 +62,6 @@ void Click_GoToRegister()
 
 void Click_Register()
 {
-	/*
-    CView* v = g_GUI.getview("register");
-    UITextField* unf = v->gettextfield(REGUSERNAME);
-    UITextField* pwf = v->gettextfield(REGPASSWORD);
-    UITextField* pwf2 = v->gettextfield(REGPASSWORD2);
-    UITextField* emf = v->gettextfield(REGEMAIL);
-    NSString* un = unf.text;
-    NSString* pw = pwf.text;
-    NSString* pw2 = pwf2.text;
-    NSString* em = emf.text;
-    
-    if(![pw isEqualToString:pw2])
-    {
-        StatusBack("Passwords do not match");
-        return;
-    }
-    
-    Status("Sending data...");
-    Register(un, pw, em);
-	*/
 }
 
 void Click_GoToLogin()
@@ -115,7 +87,12 @@ void Click_GoToStory()
     //g_map.LoadBSP(@"map2");
     g_map.LoadBSP("map1a");
     
+	LOGI("spawn p");
+
+	//g_camera = &g_entity[0].camera;
     SpawnPlayer();
+	
+	LOGI("spawn z");
     SpawnZombies();
     
     g_mode = PLAY;
@@ -126,19 +103,13 @@ void Click_GoToStory()
     g_viewmode = THIRDPERSON;
     g_score = 0;
     RedoScore();
-    
-    /*
-    OpenAnotherView("shoot");
-    //OpenAnotherView("swing");
-    //OpenAnotherView("stab");
-    OpenAnotherView("open door");
-    //OpenAnotherView("close door");
-    OpenAnotherView("reload");
-    OpenAnotherView("switch item");
-    OpenAnotherView("switch view");
-    OpenAnotherView("jump");
-    OpenAnotherView("crouch");
-    OpenAnotherView("run");*/
+
+	//Update();
+	//Draw();
+
+	//GoToMap(0);
+	
+	LOGI("end clgts");
 }
 
 void Click_GoToOnline()
@@ -170,14 +141,14 @@ void Click_Retry()
     
     p->items.clear();
     p->equipped = -1;
-    /*
-    if(p->equipped > 0)
-    {
-        CHold* h = &p->items[p->equipped];
-        CItemType* t = &g_itemType[h->type];
-        EquipFrame(p, p->equipped, t);
-        //EquipFrame(p, t);
-    }*/
+    
+    //if(p->equipped > 0)
+    //{
+     //   CHold* h = &p->items[p->equipped];
+     //   CItemType* t = &g_itemType[h->type];
+     //   EquipFrame(p, p->equipped, t);
+     //   //EquipFrame(p, t);
+    //}
     
     g_arrest = false;
     CloseView("game over");
@@ -209,6 +180,7 @@ void Click_DontShow()
 void Dialog(const char* msg, void (*Continue)())
 {
     g_GUI.getview("dialog")->widget[1].text = msg;
+	g_GUI.getview("dialog")->widget[1].fillvbo();
     DialogContinue = Continue;
     
     if(g_showdialog)
@@ -481,6 +453,8 @@ void Click_Action()
 
 void Rotational(float dx, float dy)
 {
+	//LOGI("rot %f,%f", dx, dy);
+
     if(g_mode != PLAY)
         return;
     
@@ -561,6 +535,7 @@ void RedoHP()
     char msg[128];
     sprintf(msg, "HP: %1.1f/%1.0f", p->hp, p->MaxHP());
     g_GUI.getview("play")->gettext("hp")->text = msg;
+	g_GUI.getview("play")->gettext("hp")->fillvbo();
 }
 
 void RedoStamina()
@@ -570,6 +545,7 @@ void RedoStamina()
 	sprintf(msg, "Stamina: %1.2f / %1.0f", p->stamina, p->MaxStamina());
 	//sprintf(msg, "Yaw: %f", g_entity[p->entity].camera.Yaw());
 	g_GUI.getview("play")->gettext("stamina")->text = msg;
+	g_GUI.getview("play")->gettext("stamina")->fillvbo();
 }
 
 void RedoScore()
@@ -578,6 +554,7 @@ void RedoScore()
 	char msg[128];
 	sprintf(msg, "Score: %d", g_score);
 	g_GUI.getview("play")->gettext("score")->text = msg;
+	g_GUI.getview("play")->gettext("score")->fillvbo();
 }
 
 void RedoAmmo()
@@ -592,6 +569,7 @@ void RedoAmmo()
 	if(p->equipped < 0)
 	{
 		g_GUI.getview("play")->gettext("ammo")->text = "";
+		g_GUI.getview("play")->gettext("ammo")->fillvbo();
 		return;
 	}
     
@@ -606,6 +584,7 @@ void RedoAmmo()
             OpenAnotherView("stab");
         
 		g_GUI.getview("play")->gettext("ammo")->text = "";
+		g_GUI.getview("play")->gettext("ammo")->fillvbo();
 		return;
 	}
     
@@ -623,6 +602,7 @@ void RedoAmmo()
 	char msg[128];
 	sprintf(msg, "Ammo: %d / %d", clip, ammo);
 	g_GUI.getview("play")->gettext("ammo")->text = msg;
+	g_GUI.getview("play")->gettext("ammo")->fillvbo();
     OpenAnotherView("shoot");
     OpenAnotherView("reload");
 }
@@ -631,18 +611,21 @@ void Error(const char* msg)
 {
     CView* v = g_GUI.getview("message");
     v->widget[1].text = msg;
+    v->widget[1].fillvbo();
     OpenSoleView("message");
 }
 
 void Status(const char* status)
 {
 	g_GUI.getview("status")->gettext("status")->text = status;
+	g_GUI.getview("status")->gettext("status")->fillvbo();
     OpenSoleView("status");
 }
 
 void StatusBack(const char* status)
 {
 	g_GUI.getview("status back")->gettext("status")->text = status;
+	g_GUI.getview("status back")->gettext("status")->fillvbo();
     OpenSoleView("status back");
 }
 
@@ -654,6 +637,12 @@ void Chat(const char* chat)
 	g_GUI.getview("play")->gettext("chat3")->text = g_GUI.getview("play")->gettext("chat4")->text;
 	g_GUI.getview("play")->gettext("chat4")->text = g_GUI.getview("play")->gettext("chat5")->text;
 	g_GUI.getview("play")->gettext("chat5")->text = chat;
+	g_GUI.getview("play")->gettext("chat0")->fillvbo();
+	g_GUI.getview("play")->gettext("chat1")->fillvbo();
+	g_GUI.getview("play")->gettext("chat2")->fillvbo();
+	g_GUI.getview("play")->gettext("chat3")->fillvbo();
+	g_GUI.getview("play")->gettext("chat4")->fillvbo();
+	g_GUI.getview("play")->gettext("chat5")->fillvbo();
 }
 
 void UpdateGUI()
@@ -665,8 +654,8 @@ void UpdateGUI()
     
 	CWidget* w = &v->widget[0];
     
-	//w->rgba[3] -= g_FrameInterval;
-	w->rgba[3] -= FRAME_INTERVAL;
+	w->rgba[3] -= g_FrameInterval;
+	//w->rgba[3] -= FRAME_INTERVAL;
     
 	if(w->rgba[3] <= 0.0f)
 		v->opened = false;

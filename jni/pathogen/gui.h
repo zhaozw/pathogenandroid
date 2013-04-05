@@ -41,7 +41,11 @@ public:
 	int param;
 	float rgba[4];
 	string value;
-    
+    unsigned int vbo;
+	unsigned int textvbo;
+	unsigned int textshadvbo;
+	int texlen;
+
 	void (*clickfunc)();
 	void (*clickfunc2)(int p);
 	void (*overfunc)();
@@ -57,8 +61,38 @@ public:
 		outfunc = NULL;
 		changefunc = NULL;
         dpadfunc = NULL;
+		vbo = 0;
+		textvbo = 0;
+		textshadvbo = 0;
+		texlen = 0;
     }
     
+	~CWidget()
+	{
+		delvbo();
+	}
+
+	void delvbo()
+	{
+		if(vbo)
+		{
+			glDeleteBuffers(1, &vbo);
+			vbo = 0;
+		}
+
+		if(textvbo)
+		{
+			glDeleteBuffers(1, &textvbo);
+			textvbo = 0;
+		}
+
+		if(textshadvbo)
+		{
+			glDeleteBuffers(1, &textshadvbo);
+			textshadvbo = 0;
+		}
+	}
+
 	// Initializers
     
 	void Image(const char* filepath, float left, float top, float right, float bottom, float r=1, float g=1, float b=1, float a=1);
@@ -67,57 +101,26 @@ public:
 	void Button(const char* filepath, const char* t, int f, float left, float top, float right, float bottom, void (*click)(), void (*overf)(), void (*out)());
 	void Button(const char* filepath, const char* t, int f, float left, float top, float right, float bottom, void (*click2)(int p), int parm);
     
-	void Text(const char* t, int f, float left, float top)
-	{
-		type = TEXT;
-		name = "";
-		text = t;
-		font = f;
-		pos[0] = left;
-		pos[1] = top;
-		ldown = false;
-	}
+	void Text(const char* t, int f, float left, float top);
     
-	void Text(const char* n, const char* t, int f, float left, float top)
-	{
-		type = TEXT;
-		name = n;
-		text = t;
-		font = f;
-		pos[0] = left;
-		pos[1] = top;
-		ldown = false;
-	}
+	void Text(const char* n, const char* t, int f, float left, float top);
     
-	void Link(const char* t, int f, float left, float top, void (*click)())
-	{
-		type = LINK;
-		over = false;
-		ldown = false;
-		text = t;
-		font = f;
-		pos[0] = left;
-		pos[1] = top;
-		clickfunc = click;
-	}
+	void Link(const char* t, int f, float left, float top, void (*click)());
     
 	void DropDown(const char* n, int f, float left, float top, float width, void (*change)());
     
     void DPad(const char* n, const char* texf, float left, float top, float right, float bottom, void (*dpad)(float x, float y));
     
-	void TextBox(const char* n, const char* t, int f, float left, float top, float right, float bottom)
-	{
-		type = TEXTBOX;
-		name = n;
-		text = t;
-		font = f;
-		pos[0] = left;
-		pos[1] = top;
-        pos[2] = right;
-        pos[3] = bottom;
-		ldown = false;
-	}
+	void TextBox(const char* n, const char* t, int f, float left, float top, float right, float bottom);
     
+	// Fill VBO
+
+	void Image_fillvbo();
+	void Button_fillvbo();
+	void DPad_fillvbo();
+	void Text_fillvbo();
+	void TextBox_fillvbo();
+
 	// Drawers
     
 	void Image_draw();
@@ -255,6 +258,19 @@ public:
     
 	// Common
 
+	void fillvbo()
+	{
+        switch(type)
+        {
+            case IMAGE: Image_fillvbo(); break;
+            case TEXT: Text_fillvbo(); break;
+            case BUTTON: Button_fillvbo(); break;
+            case DPAD: DPad_fillvbo(); break;
+            case TEXTBOX: TextBox_fillvbo(); break;
+            default: break;
+        }
+	}
+
     void touchcheck()
     {
         switch(type)
@@ -347,6 +363,18 @@ public:
 		page = p;
 	}
     
+	void delvbo()
+	{
+		for(int i=0; i<widget.size(); i++)
+			widget[i].delvbo();
+	}
+
+	void fillvbo()
+	{
+		for(int i=0; i<widget.size(); i++)
+			widget[i].fillvbo();
+	}
+
     void close()
     {
         opened = false;
@@ -483,6 +511,18 @@ public:
         touchframefunc = NULL;
         lbuttondownfunc = NULL;
         lbuttonupfunc = NULL;
+	}
+
+	void delvbo()
+	{
+		for(int i=0; i<view.size(); i++)
+			view[i].delvbo();
+	}
+
+	void fillvbo()
+	{
+		for(int i=0; i<view.size(); i++)
+			view[i].fillvbo();
 	}
     
 	CView* getview(const char* name)

@@ -158,12 +158,10 @@ public:
     
     void fromAngles( const float *angles ); // (x,y,z) Euler rotation angles.
     
-    /*
-     Set values from an interpolation between two other quaternions.
-     This will also modify the second quaternion if it is backwards.
-     q1, q2	The quaternions to interpolate between
-     interp	A value from 0.0-1.0 indicating the linear interpolation parameter.
-     */
+    // Set values from an interpolation between two other quaternions.
+    // This will also modify the second quaternion if it is backwards.
+    // q1, q2	The quaternions to interpolate between
+    // interp	A value from 0.0-1.0 indicating the linear interpolation parameter.
     void slerp( const CQuaternion& q1, CQuaternion& q2, float interp );
     
     float operator[]( int index ) const { return m_quat[index]; }

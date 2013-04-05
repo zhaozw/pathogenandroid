@@ -193,8 +193,8 @@ obj/local/armeabi/objs/ndk1/zombie.o: jni/pathogen/zombie.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wctype.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wctype.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/sound.h jni/pathogen/player.h \
- jni/pathogen/item.h jni/pathogen/menu.h jni/pathogen/animations.h
+ jni/pathogen/sound.h jni/pathogen/player.h jni/pathogen/item.h \
+ jni/pathogen/menu.h jni/pathogen/animations.h
 
 jni/pathogen/zombie.h:
 
@@ -587,8 +587,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wctype
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wctype.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h:
-
-jni/pathogen/../libzip/zip.h:
 
 jni/pathogen/sound.h:
 

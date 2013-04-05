@@ -1,8 +1,11 @@
+
+
 #ifndef QUAKE3BSP_H
 #define QUAKE3BSP_H
 
 #include <vector>
 #include "3dmath.h"
+#include "logger.h"
 
 using namespace std;
 
@@ -29,16 +32,6 @@ struct tVector3ui
 struct tVector3uc
 {
 	unsigned char x, y, z;
-    
-	/*
-     tVector3uc& operator=(CVector3 vVector)
-     {
-     x = vVector.x;
-     y = vVector.y;
-     z = vVector.z;
-     return *this;
-     }
-     */
     
 	CVector3 operator+(tVector3uc vVector)
 	{
@@ -99,7 +92,8 @@ struct tBSPTexture
 
 struct tBSPLightmap
 {
-    byte imageBits[128][128][3];   // The RGB data in a 128x128 image
+    //byte imageBits[128][128][3];   // The RGB data in a 128x128 image
+    byte imageBits[128*128*3];   // The RGB data in a 128x128 image
 };
 
 struct tBSPNode
@@ -199,6 +193,11 @@ class CBitset
     
 public:
     CBitset() : m_bits(0), m_size(0) {}
+	//CBitset()
+	//{
+	//	m_bits = NULL;
+	//	m_size = 0;
+	//}
     
 	~CBitset()
 	{
@@ -212,6 +211,7 @@ public:
 	void Resize(int count)
 	{
 		m_size = count/32 + 1;
+		//m_size = count;
         
         if(m_bits)
 		{
@@ -220,32 +220,46 @@ public:
 		}
         
 		m_bits = new unsigned int[m_size];
+		//m_bits = new bool[m_size];
+
+		if(m_bits == NULL)
+		{
+			LOGE("error allocating m_bits");
+			return;
+		}
+
 		ClearAll();
 	}
     
 	void Set(int i)
 	{
 		m_bits[i >> 5] |= (1 << (i & 31));
+		//m_bits[i] = true;
 	}
     
 	int On(int i)
+	//bool On(int i)
 	{
 		return m_bits[i >> 5] & (1 << (i & 31 ));
+		//return m_bits[i];
 	}
     
 	void Clear(int i)
 	{
 		m_bits[i >> 5] &= ~(1 << (i & 31));
+		//m_bits[i] = false;
 	}
     
 	void ClearAll()
 	{
 		memset(m_bits, 0, sizeof(unsigned int) * m_size);
+		//memset(m_bits, 0, sizeof(bool)*m_size);
 	}
     
 private:
     
 	unsigned int *m_bits;
+	//bool* m_bits;
 	int m_size;
 };
 
@@ -266,9 +280,10 @@ public:
 class CQuake3BSP
 {
 private:
+	//GLuint* m_testBuf;
     GLuint* m_pVertexBuffers;
     GLuint* m_pIndexBuffers;
-    
+
 	CVector3 m_gridSize;
 	tBSPBBox m_bbox;
 	tVector3ui num_lightvols;

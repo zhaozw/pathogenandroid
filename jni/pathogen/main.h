@@ -38,7 +38,7 @@ extern "C" {
 #include <limits.h>
 #include <vector>
 
-#include <zip.h>
+//#include <zip.h>
 
 struct CVector2i;
 
@@ -127,7 +127,7 @@ extern float g_fov;
 extern float g_scale;
 extern bool g_quit;
 
-//extern double g_FrameInterval;
+extern double g_FrameInterval;
 
 enum GAMEMODE{LOGO, INTRO, MENU, CONNECTING, PLAY};
 extern enum GAMEMODE g_mode;
@@ -139,17 +139,25 @@ extern int g_score;
 enum VIEWMODE{FIRSTPERSON, THIRDPERSON};
 extern int g_viewmode;
 
-extern zip* APKArchive;
-extern char g_path[256];
-extern char g_tempPath[256];
-extern JNIEnv* g_env;
+//#endif
+
+//extern zip* APKArchive;
+//extern char g_path[256];
+//extern char g_tempPath[256];
+//extern JNIEnv* g_env;
 extern AAssetManager* g_amgr;
 
 extern vector<CTouch> g_touch;
 
-extern bool g_inited;
+//extern bool g_inited;
+//extern unsigned int g_img;
+extern unsigned int g_VBO;
 
+void DummyVBO(unsigned int* vbo, GLenum usage = GL_DYNAMIC_DRAW);
+void checkGlError(const char* op);
 unsigned int timeGetTime();
 unsigned int GetTickCount();
+void Update();
+void Draw();
 
 #endif

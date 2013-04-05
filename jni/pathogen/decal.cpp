@@ -47,6 +47,31 @@ void UpdateDecals()
 	}
 }
 
+void MakeDecalVBO()
+{
+	CDecal* d;
+	for(int i=0; i<DECALS; i++)
+    {
+        d = &g_decal[i];
+		DummyVBO(&d->vbo);
+	}
+}
+
+void DelDecalVBO()
+{
+	CDecal* d;
+	for(int i=0; i<DECALS; i++)
+    {
+        d = &g_decal[i];
+
+		if(d->vbo)
+		{
+			glDeleteBuffers(1, &d->vbo);
+			d->vbo = 0;
+		}
+	}
+}
+
 void DrawDecals()
 {
 	CDecal* d;
@@ -75,7 +100,7 @@ void DrawDecals()
 		colorf[2] = precolor[2] * colorv.z;
 		colorf[3] = d->life;
 #ifndef USE_OMNI
-        glUniform4f(g_slots[MODEL][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
+        glUniform4f(g_slots[BILLBOARD][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
 #else
 		glUniform4f(g_slots[OMNI][COLOR], colorf[0], colorf[1], colorf[2], colorf[3]);
 #endif
@@ -84,7 +109,7 @@ void DrawDecals()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, t->tex);
 #ifndef USE_OMNI
-        glUniform1i(g_slots[MODEL][TEXTURE], 0);
+        glUniform1i(g_slots[BILLBOARD][TEXTURE], 0);
 #else
         glUniform1i(g_slots[OMNI][TEXTURE], 0);
 #endif
@@ -101,9 +126,14 @@ void DrawDecals()
             d->a.x, d->a.y, d->a.z,          1, 0
         };
         
+		glBindBuffer(GL_ARRAY_BUFFER, d->vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_DYNAMIC_DRAW);
+
 #ifndef USE_OMNI
-        glVertexAttribPointer(g_slots[MODEL][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
-        glVertexAttribPointer(g_slots[MODEL][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+        //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        //glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+        glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*0));
+        glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*3));
 #else
         glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
         glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
@@ -113,7 +143,7 @@ void DrawDecals()
     }
     
 #ifndef USE_OMNI
-    glUniform4f(g_slots[MODEL][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
+    glUniform4f(g_slots[BILLBOARD][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
 #else
     glUniform4f(g_slots[OMNI][COLOR], precolor[0], precolor[1], precolor[2], precolor[3]);
 #endif

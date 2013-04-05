@@ -24,11 +24,13 @@ public:
     float dist;
     int particle;
 	bool nolightvol;
+	unsigned int vbo;
     
     CBillboard()
     {
         on = false;
         particle = -1;
+		vbo = 0;
     }
 };
 
@@ -44,3 +46,5 @@ void SortBillboards();
 void DrawBillboards();
 void PlaceBillboard(const char* n, CVector3 pos, float size, int particle, bool nolightvol);
 void PlaceBillboard(int type, CVector3 pos, float size, int particle, bool nolightvol);
+void MakeBillbVBO();
+void DelBillbVBO();

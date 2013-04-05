@@ -144,7 +144,7 @@ obj/local/armeabi/objs/ndk1/font.o: jni/pathogen/font.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_range_errors.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_bvector.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/font.h \
+ jni/pathogen/font.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/string \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_fwd.h \
@@ -206,7 +206,9 @@ obj/local/armeabi/objs/ndk1/font.o: jni/pathogen/font.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/fstream \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_codecvt.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c \
+ jni/pathogen/model.h jni/pathogen/3dmath.h jni/pathogen/entity.h \
+ jni/pathogen/sound.h
 
 jni/pathogen/main.h:
 
@@ -498,8 +500,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_b
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h:
 
-jni/pathogen/../libzip/zip.h:
-
 jni/pathogen/font.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/string:
@@ -633,3 +633,11 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_f
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_codecvt.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c:
+
+jni/pathogen/model.h:
+
+jni/pathogen/3dmath.h:
+
+jni/pathogen/entity.h:
+
+jni/pathogen/sound.h:

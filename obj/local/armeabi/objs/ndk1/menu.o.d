@@ -193,10 +193,10 @@ obj/local/armeabi/objs/ndk1/menu.o: jni/pathogen/menu.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wctype.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wctype.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/logger.h jni/pathogen/3dmath.h \
- jni/pathogen/video.h jni/pathogen/player.h jni/pathogen/item.h \
- jni/pathogen/sound.h jni/pathogen/quake3bsp.h jni/pathogen/entity.h \
- jni/pathogen/weapon.h jni/pathogen/script.h jni/pathogen/animations.h
+ jni/pathogen/logger.h jni/pathogen/3dmath.h jni/pathogen/video.h \
+ jni/pathogen/player.h jni/pathogen/item.h jni/pathogen/sound.h \
+ jni/pathogen/quake3bsp.h jni/pathogen/entity.h jni/pathogen/weapon.h \
+ jni/pathogen/script.h jni/pathogen/animations.h
 
 jni/pathogen/menu.h:
 
@@ -587,8 +587,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wctype
 C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wctype.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h:
-
-jni/pathogen/../libzip/zip.h:
 
 jni/pathogen/logger.h:
 

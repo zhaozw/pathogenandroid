@@ -1,4 +1,5 @@
 
+
 #include "player.h"
 #include "entity.h"
 #include "model.h"
@@ -361,8 +362,8 @@ void UpdatePlayers()
         maxhp = p->MaxHP();
         if(p->hp < maxhp)
         {
-            //p->hp += p->HPRegen() * g_FrameInterval;
-            p->hp += p->HPRegen() * FRAME_INTERVAL;
+            p->hp += p->HPRegen() * g_FrameInterval;
+            //p->hp += p->HPRegen() * FRAME_INTERVAL;
             if(p->hp > maxhp)
                 p->hp = maxhp;
             
@@ -373,8 +374,8 @@ void UpdatePlayers()
 		maxstamina = p->MaxStamina();
 		if(p->run && !p->crouched)
 		{
-			//p->stamina -= RUN_DSTAMINA * g_FrameInterval;
-			p->stamina -= RUN_DSTAMINA * FRAME_INTERVAL;
+			p->stamina -= RUN_DSTAMINA * g_FrameInterval;
+			//p->stamina -= RUN_DSTAMINA * FRAME_INTERVAL;
 			if(p->stamina < 0.0f)
 			{
 				p->stamina = 0.0f;
@@ -386,8 +387,8 @@ void UpdatePlayers()
 		}
 		else if(p->stamina < maxstamina)
 		{
-			//p->stamina += p->StaminaRegen() * g_FrameInterval;
-			p->stamina += p->StaminaRegen() * FRAME_INTERVAL;
+			p->stamina += p->StaminaRegen() * g_FrameInterval;
+			//p->stamina += p->StaminaRegen() * FRAME_INTERVAL;
 			if(p->stamina > maxstamina)
 				p->stamina = maxstamina;
             
@@ -725,6 +726,7 @@ void ProjectAction()
 		}
 		else
 		{
+			//LOGI("pr");
 			OpenAnotherView("open door");
 		}
 	}

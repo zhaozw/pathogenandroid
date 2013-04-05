@@ -8,6 +8,8 @@
 
 CGUI g_GUI;
 
+//float g_vertices[30];
+/*
 void DrawImage(unsigned int tex, float left, float top, float right, float bottom)
 {
     glActiveTexture(GL_TEXTURE0);
@@ -18,6 +20,7 @@ void DrawImage(unsigned int tex, float left, float top, float right, float botto
     glUniform1i(g_slots[OMNI][TEXTURE], 0);
 #endif
 
+	
     float vertices[] =
     {
         //posx, posy    texx, texy
@@ -29,15 +32,16 @@ void DrawImage(unsigned int tex, float left, float top, float right, float botto
         left, bottom,0,       0, 1,
         left, top,0,          0, 0
     };
-
-	GLubyte indices[] =
-		{
-			0, 1, 2, 3, 4, 5
-		};
     
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_DYNAMIC_DRAW);
+
 #ifndef USE_OMNI
-    glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
-    glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+    //glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+    //glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+    glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*0));
+    glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*3));
+    //glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &g_vertices[0]);
+    //glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &g_vertices[3]);
 #else
         //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
         //glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
@@ -45,8 +49,38 @@ void DrawImage(unsigned int tex, float left, float top, float right, float botto
     glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
 #endif
 
-    //glDrawArrays(GL_TRIANGLES, 0, 6);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+*/
+void DrawImage(unsigned int tex, unsigned int vbo)
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+#ifndef USE_OMNI
+    glUniform1i(g_slots[ORTHO][TEXTURE], 0);
+#else
+    glUniform1i(g_slots[OMNI][TEXTURE], 0);
+#endif
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+#ifndef USE_OMNI
+    //glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+    //glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+    glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*0));
+    glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*3));
+    //glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &g_vertices[0]);
+    //glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &g_vertices[3]);
+#else
+        //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+        //glVertexAttribPointer(g_slots[BILLBOARD][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+    glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+    glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
+#endif
+
+	//LOGI("drawimage2");
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 inline void DrawSquare(float r, float g, float b, float a, float left, float top, float right, float bottom)
@@ -66,6 +100,72 @@ inline void DrawSquare(float r, float g, float b, float a, float left, float top
 	glEnable(GL_TEXTURE_2D);*/
 }
 
+void CWidget::Text(const char* t, int f, float left, float top)
+{
+	type = TEXT;
+	name = "";
+	text = t;
+	font = f;
+	pos[0] = left;
+	pos[1] = top;
+	ldown = false;
+	Text_fillvbo();
+}
+
+void CWidget::Text(const char* n, const char* t, int f, float left, float top)
+{
+	type = TEXT;
+	name = n;
+	text = t;
+	font = f;
+	pos[0] = left;
+	pos[1] = top;
+	ldown = false;
+	Text_fillvbo();
+}
+
+void CWidget::Text_fillvbo()
+{
+	delvbo();
+
+	ShadowedText_fillvbo(font, tpos[0], tpos[1], text.c_str(), &textvbo, &textshadvbo);
+	texlen = strlen(text.c_str());
+}
+
+void CWidget::Link(const char* t, int f, float left, float top, void (*click)())
+{
+	type = LINK;
+	over = false;
+	ldown = false;
+	text = t;
+	font = f;
+	pos[0] = left;
+	pos[1] = top;
+	clickfunc = click;
+}
+
+void CWidget::TextBox(const char* n, const char* t, int f, float left, float top, float right, float bottom)
+{
+	type = TEXTBOX;
+	name = n;
+	text = t;
+	font = f;
+	pos[0] = left;
+	pos[1] = top;
+	pos[2] = right;
+    pos[3] = bottom;
+	ldown = false;
+	TextBox_fillvbo();
+}
+
+void CWidget::TextBox_fillvbo()
+{
+	delvbo();
+
+	BoxShadText_fillvbo(font, pos[0], pos[1], pos[2]-pos[0], pos[3]-pos[1], text.c_str(), &textvbo, &textshadvbo);
+	texlen = strlen(text.c_str());
+}
+
 void CWidget::Image(const char* filepath, float left, float top, float right, float bottom, float r, float g, float b, float a)
 {
 	type = IMAGE;
@@ -79,6 +179,7 @@ void CWidget::Image(const char* filepath, float left, float top, float right, fl
 	rgba[1] = g;
 	rgba[2] = b;
 	rgba[3] = a;
+	Image_fillvbo();
 }
 
 void CWidget::Image(unsigned int t, float left, float top, float right, float bottom, float r, float g, float b, float a)
@@ -94,6 +195,32 @@ void CWidget::Image(unsigned int t, float left, float top, float right, float bo
 	rgba[1] = g;
 	rgba[2] = b;
 	rgba[3] = a;
+	Image_fillvbo();
+}
+
+void CWidget::Image_fillvbo()
+{
+	delvbo();
+	
+    float vertices[] =
+    {
+        //posx, posy    texx, texy
+        pos[0], pos[1],0,      0, 0,
+        pos[2], pos[1],0,      1, 0,
+        pos[2], pos[3],0,      1, 1,
+        
+        pos[2], pos[3],0,      1, 1,
+        pos[0], pos[3],0,      0, 1,
+        pos[0], pos[1],0,      0, 0
+    };
+
+	glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_STATIC_DRAW);
+	//LOGE("fill vbo %u %f,%f,%f,%f", vbo, pos[0], pos[1], pos[2], pos[3]);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//MakeVBO(&vbo);
 }
 
 void CWidget::Button(const char* filepath, const char* t, int f, float left, float top, float right, float bottom, void (*click)(), void (*overf)(), void (*out)())
@@ -118,6 +245,7 @@ void CWidget::Button(const char* filepath, const char* t, int f, float left, flo
 	clickfunc = click;
 	overfunc = overf;
 	outfunc = out;
+	Button_fillvbo();
 }
 
 void CWidget::Button(const char* filepath, const char* t, int f, float left, float top, float right, float bottom, void (*click2)(int p), int parm)
@@ -141,6 +269,32 @@ void CWidget::Button(const char* filepath, const char* t, int f, float left, flo
 	pos[3] = bottom;
 	clickfunc2 = click2;
 	param = parm;
+	Button_fillvbo();
+}
+
+
+void CWidget::Button_fillvbo()
+{
+	delvbo();
+	
+    float vertices[] =
+    {
+        //posx, posy    texx, texy
+        pos[0], pos[1],0,      0, 0,
+        pos[2], pos[1],0,      1, 0,
+        pos[2], pos[3],0,      1, 1,
+        
+        pos[2], pos[3],0,      1, 1,
+        pos[0], pos[3],0,      0, 1,
+        pos[0], pos[1],0,      0, 0
+    };
+
+	glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_STATIC_DRAW);
+
+	ShadowedText_fillvbo(font, tpos[0], tpos[1], text.c_str(), &textvbo, &textshadvbo);
+	texlen = strlen(text.c_str());
 }
 
 void CWidget::DropDown(const char* n, int f, float left, float top, float width, void (*change)())
@@ -174,11 +328,34 @@ void CWidget::DPad(const char* n, const char* texf, float left, float top, float
     pos[2] = right;
     pos[3] = bottom;
     dpadfunc = dpad;
+	DPad_fillvbo();
+}
+
+void CWidget::DPad_fillvbo()
+{
+	delvbo();
+	
+    float vertices[] =
+    {
+        //posx, posy    texx, texy
+        pos[0], pos[1],0,      0, 0,
+        pos[2], pos[1],0,      1, 0,
+        pos[2], pos[3],0,      1, 1,
+        
+        pos[2], pos[3],0,      1, 1,
+        pos[0], pos[3],0,      0, 1,
+        pos[0], pos[1],0,      0, 0
+    };
+
+	glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_STATIC_DRAW);
 }
 
 void CWidget::Text_draw()
 {
-    DrawShadowedText(font, pos[0], pos[1], text.c_str());
+    //DrawShadowedText(font, tpos[0], tpos[1], text.c_str());
+	DrawShadText(font, textshadvbo, textvbo, texlen);
 }
 
 void CWidget::Link_draw()
@@ -188,7 +365,8 @@ void CWidget::Link_draw()
     if(over)
         color[0] = color[1] = color[2] = 1;
     
-    DrawShadowedText(font, pos[0], pos[1], text.c_str(), color);
+    //DrawShadowedText(font, tpos[0], tpos[1], text.c_str(), color);
+	DrawShadText(font, textshadvbo, textvbo, texlen, color);
 }
 
 void CWidget::TextBox_draw()
@@ -196,7 +374,8 @@ void CWidget::TextBox_draw()
     float width = pos[2] - pos[0];
     float height = pos[3] - pos[1];
     
-    DrawBoxShadText(font, pos[0], pos[1], width, height, text.c_str(), NULL);
+    //DrawBoxShadText(font, pos[0], pos[1], width, height, text.c_str(), NULL);
+	DrawShadText(font, textshadvbo, textvbo, texlen, NULL);
 }
 
 void CWidget::Button_mousemove(float x, float y)
@@ -229,10 +408,12 @@ void CWidget::Image_draw()
 {
 #ifndef USE_OMNI
     glUniform4f(g_slots[ORTHO][COLOR], rgba[0], rgba[1], rgba[2], rgba[3]);
+    //glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
 #else
     glUniform4f(g_slots[OMNI][COLOR], rgba[0], rgba[1], rgba[2], rgba[3]);
 #endif
-	DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
+	//DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
+	DrawImage(tex, vbo);
 #ifndef USE_OMNI
     glUniform4f(g_slots[ORTHO][COLOR], 1, 1, 1, 1);
 #else
@@ -247,28 +428,30 @@ void CWidget::Button_draw()
     //else
     //    DrawImage(bgtex, pos[0], pos[1], pos[2], pos[3]);
     
-    DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
-    
-    DrawShadowedText(font, tpos[0], tpos[1], text.c_str());
+    //DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
+    DrawImage(bgtex, vbo);
+
+    //DrawShadowedText(font, tpos[0], tpos[1], text.c_str());
+	DrawShadText(font, textshadvbo, textvbo, texlen);
 }
 
 void CWidget::DropDown_draw()
 {
 	//glColor4f(1, 1, 1, 1);
-    
+    /*
 	DrawImage(frametex, pos[0], pos[1]+5, pos[2], pos[3]+5);
     
 	if(!opened)
 		DrawImage(downtex, pos[2]-square(), pos[1]+5, pos[2], pos[1]+5+square());
     
-    DrawShadowedText(font, pos[0]+30, pos[1], options[selected].c_str());
+    DrawShadowedText(font, pos[0]+30, pos[1], options[selected].c_str());*/
 }
 
 void CWidget::DropDown_draw2()
 {
 	if(!opened)
 		return;
-    
+    /*
 	DrawImage(frametex, pos[0], pos[1]+5+g_font[font].gheight, pos[2], pos[3]+5+g_font[font].gheight*rowsshown());
 	DrawImage(frametex, pos[2]-square(), pos[1]+5, pos[2], pos[3]+5+g_font[font].gheight*rowsshown());
 	DrawImage(uptex, pos[2]-square(), pos[1]+5, pos[2], pos[1]+5+square());
@@ -276,12 +459,13 @@ void CWidget::DropDown_draw2()
 	DrawImage(filledtex, pos[2]-square(), pos[3]+5+scrollspace()*topratio(), pos[2], pos[3]+5+scrollspace()*bottomratio());
     
 	for(int i=(int)scroll; i<(int)scroll+rowsshown(); i++)
-		DrawShadowedText(font, pos[0]+30, pos[3]+g_font[font].gheight*(i-(int)scroll), options[i].c_str());
+		DrawShadowedText(font, pos[0]+30, pos[3]+g_font[font].gheight*(i-(int)scroll), options[i].c_str());*/
 }
 
 void CWidget::DPad_draw()
 {
-    DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
+    //DrawImage(tex, pos[0], pos[1], pos[2], pos[3]);
+    DrawImage(tex, vbo);
 }
 
 void CWidget::DropDown_mousemove(float x, float y)
@@ -728,24 +912,6 @@ void RedoGUI()
     AddButton("gui/buttonbg", "Login", MSGOTHIC16, centerw-buttonw/2, 140.0f*g_scale, centerw+buttonw/2, 170.0f*g_scale, &Click_GoToLogin, NULL, NULL);
     AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw-buttonw/2, 180.0f*g_scale, centerw+buttonw/2, 210.0f*g_scale, &Click_GoToMain, NULL, NULL);
 
-	/*
-    AddView("login");
-	AddImage("gui/bg", 0, 0, g_width, g_height);
-    AddTextField(@"Username", centerw-fieldwidth/2, 70.0f, fieldwidth, 31.0f, false, USERNAME);
-    AddTextField(@"Password", centerw-fieldwidth/2, 120.0f, fieldwidth, 31.0f, true, PASSWORD);
-    AddButton("gui/buttonbg", "Login", MSGOTHIC16, centerw-buttonw*3/5-buttonw/2, 170.0f, centerw-buttonw*3/5+buttonw/2, 200.0f, &Click_Login, NULL, NULL);
-    AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw+buttonw*3/5-buttonw/2, 170.0f, centerw+buttonw*3/5+buttonw/2, 200.0f, &Click_GoToOnline, NULL, NULL);
-    */
-	/*
-    AddView("register");
-	AddImage("gui/bg", 0, 0, g_width, g_height);
-    AddTextField(@"Username", centerw-fieldwidth/2, 20.0f, fieldwidth, 31.0f, false, REGUSERNAME);
-    AddTextField(@"Email address", centerw-fieldwidth/2, 55.0f, fieldwidth, 31.0f, false, REGEMAIL);
-    AddTextField(@"Password", centerw-fieldwidth/2, 90.0f, fieldwidth, 31.0f, true, REGPASSWORD);
-    AddTextField(@"Confirm password", centerw-fieldwidth/2, 125.0f, fieldwidth, 31.0f, true, REGPASSWORD2);
-    AddButton("gui/buttonbg", "Register", MSGOTHIC16, centerw-buttonw*3/5-buttonw/2, 170.0f, centerw-buttonw*3/5+buttonw/2, 205.0f, &Click_Register, NULL, NULL);
-    AddButton("gui/buttonbg", "Back", MSGOTHIC16, centerw+buttonw*3/5-buttonw/2, 170.0f, centerw+buttonw*3/5+buttonw/2, 205.0f, &Click_GoToOnline, NULL, NULL);
-    */
 	AddView("credits");
 	AddImage("gui/bg", 0, 0, g_width, g_height);
 	AddText("PROGRAMMING", MSGOTHIC16, halign - 100*g_scale, g_height/2 - g_font[MSGOTHIC16].gheight*4*g_scale);
@@ -854,7 +1020,9 @@ void RedoGUI()
     
 	//AddView("quit");	//Ask the player if they want to quit the multiplayer game
 	// TO DO
-    
+
+	g_GUI.fillvbo();
+
     //OpenSoleView("login");
     OpenSoleView("logo");
 }

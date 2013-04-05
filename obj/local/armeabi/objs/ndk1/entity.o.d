@@ -193,20 +193,19 @@ obj/local/armeabi/objs/ndk1/entity.o: jni/pathogen/entity.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wctype.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wctype.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/sound.h jni/pathogen/player.h \
- jni/pathogen/item.h jni/pathogen/model.h jni/pathogen/frustum.h \
- jni/pathogen/3DMath.h jni/pathogen/billboard.h jni/pathogen/skybox.h \
- jni/pathogen/image.h jni/pathogen/../jpeg8d/jpeglib.h \
- jni/pathogen/../jpeg8d/jconfig.h jni/pathogen/../jpeg8d/jmorecfg.h \
- jni/pathogen/file.h \
+ jni/pathogen/sound.h jni/pathogen/player.h jni/pathogen/item.h \
+ jni/pathogen/model.h jni/pathogen/frustum.h jni/pathogen/3DMath.h \
+ jni/pathogen/billboard.h jni/pathogen/skybox.h jni/pathogen/image.h \
+ jni/pathogen/../jpeg8d/jpeglib.h jni/pathogen/../jpeg8d/jconfig.h \
+ jni/pathogen/../jpeg8d/jmorecfg.h jni/pathogen/file.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/sstream \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_ioserr.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_sstream.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_sstream.c \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/iostream \
- jni/pathogen/quake3bsp.h jni/pathogen/animations.h \
+ jni/pathogen/quake3bsp.h jni/pathogen/logger.h jni/pathogen/animations.h \
  jni/pathogen/physics.h jni/pathogen/script.h jni/pathogen/gui.h \
- jni/pathogen/logger.h jni/pathogen/menu.h jni/pathogen/shader.h \
+ jni/pathogen/menu.h jni/pathogen/shader.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/fstream \
@@ -604,8 +603,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/incl
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h:
 
-jni/pathogen/../libzip/zip.h:
-
 jni/pathogen/sound.h:
 
 jni/pathogen/player.h:
@@ -644,6 +641,8 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/iostre
 
 jni/pathogen/quake3bsp.h:
 
+jni/pathogen/logger.h:
+
 jni/pathogen/animations.h:
 
 jni/pathogen/physics.h:
@@ -651,8 +650,6 @@ jni/pathogen/physics.h:
 jni/pathogen/script.h:
 
 jni/pathogen/gui.h:
-
-jni/pathogen/logger.h:
 
 jni/pathogen/menu.h:
 

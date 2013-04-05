@@ -144,9 +144,8 @@ obj/local/armeabi/objs/ndk1/weapon.o: jni/pathogen/weapon.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_range_errors.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_bvector.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/weapon.h jni/pathogen/player.h \
- jni/pathogen/item.h jni/pathogen/3dmath.h jni/pathogen/sound.h \
- jni/pathogen/entity.h \
+ jni/pathogen/weapon.h jni/pathogen/player.h jni/pathogen/item.h \
+ jni/pathogen/3dmath.h jni/pathogen/sound.h jni/pathogen/entity.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/string \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_fwd.h \
@@ -195,8 +194,8 @@ obj/local/armeabi/objs/ndk1/weapon.o: jni/pathogen/weapon.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_num_get.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_num_get.c \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_io.c \
- jni/pathogen/quake3bsp.h jni/pathogen/menu.h jni/pathogen/animations.h \
- jni/pathogen/gui.h jni/pathogen/logger.h jni/pathogen/model.h \
+ jni/pathogen/quake3bsp.h jni/pathogen/logger.h jni/pathogen/menu.h \
+ jni/pathogen/animations.h jni/pathogen/gui.h jni/pathogen/model.h \
  jni/pathogen/billboard.h jni/pathogen/3DMath.h jni/pathogen/particle.h \
  jni/pathogen/decal.h
 
@@ -490,8 +489,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_b
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h:
 
-jni/pathogen/../libzip/zip.h:
-
 jni/pathogen/weapon.h:
 
 jni/pathogen/player.h:
@@ -602,13 +599,13 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_s
 
 jni/pathogen/quake3bsp.h:
 
+jni/pathogen/logger.h:
+
 jni/pathogen/menu.h:
 
 jni/pathogen/animations.h:
 
 jni/pathogen/gui.h:
-
-jni/pathogen/logger.h:
 
 jni/pathogen/model.h:
 

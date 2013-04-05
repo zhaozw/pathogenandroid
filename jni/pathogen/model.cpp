@@ -10,10 +10,12 @@ CModel g_model[MODELS];
 
 void CModel::Load(const char* n, CVector3 scale)
 {
+
     char raw[64];
 	StripPathExtension(n, raw);
 	char filepath[128];
 	sprintf(filepath, "models/%s.md2", raw);
+    strcpy(name, raw);
     
     //FILE* fp = fopen (filepath, "rb");
     CFile fp(filepath);
@@ -27,8 +29,6 @@ void CModel::Load(const char* n, CVector3 scale)
         return;
     }
     
-    strcpy(name, raw);
-    
     transp = false;
     for(int i=0; i<strlen(raw); i++)
     {
@@ -36,7 +36,7 @@ void CModel::Load(const char* n, CVector3 scale)
             transp = true;
     }
     
-    /* Read header */
+    // Read header
     //fread (&header, 1, sizeof (struct md2_header_t), fp);
     fp.read((void*)&header, sizeof(struct md2_header_t));
 
@@ -49,7 +49,7 @@ void CModel::Load(const char* n, CVector3 scale)
         return;
     }
     
-    /* Memory allocations */
+    // Memory allocations
     skins = new md2_skin_t[ header.num_skins ];
     texcoords = new md2_texCoord_t[ header.num_st ];
     triangles = new md2_triangle_t[ header.num_tris ];
@@ -58,7 +58,7 @@ void CModel::Load(const char* n, CVector3 scale)
 
 	//LOGI("%s skins%d,st%d,tris%d,frames%d", name, header.num_skins, header.num_st, header.num_tris, header.num_frames);
     
-    /* Read model data */
+    // Read model data
     //fseek (fp, header.offset_skins, SEEK_SET);
     //fread (skins, sizeof (struct md2_skin_t), header.num_skins, fp);
 	fp.seek(header.offset_skins);
@@ -79,15 +79,15 @@ void CModel::Load(const char* n, CVector3 scale)
 	fp.seek(header.offset_glcmds);
 	fp.read((void*)glcmds, sizeof (int) * header.num_glcmds);
     
-    /* Read frames */
+    // Read frames
     //fseek (fp, header.offset_frames, SEEK_SET);
 	fp.seek(header.offset_frames);
     for (int i = 0; i < header.num_frames; ++i)
     {
-        /* Memory allocation for vertices of this frame */
+        // Memory allocation for vertices of this frame
         frames[i].verts = new md2_vertex_t[ header.num_vertices ];
         
-        /* Read frame data */
+        // Read frame data
         //fread (frames[i].scale, sizeof (vec3_t), 1, fp);
         //fread (frames[i].translate, sizeof (vec3_t), 1, fp);
         //fread (frames[i].name, sizeof (char), 16, fp);
@@ -135,14 +135,12 @@ void CModel::Load(const char* n, CVector3 scale)
 				pframe = &frames[f];
 				pvert = &pframe->verts[triangles[i].vertex[j]];
                 
-                /*
-                 // Reverse vertex order
-                 if(j == 1)
-                 index += 1;
-                 else if(j == 2)
-                 index -= 1;
-                 */
-                
+                 //// Reverse vertex order
+                 //if(j == 1)
+                 //index += 1;
+                 //else if(j == 2)
+                 //index -= 1;
+                 
 				// Compute texture coordinates
 				va2[index].texcoord.x = (float)texcoords[triangles[i].st[j]].s / header.skinwidth;
 				va2[index].texcoord.y = (float)texcoords[triangles[i].st[j]].t / header.skinheight;
@@ -268,7 +266,6 @@ void CModel::Load(const char* n, CVector3 scale)
 
 void CModel::DrawSky(int frame, CVector3 pos)
 {
-	/*
     CMatrix modelmat;
     modelmat.setTranslation((const float*)&pos);
     
@@ -282,7 +279,7 @@ void CModel::DrawSky(int frame, CVector3 pos)
     glBindTexture(GL_TEXTURE_2D, tex_id);
     glUniform1i(g_slots[MODEL][TEXTURE], 0);
     
-    glDrawArrays(GL_TRIANGLES, 0, numverts);*/
+    glDrawArrays(GL_TRIANGLES, 0, numverts);
 }
 
 void CModel::Draw(int frame, CVector3 pos, float pitch, float yaw)
@@ -412,6 +409,7 @@ int NewModel()
         if(!g_model[i].on)
             return i;
     
+	LOGE("No more models!");
     return -1;
 }
 
@@ -431,6 +429,8 @@ int FindModel(const char* raw)
 
 int LoadModel(const char* name, CVector3 scale)
 {
+	//return 0;
+
 	char raw[64];
 	StripPathExtension(name, raw);
 	int i = FindModel(raw);
@@ -439,7 +439,10 @@ int LoadModel(const char* name, CVector3 scale)
     
     i = NewModel();
     if(i < 0)
+	{
+		LOGE("No more models");
         return -1;
+	}
     
     g_model[i].Load(raw, scale);
     
@@ -450,6 +453,7 @@ void ModelMinMax(int model, CVector3* vMin, CVector3* vMax)
 {
 	(*vMin) = CVector3(0, 0, 0);
 	(*vMax) = CVector3(0, 0, 0);
+	return;
     
 	CModel* m = &g_model[model];
 	CVertexArray* va;

@@ -144,9 +144,9 @@ obj/local/armeabi/objs/ndk1/particle.o: jni/pathogen/particle.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_range_errors.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_bvector.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/image.h \
- jni/pathogen/../jpeg8d/jpeglib.h jni/pathogen/../jpeg8d/jconfig.h \
- jni/pathogen/../jpeg8d/jmorecfg.h jni/pathogen/file.h \
+ jni/pathogen/image.h jni/pathogen/../jpeg8d/jpeglib.h \
+ jni/pathogen/../jpeg8d/jconfig.h jni/pathogen/../jpeg8d/jmorecfg.h \
+ jni/pathogen/file.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/string \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_fwd.h \
@@ -201,7 +201,7 @@ obj/local/armeabi/objs/ndk1/particle.o: jni/pathogen/particle.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_sstream.c \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/iostream \
  jni/pathogen/billboard.h jni/pathogen/3DMath.h jni/pathogen/decal.h \
- jni/pathogen/quake3bsp.h
+ jni/pathogen/quake3bsp.h jni/pathogen/logger.h
 
 jni/pathogen/particle.h:
 
@@ -497,8 +497,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_b
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h:
 
-jni/pathogen/../libzip/zip.h:
-
 jni/pathogen/image.h:
 
 jni/pathogen/../jpeg8d/jpeglib.h:
@@ -622,3 +620,5 @@ jni/pathogen/3DMath.h:
 jni/pathogen/decal.h:
 
 jni/pathogen/quake3bsp.h:
+
+jni/pathogen/logger.h:

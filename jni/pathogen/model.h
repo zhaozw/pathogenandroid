@@ -45,6 +45,23 @@ public:
 	CVector3 normal;
 };
 
+class CVertexArray3
+{
+public:
+	CVector3 vertex;
+	CVector2 texcoord;
+
+	CVertexArray3()
+	{
+	}
+
+	CVertexArray3(CVector3 vert, CVector2 texc)
+	{
+		vertex = vert;
+		texcoord = texc;
+	}
+};
+
 typedef float vec3_t[3];
 
 struct md2_header_t
@@ -142,6 +159,10 @@ public:
     {
         on = false;
         transp = false;
+		header.num_frames = 0;
+		header.num_tris = 0;
+		header.num_vertices = 0;
+		header.num_st = 0;
     }
     ~CModel()
     {

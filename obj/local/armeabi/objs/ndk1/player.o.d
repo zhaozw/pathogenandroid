@@ -146,7 +146,7 @@ obj/local/armeabi/objs/ndk1/player.o: jni/pathogen/player.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/wchar.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/../include/wchar.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_mbstate_t.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/sound.h jni/pathogen/entity.h \
+ jni/pathogen/sound.h jni/pathogen/entity.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/string \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_fwd.h \
@@ -195,8 +195,8 @@ obj/local/armeabi/objs/ndk1/player.o: jni/pathogen/player.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_num_get.c \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_io.c \
  jni/pathogen/model.h jni/pathogen/menu.h jni/pathogen/quake3bsp.h \
- jni/pathogen/animations.h jni/pathogen/zombie.h jni/pathogen/weapon.h \
- jni/pathogen/gui.h jni/pathogen/logger.h jni/pathogen/script.h
+ jni/pathogen/logger.h jni/pathogen/animations.h jni/pathogen/zombie.h \
+ jni/pathogen/weapon.h jni/pathogen/gui.h jni/pathogen/script.h
 
 jni/pathogen/player.h:
 
@@ -496,8 +496,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/incl
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_mbstate_t.h:
 
-jni/pathogen/../libzip/zip.h:
-
 jni/pathogen/sound.h:
 
 jni/pathogen/entity.h:
@@ -602,6 +600,8 @@ jni/pathogen/menu.h:
 
 jni/pathogen/quake3bsp.h:
 
+jni/pathogen/logger.h:
+
 jni/pathogen/animations.h:
 
 jni/pathogen/zombie.h:
@@ -609,7 +609,5 @@ jni/pathogen/zombie.h:
 jni/pathogen/weapon.h:
 
 jni/pathogen/gui.h:
-
-jni/pathogen/logger.h:
 
 jni/pathogen/script.h:

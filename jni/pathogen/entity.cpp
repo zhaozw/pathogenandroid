@@ -1,4 +1,5 @@
 
+
 #include "entity.h"
 #include "3dmath.h"
 #include "player.h"
@@ -1115,6 +1116,7 @@ void ReadEntity(string classname, string origin, string angle, string model, str
 void ReadEntities(char* str)
 {
 	g_spawn.clear();
+	g_sspawn.clear();
 	g_zspawn.clear();
     
 	string classname;

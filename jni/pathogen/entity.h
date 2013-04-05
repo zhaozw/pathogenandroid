@@ -68,6 +68,7 @@ public:
 	float dist;
 	bool nolightvol;
 	int script;
+	unsigned int flashvbo;
     
 	CEntity()
 	{
@@ -77,6 +78,7 @@ public:
         frame[BODY_UPPER] = 0;
         amount = -1;
         clip = -1;
+		flashvbo = 0;
 	}
     
 	CVector3 TraceRay(CVector3 vLine[]);

@@ -144,7 +144,7 @@ obj/local/armeabi/objs/ndk1/skybox.o: jni/pathogen/skybox.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_range_errors.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_bvector.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h \
- jni/pathogen/../libzip/zip.h jni/pathogen/3dmath.h jni/pathogen/image.h \
+ jni/pathogen/3dmath.h jni/pathogen/image.h \
  jni/pathogen/../jpeg8d/jpeglib.h jni/pathogen/../jpeg8d/jconfig.h \
  jni/pathogen/../jpeg8d/jmorecfg.h jni/pathogen/file.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/string \
@@ -206,7 +206,8 @@ obj/local/armeabi/objs/ndk1/skybox.o: jni/pathogen/skybox.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/fstream \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_codecvt.h \
- C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c \
+ jni/pathogen/logger.h
 
 jni/pathogen/skybox.h:
 
@@ -500,8 +501,6 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_b
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h:
 
-jni/pathogen/../libzip/zip.h:
-
 jni/pathogen/3dmath.h:
 
 jni/pathogen/image.h:
@@ -633,3 +632,5 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_f
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_codecvt.h:
 
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_fstream.c:
+
+jni/pathogen/logger.h:

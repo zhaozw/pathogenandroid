@@ -18,6 +18,6 @@ enum SHADER{ORTHO, SKY, MAP, MODEL, BILLBOARD, OMNI, SHADERS};
 extern unsigned int g_slots[SHADERS][SLOTS];
 extern unsigned int g_program[SHADERS];
 
-#define USE_OMNI
+//#define USE_OMNI
 
 void LoadShaders();

@@ -211,6 +211,7 @@ void ItemIcon(unsigned int tex, const char* msg)
 	w->rgba[3] = 1;
 	CWidget* w2 = &v->widget[1];
 	w2->text = msg;
+	w2->fillvbo();
 	OpenAnotherView("pick up");
 }
 

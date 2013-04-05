@@ -8,7 +8,7 @@ CTexture g_texture[TEXTURES];
 
 int g_texwidth;
 int g_texheight;
-int g_foundTex = -1;
+int g_foundTex = 0;
 bool g_lastTexTransp = false;
 //zip_file* g_file;
 char jpegBuffer[JPEG_BUFFER_SIZE];
@@ -597,14 +597,15 @@ tImage *LoadPNG(const char *strFileName)
 
 	g_src.close();
 
-	g_src = CFile(strFileName);
+	//g_src = CFile(strFileName);
+	g_src.open(strFileName);
 	//CFile file(strFileName);
   //if (!g_file)
 	//if(file.fsize <= 0)
 	//if(g_src.fsize <= 0)
 	if(!g_src.mFile)
   {
-    LOGE("Error opening %s from APK", strFileName);
+    //LOGE("Error opening %s from APK", strFileName);
     return NULL;
   }
 
@@ -945,6 +946,7 @@ int NewTexture()
         if(!g_texture[i].on)
             return i;
     
+	LOGE("No more textues!");
     return -1;
 }
 
@@ -1009,10 +1011,13 @@ unsigned int CreateTexture(const char* strFileName, bool search)
 
 	unsigned int texture;
 
+	//LOGI("tex 1");
+
 	char fullName[256];
 	strcpy(fullName, strFileName);
 	FindTextureExtension(fullName);
 
+	//LOGI("tex 2");
 	/*
 	if(id < 0)
 		if(FindTexture(fullName, &texture))
@@ -1022,9 +1027,12 @@ unsigned int CreateTexture(const char* strFileName, bool search)
 	if(search && FindTexture(fullName, &texture))
         return texture;
 
+	//LOGI("tex 3");
 	// Define a pointer to a tImage
 	tImage *pImage = NULL;
 
+	
+	//LOGI("tex 4");
 
 	//bool ispng = false;
 	// If the file is a jpeg, load the jpeg and store the data in pImage
@@ -1037,6 +1045,7 @@ unsigned int CreateTexture(const char* strFileName, bool search)
 		pImage = LoadPNG(fullName);
 		//ispng = true;
 	}
+	//LOGI("tex 5");
 	// If the file is a tga, load the tga and store the data in pImage
 	//else if(strstr(fullName, ".tga"))
 	//{

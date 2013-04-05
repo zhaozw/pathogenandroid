@@ -10,11 +10,15 @@
 #include "shader.h"
 
 class CQuake3BSP g_map;
+//tBSPVisData m_clusters;
 
 CQuake3BSP::CQuake3BSP()
 {
     m_gridSize = CVector3(64.0f, 128.0f, 64.0f);
     
+	//m_testBuf = NULL;
+	m_numOfLightVols = 0;
+
     m_pVertexBuffers = NULL;
     m_pIndexBuffers = NULL;
     
@@ -129,14 +133,8 @@ GLuint CQuake3BSP::CreateLightmapTexture(byte *pImageBits, int width, int height
 
 bool CQuake3BSP::LoadBSP(const char* name)
 {
-    //const char* strname = [name UTF8String];
-    
 	//FILE *fp = NULL;
 	int i = 0;
-    
-    //NSString* fullBspPath = [[NSBundle mainBundle] pathForResource:name ofType:@"bsp"];
-    
-    //const char* bspPath = [fullBspPath UTF8String];
 
 	char raw[32];
 	StripPathExtension(name, raw);
@@ -167,9 +165,17 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	m_numOfFaces = lumps[kFaces].length / sizeof(tBSPFace);
 	m_pFaces     = new tBSPFace [m_numOfFaces];
 	m_brokenFace = new bool [m_numOfFaces];
+	
+	if(m_brokenFace == NULL)
+		LOGE("error alloc m_brokenFace");
+
+	//m_testBuf = new GLuint [m_numOfFaces];
     
     m_pVertexBuffers = new GLuint [m_numOfFaces];
     m_pIndexBuffers = new GLuint [m_numOfFaces];
+
+	//if(m_pIndexBuffers == NULL)
+	//	LOGE("error alloc m_pIndexBuffers");
     
 	m_numOfIndices = lumps[kIndices].length / sizeof(int);
 	m_pIndices     = new int [m_numOfIndices];
@@ -184,6 +190,9 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	m_breakable = new bool [m_numOfTextures];
 	m_ladder = new bool [m_numOfTextures];
 	m_grate = new bool [m_numOfTextures];
+
+	if(m_grate == NULL)
+		LOGE("error alloc m_grade");
     
 	m_numOfLightmaps = lumps[kLightmaps].length / sizeof(tBSPLightmap);
 	m_pLightmaps = new tBSPLightmap [m_numOfLightmaps];
@@ -191,10 +200,13 @@ bool CQuake3BSP::LoadBSP(const char* name)
     
 	m_numOfModels = lumps[kModels].length / sizeof(tBSPModel);
 	m_pModels = new tBSPModel [m_numOfModels];
-    
+     
 	m_numOfLightVols = lumps[kLightVolumes].length / sizeof(tBSPLightVol);
 	m_pLightVols = new tBSPLightVol [m_numOfLightVols];
-    
+	
+	if(m_pLightVols == NULL)
+		LOGE("error alloc m_pLightVols");
+     
 	//fseek(fp, lumps[kVertices].offset, SEEK_SET);
 	fp.seek(lumps[kVertices].offset);
     
@@ -225,10 +237,14 @@ bool CQuake3BSP::LoadBSP(const char* name)
         tBSPFace* pFace = &m_pFaces[i];
         
         glGenBuffers(1, &m_pVertexBuffers[i]);
+		if(m_pVertexBuffers[i] == (unsigned int)(-1))
+			LOGE("m_pVertexBuffers[%d] error", i);
         glBindBuffer(GL_ARRAY_BUFFER, m_pVertexBuffers[i]);
         glBufferData(GL_ARRAY_BUFFER, sizeof(tBSPVertex)*pFace->numOfVerts, &(m_pVerts[pFace->startVertIndex]), GL_STATIC_DRAW);
         
          glGenBuffers(1, &m_pIndexBuffers[i]);
+		if(m_pIndexBuffers[i] == (unsigned int)(-1))
+			LOGE("m_pIndexBuffers[%d] error", i);
          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pIndexBuffers[i]);
          glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int)*pFace->numOfIndices, &(m_pIndices[pFace->startIndex]), GL_STATIC_DRAW);
     }
@@ -236,6 +252,7 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	//fseek(fp, lumps[kTextures].offset, SEEK_SET);
     fp.seek(lumps[kTextures].offset);
 
+	
 	//fread(m_pTextures, m_numOfTextures, sizeof(tBSPTexture), fp);
     fp.read((void*)m_pTextures, m_numOfTextures * sizeof(tBSPTexture));
 
@@ -252,6 +269,7 @@ bool CQuake3BSP::LoadBSP(const char* name)
     
 	for(i = 0; i < m_numOfTextures; i++)
 	{
+		// /*
 		if(strstr(m_pTextures[i].strName, "~"))
 			m_passable[i] = true;
 		if(strstr(m_pTextures[i].strName, "^"))
@@ -277,8 +295,11 @@ bool CQuake3BSP::LoadBSP(const char* name)
         //m_textures[i] = CreateTexture(m_pTextures[i].strName, false);
         //NSLog(@"create %d %s", i, m_pTextures[i].strName);
         m_textures[i] = CreateTexture(m_pTextures[i].strName, true);
+		// */
+
+		//m_textures[i]  = g_img;
 	}
-    
+   
     int vIndex;
 	for(int faceIndex=0; faceIndex<m_numOfFaces; faceIndex++)
 	{
@@ -386,6 +407,7 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	else
 		m_clusters.pBitsets = NULL;
     
+	// /*
 	//m_numOfBrushes = lumps[kBrushes].length / sizeof(int);
 	m_numOfBrushes = lumps[kBrushes].length / sizeof(tBSPBrush);
 	m_pBrushes     = new tBSPBrush [m_numOfBrushes];
@@ -414,12 +436,14 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	//fread(m_pLeafBrushes, m_numOfLeafBrushes, sizeof(int), fp);
 	fp.seek(lumps[kLeafBrushes].offset);
 	fp.read((void*)m_pLeafBrushes, m_numOfLeafBrushes * sizeof(int));
-    
+    // */
+	// /*
     //fseek(fp, lumps[kModels].offset, SEEK_SET);
 	//fread(m_pModels, m_numOfModels, sizeof(tBSPModel), fp);
 	fp.seek(lumps[kModels].offset);
 	fp.read((void*)m_pModels, m_numOfModels * sizeof(tBSPModel));
     
+	// /*
 	for(i=0; i<m_numOfModels; i++)
 	{
 		float temp = m_pModels[i].mins.y;
@@ -447,6 +471,8 @@ bool CQuake3BSP::LoadBSP(const char* name)
     num_lightvols.x = (unsigned int) (floorf(m_bbox.max.x/m_gridSize.x) - ceilf(m_bbox.min.x/m_gridSize.x) + 1);
 	num_lightvols.y = (unsigned int) (floorf(m_bbox.max.y/m_gridSize.y) - ceilf(m_bbox.min.y/m_gridSize.y) + 1);
 	num_lightvols.z = (unsigned int) (floorf(m_bbox.max.z/m_gridSize.z) - ceilf(m_bbox.min.z/m_gridSize.z) + 1);
+	// */
+	m_FacesDrawn.Resize(m_numOfFaces);
     
 	//fseek(fp, lumps[kEntities].offset, SEEK_SET);
 	fp.seek(lumps[kEntities].offset);
@@ -459,8 +485,6 @@ bool CQuake3BSP::LoadBSP(const char* name)
 	ReadEntities(entities);
 	delete entities;
     
-	m_FacesDrawn.Resize(m_numOfFaces);
-    
 	LOGI("%s.bsp", name);
     
 	return true;
@@ -468,6 +492,8 @@ bool CQuake3BSP::LoadBSP(const char* name)
 
 int CQuake3BSP::FindLeaf(const CVector3 &vPos)
 {
+	//return 0;
+
 	int i = 0;
 	float distance = 0.0f;
     
@@ -506,15 +532,21 @@ int CQuake3BSP::FindLeaf(const CVector3 &vPos)
 
 int CQuake3BSP::FindCluster(const CVector3 &vPos)
 {
+	//return 0;
+
 	int leaf = FindLeaf(vPos);
 	return m_pLeafs[leaf].cluster;
 }
 
 int CQuake3BSP::IsClusterVisible(int current, int test)
 {
+	//return 1;
+
 	// Make sure we have valid memory and that the current cluster is > 0.
 	// If we don't have any memory or a negative cluster, return a visibility (1).
 	if(!m_clusters.pBitsets || current < 0) return 1;
+
+	//if(test < 0) return 1;	// Denis change
     
 	// Use binary math to get the 8 bit visibility set for the current cluster
 	byte visSet = m_clusters.pBitsets[(current*m_clusters.bytesPerCluster) + (test / 8)];
@@ -606,10 +638,15 @@ CVector3 CQuake3BSP::LightVol(CVector3 vPos)
 	pz = pz - floorf(pz);
     
 	unsigned int elem1 = ly*num_lightvols.z*num_lightvols.x + lz*num_lightvols.x + lx;
-	const unsigned int elem2 = elem1 - num_lightvols.x;
-	const unsigned int elem3 = elem2 + num_lightvols.x*num_lightvols.z;
-	const unsigned int elem4 = elem3 + num_lightvols.x;
+	unsigned int elem2 = elem1 - num_lightvols.x, m_numOfLightVols;
+	unsigned int elem3 = elem2 + num_lightvols.x*num_lightvols.z;
+	unsigned int elem4 = elem3 + num_lightvols.x;
     
+	elem1 = min(elem1, m_numOfLightVols-1);
+	elem2 = min(elem2, m_numOfLightVols-1);
+	elem3 = min(elem3, m_numOfLightVols-1);
+	elem4 = min(elem4, m_numOfLightVols-1);
+
 	CVector3 temp[8];
 	temp[0] = m_pLightVols[elem1].ambient + m_pLightVols[elem1].directional;
 	temp[1] = m_pLightVols[elem1+1].ambient + m_pLightVols[elem1+1].directional;
@@ -620,7 +657,24 @@ CVector3 CQuake3BSP::LightVol(CVector3 vPos)
 	temp[6] = m_pLightVols[elem3].ambient + m_pLightVols[elem3].directional;
 	temp[7] = m_pLightVols[elem3+1].ambient + m_pLightVols[elem3+1].directional;
 	color = VMin(255, trilinear(px, py, pz, temp))/255.0f;
-    
+
+	/*
+	unsigned int elem1 = ly*num_lightvols.z*num_lightvols.x + lz*num_lightvols.x + lx;
+
+	if(elem1 >= m_numOfLightVols)
+	{
+		color.x = 1;
+		color.y = 1;
+		color.z = 1;
+        
+		LOGE("li out of b");
+
+		return color;
+	}
+
+	color = m_pLightVols[elem1].ambient + m_pLightVols[elem1].directional;
+*/
+
 	return color;
 }
 
@@ -725,6 +779,8 @@ void CQuake3BSP::Break(CVector3 vStart, CVector3 vEnd)
 
 CVector3 CQuake3BSP::TraceRay(CVector3 vStart, CVector3 vEnd)
 {
+	//return vEnd;
+
 	// We don't use this function, but we set it up to allow us to just check a
 	// ray with the BSP tree brushes.  We do so by setting the trace type to TYPE_RAY.
 	m_traceType = TYPE_RAY;
@@ -760,6 +816,8 @@ CVector3 CQuake3BSP::TraceSphere(CVector3 vStart, CVector3 vEnd, float radius, f
 
 CVector3 CQuake3BSP::TraceBox(CVector3 vStart, CVector3 vEnd, CVector3 vMin, CVector3 vMax, float maxStep)
 {
+	//return vStart;
+
 	m_traceType = TYPE_BOX;
 	m_vTraceMaxs = vMax;
 	m_vTraceMins = vMin;
@@ -1436,9 +1494,13 @@ void CQuake3BSP::RenderFace(int faceIndex)
 {
 	tBSPFace *pFace = &m_pFaces[faceIndex];
     
+         glBindBuffer(GL_ARRAY_BUFFER, 0);
+         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     glBindBuffer(GL_ARRAY_BUFFER, m_pVertexBuffers[faceIndex]);
 #ifndef USE_OMNI
     glVertexAttribPointer(g_slots[MAP][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vPosition));
+    //glVertexAttribPointer(g_slots[MAP][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)&(m_pVerts[pFace->startVertIndex].vPosition));
 #else
 	glVertexAttribPointer(g_slots[OMNI][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vPosition));
 #endif
@@ -1453,10 +1515,13 @@ void CQuake3BSP::RenderFace(int faceIndex)
 
 #ifndef USE_OMNI
     glVertexAttribPointer(g_slots[MAP][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vTextureCoord));
+    //glVertexAttribPointer(g_slots[MAP][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)&(m_pVerts[pFace->startVertIndex].vTextureCoord));
 #else
 	glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vTextureCoord));
 #endif
 
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int)*pFace->numOfIndices, &(m_pIndices[pFace->startIndex]), GL_STATIC_DRAW);
+    
     glActiveTexture(GL_TEXTURE1);
     //glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, m_lightmaps[pFace->lightmapID]);
@@ -1468,12 +1533,14 @@ void CQuake3BSP::RenderFace(int faceIndex)
     
 #ifndef USE_OMNI
     glVertexAttribPointer(g_slots[MAP][TEXCOORD2], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vLightmapCoord));
+    //glVertexAttribPointer(g_slots[MAP][TEXCOORD2], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)&(m_pVerts[pFace->startVertIndex].vLightmapCoord));
 #else
 	glVertexAttribPointer(g_slots[OMNI][TEXCOORD2], 2, GL_FLOAT, GL_FALSE, sizeof(tBSPVertex), (void*)offsetof(tBSPVertex,vLightmapCoord));
 #endif
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pIndexBuffers[faceIndex]);
     glDrawElements(GL_TRIANGLES, pFace->numOfIndices, GL_UNSIGNED_INT, (void*)0);
+	//glDrawElements(GL_TRIANGLES, pFace->numOfIndices, GL_UNSIGNED_INT, &(m_pIndices[pFace->startIndex]) );
 }
 
 void CQuake3BSP::RenderSkyFace(int faceIndex)
@@ -1512,6 +1579,7 @@ void CQuake3BSP::RenderSky()
 
 void CQuake3BSP::RenderLevel(const CVector3 &vPos)
 {
+	//return;
 
 	tBSPLeaf* pLeaf;
 	int faceCount;
@@ -1532,8 +1600,13 @@ void CQuake3BSP::RenderLevel(const CVector3 &vPos)
 	{
 		pLeaf = &m_pLeafs[i];
         
+		//LOGI("IsClusterVisible(%d, %d) = %d", cluster, (int)pLeaf->cluster, IsClusterVisible(cluster, pLeaf->cluster));
+
 		if(!IsClusterVisible(cluster, pLeaf->cluster))
 			continue;
+
+		//if(rand()%4 == 1)
+		//	continue;
         
 		if(!g_frustum.BoxInFrustum((float)pLeaf->min.x, (float)pLeaf->min.y, (float)pLeaf->min.z,
 		  	 				       (float)pLeaf->max.x, (float)pLeaf->max.y, (float)pLeaf->max.z))
@@ -1573,6 +1646,8 @@ void CQuake3BSP::RenderLevel(const CVector3 &vPos)
 
 void CQuake3BSP::SortFaces(const CVector3 &vPos)
 {
+	//return;
+
 	tBSPLeaf* pLeaf;
 	int faceCount;
 	int faceIndex;
@@ -1706,6 +1781,11 @@ void CQuake3BSP::Destroy(bool delTex)
     glDeleteBuffers(m_numOfFaces, m_pIndexBuffers);
     m_numOfFaces = 0;
     
+	//if(m_testBuf)
+	{
+	//	delete [] m_testBuf;	m_testBuf = NULL;
+	}
+
     if(m_pVertexBuffers)
     {
         delete [] m_pVertexBuffers;     m_pVertexBuffers = NULL;

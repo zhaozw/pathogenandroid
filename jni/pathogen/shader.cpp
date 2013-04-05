@@ -223,7 +223,7 @@ bool LoadShader(unsigned int* program, unsigned int* slots, const char* vert, co
         glDeleteShader(fragShader);
     }
 
-	LOGI("%s %s %ud", vert, frag, (*program));
+	LOGI("%s %s %u", vert, frag, (*program));
     
     return true;
 }
