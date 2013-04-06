@@ -126,9 +126,10 @@ void CWidget::Text(const char* n, const char* t, int f, float left, float top)
 
 void CWidget::Text_fillvbo()
 {
+	//return;
 	delvbo();
 
-	ShadowedText_fillvbo(font, tpos[0], tpos[1], text.c_str(), &textvbo, &textshadvbo);
+	ShadowedText_fillvbo(font, pos[0], pos[1], text.c_str(), &textvbo, &textshadvbo);
 	texlen = strlen(text.c_str());
 }
 
@@ -160,6 +161,7 @@ void CWidget::TextBox(const char* n, const char* t, int f, float left, float top
 
 void CWidget::TextBox_fillvbo()
 {
+	//return;
 	delvbo();
 
 	BoxShadText_fillvbo(font, pos[0], pos[1], pos[2]-pos[0], pos[3]-pos[1], text.c_str(), &textvbo, &textshadvbo);
@@ -200,6 +202,7 @@ void CWidget::Image(unsigned int t, float left, float top, float right, float bo
 
 void CWidget::Image_fillvbo()
 {
+	//return;
 	delvbo();
 	
     float vertices[] =
@@ -275,6 +278,7 @@ void CWidget::Button(const char* filepath, const char* t, int f, float left, flo
 
 void CWidget::Button_fillvbo()
 {
+	//return;
 	delvbo();
 	
     float vertices[] =
@@ -333,6 +337,7 @@ void CWidget::DPad(const char* n, const char* texf, float left, float top, float
 
 void CWidget::DPad_fillvbo()
 {
+	//return;
 	delvbo();
 	
     float vertices[] =
@@ -1020,6 +1025,9 @@ void RedoGUI()
     
 	//AddView("quit");	//Ask the player if they want to quit the multiplayer game
 	// TO DO
+
+	//Chat("test");
+	//LOGE("size of long = %d", (int)sizeof(long));
 
 	g_GUI.fillvbo();
 

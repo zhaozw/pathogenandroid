@@ -453,7 +453,7 @@ void ModelMinMax(int model, CVector3* vMin, CVector3* vMax)
 {
 	(*vMin) = CVector3(0, 0, 0);
 	(*vMax) = CVector3(0, 0, 0);
-	return;
+	//return;
     
 	CModel* m = &g_model[model];
 	CVertexArray* va;

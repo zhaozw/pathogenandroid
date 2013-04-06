@@ -140,6 +140,8 @@ void SortBillboards()
 
 void MakeBillbVBO()
 {
+	//return;
+
 	CBillboard* billb;
     for(int i=0; i<BILLBOARDS; i++)
     {
@@ -184,6 +186,8 @@ void DelBillbVBO()
 
 void DrawBillboards()
 {
+	//return;
+
     CBillboard* billb;
     CBillboardType* t;
     float size;

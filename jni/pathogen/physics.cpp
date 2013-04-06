@@ -6,6 +6,8 @@
 #include "player.h"
 #include "zombie.h"
 #include "model.h"
+#include "menu.h"
+#include "gui.h"
 
 CVector3 EMin(CEntity* e, CEntityType* t)
 {

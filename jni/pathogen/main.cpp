@@ -58,8 +58,8 @@ AAssetManager* g_amgr;
 vector<CTouch> g_touch;
 bool g_inited = false;
 //long g_tick = 0;
-unsigned int g_img = 0;
-unsigned int g_VBO = 0;
+//unsigned int g_img = 0;
+//unsigned int g_VBO = 0;
 
 void DummyVBO(unsigned int* vbo, GLenum usage)
 {
@@ -82,11 +82,11 @@ void DummyVBO(unsigned int* vbo, GLenum usage)
     glBindBuffer(GL_ARRAY_BUFFER, *vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, usage);
 }
-
+/*
 void DeleteVBO()
 {
 	glDeleteBuffers(1, &g_VBO);
-}
+}*/
 
 void DrawVBO()
 {
@@ -164,7 +164,7 @@ void Deinit()
 	DelBillbVBO();
 	DelDecalVBO();
 
-	DeleteVBO();
+	//DeleteVBO();
     //ClearPackets();
     //g_map.Destroy(true);
 
@@ -215,7 +215,7 @@ void Reload()
 	LOGI("Load fonts...");
     LoadFonts();
 	
-	g_img = CreateTexture("models/human2.jpg");
+	//g_img = CreateTexture("models/human2.jpg");
 	//MakeVBO();
 
 	LOGI("Entities();....");
@@ -580,9 +580,9 @@ void Draw()
 #ifndef USE_OMNI
 	//LOGI("start RenderLevel()");
         glUseProgram(g_program[MAP]);
-        //glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
-        //glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
-        //glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
+        glUniformMatrix4fv(g_slots[MAP][PROJECTION], 1, 0, projection.getMatrix());
+        glUniformMatrix4fv(g_slots[MAP][MODELMAT], 1, 0, modelmat.getMatrix());
+        glUniformMatrix4fv(g_slots[MAP][VIEWMAT], 1, 0, viewmat.getMatrix());
         glUniform4f(g_slots[MAP][COLOR], color[0], color[1], color[2], color[3]);
         glEnableVertexAttribArray(g_slots[MAP][POSITION]);
         glEnableVertexAttribArray(g_slots[MAP][TEXCOORD]);

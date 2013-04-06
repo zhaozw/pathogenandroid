@@ -530,6 +530,7 @@ void Movement(float dx, float dy)
 
 void RedoHP()
 {
+	//return;
     CPlayer* p = &g_player[g_localP];
     
     char msg[128];
@@ -540,6 +541,7 @@ void RedoHP()
 
 void RedoStamina()
 {
+	//return;
 	CPlayer* p = &g_player[g_localP];
 	char msg[128];
 	sprintf(msg, "Stamina: %1.2f / %1.0f", p->stamina, p->MaxStamina());
@@ -550,6 +552,7 @@ void RedoStamina()
 
 void RedoScore()
 {
+	//return;
 	CPlayer* p = &g_player[g_localP];
 	char msg[128];
 	sprintf(msg, "Score: %d", g_score);
@@ -559,6 +562,7 @@ void RedoScore()
 
 void RedoAmmo()
 {
+	//return;
 	CPlayer* p = &g_player[g_localP];
     
     CloseView("shoot");

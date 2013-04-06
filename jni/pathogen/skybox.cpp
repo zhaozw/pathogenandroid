@@ -176,6 +176,8 @@ void DelSky()
 
 void MakeSky()
 {
+	//return;
+
 	float va[6 * 6 * 5];
 
     Quad_fillvbo(&(va[0*6*5]),	//g_right,
@@ -221,6 +223,8 @@ void MakeSky()
 
 void DrawSkyBox(CVector3 pos)
 {
+	//return;
+
 	//LOGI("skybox 0");
     glDisable(GL_DEPTH_TEST);
     

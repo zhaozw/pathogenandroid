@@ -8,7 +8,6 @@
 
 CCamera* g_camera;
 
-
 // this version of SIGN3 shows some numerical instability, and is improved
 // by using the uncommented macro that follows, and a different test with it
 #ifdef OLD_TEST

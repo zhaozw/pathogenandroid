@@ -49,6 +49,7 @@ void UpdateDecals()
 
 void MakeDecalVBO()
 {
+	//return;
 	CDecal* d;
 	for(int i=0; i<DECALS; i++)
     {
@@ -74,6 +75,7 @@ void DelDecalVBO()
 
 void DrawDecals()
 {
+	//return;
 	CDecal* d;
 	CDecalType *t;
     

@@ -151,7 +151,7 @@ extern vector<CTouch> g_touch;
 
 //extern bool g_inited;
 //extern unsigned int g_img;
-extern unsigned int g_VBO;
+//extern unsigned int g_VBO;
 
 void DummyVBO(unsigned int* vbo, GLenum usage = GL_DYNAMIC_DRAW);
 void checkGlError(const char* op);

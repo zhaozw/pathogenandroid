@@ -760,7 +760,6 @@ void Entities()
 	Entity(ITEM, KNIFE, "knife", "", CVector3(1, 1, 1), CVector3(0, 0, 0), CVector3(-4.2f, 0, -4.2f), CVector3(4.2f, 2.3f, 4.2f), 15, 200, 100, crouch, 1.0f);
 	Entity(ITEM, WTALKIE, "wtalkie", "", CVector3(1, 1, 1), CVector3(0, 0, 0), CVector3(-4.2f, 0, -4.2f), CVector3(4.2f, 2.3f, 4.2f), 15, 200, 100, crouch, 1.0f);
     
-    
 	Entity(NOCAT, -1, "washmchn", "", CVector3(1, 1, 1), CVector3(0, 0, 0), CVector3(-17.24f, -17.24f, -17.24f), CVector3(17.24f, 17.24f, 17.24f), 15, 200, 100, crouch, 1.0f);
 	Entity(NOCAT, -1, "dryer", "", CVector3(1, 1, 1), CVector3(0, 0, 0), CVector3(-17.24f, -17.24f, -17.24f), CVector3(17.24f, 17.24f, 17.24f),  15, 200, 100, crouch, 1.0f);
 }
