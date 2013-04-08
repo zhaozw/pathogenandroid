@@ -401,6 +401,8 @@ void CModel::Free()
         delete [] frames;
         frames = NULL;
     }
+
+	on = false;
 }
 
 int NewModel()

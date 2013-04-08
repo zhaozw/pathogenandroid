@@ -243,7 +243,6 @@ void UnloadMap()
 void GoToMap(int funcmap)
 {
 	CFuncMap* f = &g_funcmap[funcmap];
-	LOGI("unloading map");
 	//g_log<<"unloading map"<<endl;
 	//g_log.flush();
 	//g_log<<"loading bsp "<<f->map<<endl;
@@ -253,7 +252,10 @@ void GoToMap(int funcmap)
     
     if(strcasestr(map, "testmap"))
         return;
+
+	LoadingScreen();
     
+	LOGI("unloading map");
 	UnloadMap();
 	
 	LOGI("loading bsp %d", f->map);

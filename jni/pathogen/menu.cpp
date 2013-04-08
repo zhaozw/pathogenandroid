@@ -18,6 +18,7 @@
 #include "main.h"
 
 bool g_showdialog = true;
+int g_stage = 0;
 
 void SkipLogo()
 {
@@ -31,22 +32,22 @@ void SkipLogo()
 
 void UpdateLogo()
 {
-	static int stage = 0;
+	//static int stage = 0;
 
-	if(stage < 60)
+	if(g_stage < 60)
 	{
-		float a = (float)stage / 60.0f;
+		float a = (float)g_stage / 60.0f;
 		g_GUI.getview("logo")->widget[0].rgba[3] = a;
 	}
-	else if(stage < 120)
+	else if(g_stage < 120)
 	{
-		float a = 1.0f - (float)(stage-60) / 60.0f;
+		float a = 1.0f - (float)(g_stage-60) / 60.0f;
 		g_GUI.getview("logo")->widget[0].rgba[3] = a;
 	}
 	else
         SkipLogo();
     
-	stage++;
+	g_stage++;
 }
 
 //enum  TAG{USERNAME, PASSWORD, REGUSERNAME, REGPASSWORD, REGPASSWORD2};
@@ -76,6 +77,8 @@ void Click_GoToCredits()
 
 void Click_GoToStory()
 {
+	LoadingScreen();
+
     //OpenSoleView("story");
     
     //g_map.LoadBSP(@"map1a");

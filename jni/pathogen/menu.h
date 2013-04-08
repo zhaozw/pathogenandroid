@@ -3,6 +3,7 @@
 enum  TAG{USERNAME, PASSWORD, REGUSERNAME, REGEMAIL, REGPASSWORD, REGPASSWORD2};
 
 extern bool g_showdialog;
+extern int g_stage;
 
 void UpdateLogo();
 

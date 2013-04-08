@@ -1001,6 +1001,8 @@ void FreeTextures()
             continue;
         
         glDeleteTextures(1, &g_texture[i].tex);
+
+		g_texture[i].on = false;
     }
 }
 

@@ -42,8 +42,9 @@ float g_fov = 90;
 float g_scale;
 
 double g_FrameInterval;
-GAMEMODE g_mode = LOGO;
+GAMEMODE g_mode = LOADING;
 
+struct engine* g_engine;
 float g_reddening = 0;
 bool g_arrest = false;
 int g_viewmode = FIRSTPERSON;
@@ -158,6 +159,8 @@ long long GetTickCount2()
 
 void Deinit()
 {
+	g_GUI.view.clear();
+
 	DeinitSound();
 
 	g_GUI.delvbo();
@@ -194,8 +197,26 @@ void Deinit()
 	g_entityType.clear();
 }
 
-void Reload()
+void LoadingScreen()
 {
+	GAMEMODE prevmode = g_mode;
+	OpenSoleView("loading");
+	g_mode = LOADING;
+
+	Draw();
+    eglSwapBuffers(g_engine->display, g_engine->surface);
+	Draw();
+    eglSwapBuffers(g_engine->display, g_engine->surface);
+
+	g_mode = prevmode;
+}
+
+void Reload(struct engine* engine)
+{
+	g_engine = engine;
+	g_quit = false;
+	Deinit();
+
 	srand(GetTickCount());
     
 	glClearColor(0, 0, 0, 1);
@@ -216,6 +237,11 @@ void Reload()
 
 	LOGI("Load fonts...");
     LoadFonts();
+
+	LOGI("RedoGUI();....");
+	RedoGUI();
+
+	LoadingScreen();
 
 	LOGI("Init sound...");
 	InitSound();
@@ -269,6 +295,10 @@ void Reload()
 	g_inited = true;
 
 	//Click_GoToStory();
+
+	g_stage = 0;
+	OpenSoleView("logo");
+	g_mode = LOGO;
 }
 
 bool Resize(int w, int h) 
@@ -943,9 +973,6 @@ static int engine_init_display(struct engine* engine)
 	glDisable(GL_CULL_FACE);
 	
 	g_amgr = engine->app->activity->assetManager;
-	Reload();
-
-	engine->animating = 1;
 
     return 0;
 }
@@ -1042,6 +1069,7 @@ static void engine_draw_frame(struct engine* engine)
  */
 static void engine_term_display(struct engine* engine) 
 {
+	g_quit = true;
 	Deinit();
 
     if (engine->display != EGL_NO_DISPLAY) 
@@ -1203,6 +1231,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
             engine->app->savedState = malloc(sizeof(struct saved_state));
             *((struct saved_state*)engine->app->savedState) = engine->state;
             engine->app->savedStateSize = sizeof(struct saved_state);
+			LOGI("save state");
             break;
         case APP_CMD_INIT_WINDOW:
 			// http://stackoverflow.com/questions/5352910/how-to-use-native-activity-can-it-be-combined-with-traditional-activity
@@ -1212,11 +1241,12 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
                 engine_init_display(engine);
                 //engine_draw_frame(engine);
             }
+			LOGI("init win");
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
             engine_term_display(engine);
-			g_quit = true;
+			LOGI("term win");
             break;
         case APP_CMD_GAINED_FOCUS:
 			
@@ -1227,7 +1257,11 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
                 // We'd like to get 60 events per second (in us).
                 ASensorEventQueue_setEventRate(engine->sensorEventQueue, engine->accelerometerSensor, (1000L/30)*1000);
             }
-			
+
+			Reload(engine);
+			engine->animating = 1;
+
+			LOGI("gained focus");
             break;
         case APP_CMD_LOST_FOCUS:
 			
@@ -1241,6 +1275,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
             engine->animating = 0;
 			
             engine_draw_frame(engine);
+			LOGI("lost focus");
             break;
     }
 }
@@ -1312,6 +1347,7 @@ void android_main(struct android_app* state)
 			{
                 engine_term_display(&engine);
                 return;
+				//break;
             }
         }
 
@@ -1334,5 +1370,5 @@ void android_main(struct android_app* state)
         }
     }
 
-	ANativeActivity_finish(state->activity);
+	//ANativeActivity_finish(state->activity);
 }

@@ -119,6 +119,7 @@ public:
 	}
 };
 
+extern struct engine* g_engine;
 extern float g_width;
 extern float g_height;
 extern float g_near;
@@ -129,7 +130,7 @@ extern bool g_quit;
 
 extern double g_FrameInterval;
 
-enum GAMEMODE{LOGO, INTRO, MENU, CONNECTING, PLAY};
+enum GAMEMODE{LOADING, LOGO, INTRO, MENU, CONNECTING, PLAY};
 extern enum GAMEMODE g_mode;
 
 extern float g_reddening;
@@ -159,5 +160,6 @@ unsigned int timeGetTime();
 unsigned int GetTickCount();
 void Update();
 void Draw();
+void LoadingScreen();
 
 #endif
