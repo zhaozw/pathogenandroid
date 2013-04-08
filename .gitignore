@@ -56,3 +56,5 @@ bin/classes/
 *.apk
 *.ap_
 *.class
+*.a
+*.o

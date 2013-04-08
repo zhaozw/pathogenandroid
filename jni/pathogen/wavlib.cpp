@@ -281,12 +281,12 @@ static int wav_parse_header(WAV handle, WAVError *err)
     /* skip 'data' tag (4 bytes) */
     handle->len = wav_get_bits32(hdr + 40);
 
-	LOGI("handle->len = %d", (int)handle->len);
-	LOGI("handle->channels = %d", (int)handle->channels);
-	LOGI("handle->rate = %d", (int)handle->rate);
-	LOGI("handle->bitrate = %d", (int)handle->bitrate);
-	LOGI("handle->block_align = %d", (int)handle->block_align);
-	LOGI("handle->bits = %d", (int)handle->bits);
+	//LOGI("handle->len = %d", (int)handle->len);
+	//LOGI("handle->channels = %d", (int)handle->channels);
+	//LOGI("handle->rate = %d", (int)handle->rate);
+	//LOGI("handle->bitrate = %d", (int)handle->bitrate);
+	//LOGI("handle->block_align = %d", (int)handle->block_align);
+	//LOGI("handle->bits = %d", (int)handle->bits);
 
     return 0;
 
