@@ -251,7 +251,7 @@ void GoToMap(int funcmap)
     char map[32];
     StripPathExtension(f->map, map);
     
-    if(strstr(map, "testmap"))
+    if(strcasestr(map, "testmap"))
         return;
     
 	UnloadMap();

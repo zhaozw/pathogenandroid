@@ -202,9 +202,14 @@ obj/local/armeabi/objs/ndk1/billboard.o: jni/pathogen/billboard.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_sstream.c \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/iostream \
  jni/pathogen/animations.h jni/pathogen/player.h jni/pathogen/item.h \
- jni/pathogen/sound.h jni/pathogen/entity.h jni/pathogen/particle.h \
- jni/pathogen/menu.h jni/pathogen/quake3bsp.h jni/pathogen/logger.h \
- jni/pathogen/shader.h \
+ jni/pathogen/sound.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Platform.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Android.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidMetadata.h \
+ jni/pathogen/entity.h jni/pathogen/particle.h jni/pathogen/menu.h \
+ jni/pathogen/quake3bsp.h jni/pathogen/logger.h jni/pathogen/shader.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/gl.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/GLES/glplatform.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/fstream \
@@ -631,6 +636,16 @@ jni/pathogen/player.h:
 jni/pathogen/item.h:
 
 jni/pathogen/sound.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Platform.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Android.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidMetadata.h:
 
 jni/pathogen/entity.h:
 

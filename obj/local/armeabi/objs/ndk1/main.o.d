@@ -209,6 +209,11 @@ obj/local/armeabi/objs/ndk1/main.o: jni/pathogen/main.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_sstream.c \
  jni/pathogen/font.h jni/pathogen/script.h jni/pathogen/3dmath.h \
  jni/pathogen/quake3bsp.h jni/pathogen/entity.h jni/pathogen/sound.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Platform.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Android.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidMetadata.h \
  jni/pathogen/player.h jni/pathogen/item.h jni/pathogen/gui.h \
  jni/pathogen/physics.h jni/pathogen/frustum.h jni/pathogen/3DMath.h \
  jni/pathogen/model.h jni/pathogen/menu.h jni/pathogen/image.h \
@@ -644,6 +649,16 @@ jni/pathogen/quake3bsp.h:
 jni/pathogen/entity.h:
 
 jni/pathogen/sound.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Platform.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Android.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidMetadata.h:
 
 jni/pathogen/player.h:
 

@@ -194,9 +194,14 @@ obj/local/armeabi/objs/ndk1/physics.o: jni/pathogen/physics.cpp \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_num_get.h \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_num_get.c \
  C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_io.c \
- jni/pathogen/sound.h jni/pathogen/player.h jni/pathogen/item.h \
- jni/pathogen/zombie.h jni/pathogen/model.h jni/pathogen/menu.h \
- jni/pathogen/gui.h
+ jni/pathogen/sound.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Platform.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Android.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h \
+ C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidMetadata.h \
+ jni/pathogen/player.h jni/pathogen/item.h jni/pathogen/zombie.h \
+ jni/pathogen/model.h jni/pathogen/menu.h jni/pathogen/gui.h
 
 jni/pathogen/physics.h:
 
@@ -595,6 +600,16 @@ C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_n
 C:/Users/polyfrag/Desktop/android-ndk-r8e/sources/cxx-stl/stlport/stlport/stl/_string_io.c:
 
 jni/pathogen/sound.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Platform.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_Android.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h:
+
+C:/Users/polyfrag/Desktop/android-ndk-r8e/platforms/android-14/arch-arm/usr/include/SLES/OpenSLES_AndroidMetadata.h:
 
 jni/pathogen/player.h:
 

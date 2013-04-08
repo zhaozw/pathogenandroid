@@ -62,6 +62,8 @@ void CFile::close()
 
 void CFile::open(const char* filepath, int mode)
 {
+	//close();
+
 	mFile = AAssetManager_open(g_amgr, filepath, mode);
 }
 

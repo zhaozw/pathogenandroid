@@ -158,6 +158,8 @@ long long GetTickCount2()
 
 void Deinit()
 {
+	DeinitSound();
+
 	g_GUI.delvbo();
 
 	DelSky();
@@ -214,6 +216,9 @@ void Reload()
 
 	LOGI("Load fonts...");
     LoadFonts();
+
+	LOGI("Init sound...");
+	InitSound();
 	
 	//g_img = CreateTexture("models/human2.jpg");
 	//MakeVBO();
@@ -555,7 +560,7 @@ void Draw()
         //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         //glBindBuffer(GL_ARRAY_BUFFER, g_VBO);
         //g_map.RenderSky();
-        //DrawSkyBox(posvec2);
+        DrawSkyBox(posvec2);
 		//DrawSkyBox(CVector3(0,0,0));
         //checkGlError("DrawSkyBox");
         //glDisableVertexAttribArray(g_slots[SKY][POSITION]);

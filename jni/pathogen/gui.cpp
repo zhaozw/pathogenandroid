@@ -907,9 +907,9 @@ void RedoGUI()
 	AddImage("gui/bg", 0, 0, g_width, g_height);
 	//AddImage("logo", 0, 0, g_width, g_height);
 	//AddImage("3levelsgreen2%", 0, 0, g_width, g_height);
-    AddButton("gui/buttonbg", "Play Story", MSGOTHIC16, centerw-buttonw/2, 100.0f*g_scale, centerw+buttonw/2, 144.0f*g_scale, &Click_GoToStory, NULL, NULL);
+    AddButton("gui/buttonbg", "Play Story", MSGOTHIC16, centerw-buttonw/2, g_height/2 - 44*1.5f*g_scale, centerw+buttonw/2, g_height/2 - 44*0.5f*g_scale, &Click_GoToStory, NULL, NULL);
     //AddButton("gui/buttonbg", "Play Online", MSGOTHIC16, centerw-buttonw/2, 140.0f*g_scale, centerw+buttonw/2, 170.0f*g_scale, &Click_GoToOnline, NULL, NULL);
-    AddButton("gui/buttonbg", "Credits", MSGOTHIC16, centerw-buttonw/2, 180.0f*g_scale, centerw+buttonw/2, 224.0f*g_scale, &Click_GoToCredits, NULL, NULL);
+    AddButton("gui/buttonbg", "Credits", MSGOTHIC16, centerw-buttonw/2, g_height/2 + 44*0.5f*g_scale, centerw+buttonw/2, g_height/2 + 44*1.5f*g_scale, &Click_GoToCredits, NULL, NULL);
     
     AddView("online");
 	AddImage("gui/bg", 0, 0, g_width, g_height);
