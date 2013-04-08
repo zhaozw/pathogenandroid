@@ -61,3 +61,5 @@ bin/classes/
 *.zip
 *.rar
 *.tar
+*.o.d
+*.so

@@ -159,7 +159,7 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 	//LOGI("playercallb 1");
 
 	CSound* s = c->sound;
-
+/*
 	//LOGI("playercallb 2");
 
 	c->nextSize = min(SBC_AUDIO_OUT_BUFFER_SIZE, s->datalen - c->position);
@@ -179,7 +179,17 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
         // which for this code example would indicate a programming error
         //assert(SL_RESULT_SUCCESS == result);
         //(void)result;
+
+		if(result != SL_RESULT_SUCCESS)
+		{
+			LOGE("Error enqueueing %d bytes", c->nextSize);
+		}
     }
+	else*/
+	{
+        SLresult result;
+		result = (*(c->bqPlayerPlay))->SetPlayState(c->bqPlayerPlay, SL_PLAYSTATE_STOPPED);
+	}
 }
 
 // http://audioprograming.wordpress.com/2012/03/03/android-audio-streaming-with-opensl-es-and-the-ndk/
@@ -356,17 +366,34 @@ bool CSound::load(const char* filename)
 {
 	//LOGI("CSound::load(%s) 1", filename);
 
-	WAV wav = OpenWaveFile(filename);
+	StripPathExtension(filename, file);
+
+	char full[64];
+	sprintf(full, "sounds/%s.wav", file);
+
+	WAV wav = OpenWaveFile(full);
 
 	//LOGI("CSound::load(%s) 2", filename);
 	if(wav == 0)
+	{
+		LOGE("Error loading sound %s", filename);
 		return false;
+	}
 	//LOGI("CSound::load(%s) 3", filename);
 
 	// Calculate the buffer size
 	datalen = wav_get_channels(wav) * wav_get_rate(wav) * wav_get_bits(wav);
 	// Initialize buffer
 	data = new unsigned char[datalen];
+
+	if(datalen <= 0)
+	{
+		LOGE("sound datalen <= 0");
+		LOGE("wav_get_channels = %d", (int)wav_get_channels(wav));
+		LOGE("wav_get_rate = %d", (int)wav_get_rate(wav));
+		LOGE("wav_get_bits = %d", (int)wav_get_bits(wav));
+	}
+
 	if(data == 0)
 	{
 		return false;
@@ -448,6 +475,9 @@ bool CSound::load(const char* filename)
 
 void CSound::channelplay(CChannel* c)
 {
+	if(!data)
+		return;
+
 	c->Destroy();
 
 	// PCM data source format
@@ -457,8 +487,7 @@ void CSound::channelplay(CChannel* c)
 	rate, // samples per second in millihertz
 	bits, // bits per sample
 	bits, // container size
-	SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
-	//SL_SPEAKER_FRONT_CENTER, // channel mask
+	channels > 1 ? (SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT) : (SL_SPEAKER_FRONT_CENTER), // channel mask
 	SL_BYTEORDER_LITTLEENDIAN // endianness
 	};
 
@@ -520,14 +549,22 @@ void CSound::channelplay(CChannel* c)
 
 	c->sound = this;
 	c->nextBuffer = data;
-	c->nextSize = min(datalen, SBC_AUDIO_OUT_BUFFER_SIZE);
-	c->position = 0;
+	c->nextSize = datalen;	//min(datalen, SBC_AUDIO_OUT_BUFFER_SIZE);
+	c->position = datalen;	//c->nextSize;
 
 	//LOGI("setplaystate");
 	result = (*(c->bqPlayerPlay))->SetPlayState(c->bqPlayerPlay, SL_PLAYSTATE_PLAYING);
 
 	//LOGI("enqueue");
 	result = (*(c->bqBufferQueue))->Enqueue(c->bqBufferQueue, c->nextBuffer, c->nextSize);
+	
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("Error enqueueing %d bytes", c->nextSize);
+
+		LOGE("datalen = %d", datalen);
+		LOGE("sound = %s", file);
+	}
 }
 
 CSound::CSound(const CSound& copy)
@@ -623,7 +660,7 @@ void CSound::Play()
 			LOGE("SetPosition(0) error %s", file);
 		}*/
 	}
-
+/*
 	int farthest = -1;
 	int farthestID = -1;
 	
@@ -640,9 +677,10 @@ void CSound::Play()
 
 	if(farthestID < 0)
 		return;
-
+*/
 	// Player using this player
-	c = &g_channel[farthestID];
+	//c = &g_channel[farthestID];
+	c = &g_channel[rand()%CHANNELS];
 	//.. set up buffer
 	channelplay(c);
     //result = (*c->bqPlayerBufferQueue)->Enqueue(c->bqPlayerBufferQueue, c->nextBuffer, c->nextSize);
@@ -674,7 +712,7 @@ void LoadSounds()
 	g_zdeathSnd.push_back(CSound("sounds/creature_snarl1.wav"));
 	g_zgraspSnd.push_back(CSound("sounds/creature_snarl2.wav"));
 	//g_zpainSnd.push_back(CSound("sounds\\zpain.wav"));
-    g_doorKnock.load("sounds/doorknock");
+    g_doorKnock.load("sounds/doorknock.wav");
     //g_doorKnock.load("sounds/door-1-open.wav");
-    g_staticSound.load("sounds/static");
+    g_staticSound.load("sounds/static.wav");
 }
