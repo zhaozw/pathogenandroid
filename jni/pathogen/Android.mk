@@ -3,7 +3,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := ndk1
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../libzip/ $(LOCAL_PATH)/../libpng/ $(LOCAL_PATH)/../jpeg8d/
 # $(LOCAL_PATH)/../avilib/
-LOCAL_STATIC_LIBRARIES := libzip libpng cocos_jpeg_static android_native_app_glue libavcodec libavformat libavutil libc
+LOCAL_STATIC_LIBRARIES := libzip libpng cocos_jpeg_static android_native_app_glue
 # wavlib_static 
 # libzip 
 # libGLESv1

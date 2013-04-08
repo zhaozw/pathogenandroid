@@ -58,3 +58,6 @@ bin/classes/
 *.class
 *.a
 *.o
+*.zip
+*.rar
+*.tar
