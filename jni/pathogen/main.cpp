@@ -249,6 +249,9 @@ void Reload(struct engine* engine)
 
 	LOGI("Init sound...");
 	InitSound();
+
+	LOGI("LoadSounds();....");
+	LoadSounds();
 	
 	//g_img = CreateTexture("models/human2.jpg");
 	//MakeVBO();
@@ -268,8 +271,8 @@ void Reload(struct engine* engine)
 	LOGI("Decals();....");
 	Decals();
 	
-	LOGI("RedoGUI();....");
-	RedoGUI();
+	//LOGI("RedoGUI();....");
+	//RedoGUI();
 
 	//MakeVBO(&g_GUI.view[0].widget[0].vbo);
 	//g_GUI.view[0].widget[0].pos[0] = 10;
@@ -283,9 +286,7 @@ void Reload(struct engine* engine)
 	
 	LOGI("Keymap();....");
 	Keymap();
-	
-	LOGI("LoadSounds();....");
-	LoadSounds();
+
 	//InitNet();
 	
 	LOGI("ScriptFuncs();....");
@@ -1257,9 +1258,9 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
             // When our app gains focus, we start monitoring the accelerometer.
             if (engine->accelerometerSensor != NULL) 
 			{
-                ASensorEventQueue_enableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
+                //ASensorEventQueue_enableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
                 // We'd like to get 60 events per second (in us).
-                ASensorEventQueue_setEventRate(engine->sensorEventQueue, engine->accelerometerSensor, (1000L/30)*1000);
+                //ASensorEventQueue_setEventRate(engine->sensorEventQueue, engine->accelerometerSensor, (1000L/30)*1000);
             }
 
 			Reload(engine);
@@ -1272,8 +1273,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
             // When our app loses focus, we stop monitoring the accelerometer.
             // This is to avoid consuming battery while not being used.
             if (engine->accelerometerSensor != NULL) {
-                ASensorEventQueue_disableSensor(engine->sensorEventQueue,
-                        engine->accelerometerSensor);
+                //ASensorEventQueue_disableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
             }
             // Also stop animating.
             engine->animating = 0;
@@ -1306,9 +1306,9 @@ void android_main(struct android_app* state)
     engine.app = state;
 
     // Prepare to monitor accelerometer
-    engine.sensorManager = ASensorManager_getInstance();
-    engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-    engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
+    //engine.sensorManager = ASensorManager_getInstance();
+    //engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+    //engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
 
     if (state->savedState != NULL) 
 	{
@@ -1319,7 +1319,8 @@ void android_main(struct android_app* state)
 	g_amgr = state->activity->assetManager;
 
     // loop waiting for stuff to do.
-    while (!g_quit) 
+    //while (!g_quit) 
+	while(true)
 	{
         // Read all pending events.
         int ident;
@@ -1330,6 +1331,7 @@ void android_main(struct android_app* state)
         // If animating, we loop until all events are read, then continue
         // to draw the next frame of animation.
         while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0) 
+        //while ((ident=ALooper_pollAll(0, NULL, &events, (void**)&source)) >= 0) 
 		{
             // Process this event.
             if (source != NULL) 
@@ -1339,9 +1341,11 @@ void android_main(struct android_app* state)
 
             // If a sensor has data, process it now.
             if (ident == LOOPER_ID_USER) {
-                if (engine.accelerometerSensor != NULL) {
+                if (engine.accelerometerSensor != NULL) 
+				{
                     ASensorEvent event;
-                    while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) {
+                    //while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) 
+					{
                         //LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
                     }
                 }
@@ -1351,6 +1355,7 @@ void android_main(struct android_app* state)
             if (state->destroyRequested != 0) 
 			{
                 engine_term_display(&engine);
+				Deinit();
                 return;
 				//break;
             }
@@ -1375,5 +1380,5 @@ void android_main(struct android_app* state)
         }
     }
 
-	ANativeActivity_finish(state->activity);
+	//ANativeActivity_finish(state->activity);
 }

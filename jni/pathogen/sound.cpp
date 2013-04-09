@@ -715,4 +715,6 @@ void LoadSounds()
     g_doorKnock.load("sounds/doorknock.wav");
     //g_doorKnock.load("sounds/door-1-open.wav");
     g_staticSound.load("sounds/static.wav");
+
+	g_doorKnock.Play();
 }
