@@ -10,6 +10,7 @@
 
 CDecalType g_decalT[DECAL_TYPES];
 CDecal g_decal[DECALS];
+unsigned int g_decalVBO = 0;
 
 void Decal(int type, const char* tex, float decay, float size)
 {
@@ -49,17 +50,24 @@ void UpdateDecals()
 
 void MakeDecalVBO()
 {
+	float vertices[DECALS*6*5];
+	glGenBuffers(1, &g_decalVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, g_decalVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*DECALS*6*5, vertices, GL_DYNAMIC_DRAW);
 	//return;
+	/*
 	CDecal* d;
 	for(int i=0; i<DECALS; i++)
     {
         d = &g_decal[i];
 		DummyVBO(&d->vbo);
-	}
+	}*/
 }
 
 void DelDecalVBO()
 {
+	glDeleteBuffers(1, &g_decalVBO);
+	/*
 	CDecal* d;
 	for(int i=0; i<DECALS; i++)
     {
@@ -70,7 +78,7 @@ void DelDecalVBO()
 			glDeleteBuffers(1, &d->vbo);
 			d->vbo = 0;
 		}
-	}
+	}*/
 }
 
 void DrawDecals()
@@ -90,6 +98,9 @@ void DrawDecals()
     float colorf[] = {1, 1, 1, 1};
 	CVector3 colorv;
     
+	int vbovert;
+	glBindBuffer(GL_ARRAY_BUFFER, g_decalVBO);
+
 	for(int i=0; i<DECALS; i++)
     {
         d = &g_decal[i];
@@ -127,9 +138,12 @@ void DrawDecals()
             d->d.x, d->d.y, d->d.z,          0, 0,
             d->a.x, d->a.y, d->a.z,          1, 0
         };
-        
-		glBindBuffer(GL_ARRAY_BUFFER, d->vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_DYNAMIC_DRAW);
+		
+		vbovert = i * 6;
+		//glBindBuffer(GL_ARRAY_BUFFER, d->vbo);
+        //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_DYNAMIC_DRAW);
+
+		glBufferSubData(GL_ARRAY_BUFFER, vbovert * 5 * sizeof(float), 6 * 5 * sizeof(float), vertices);
 
 #ifndef USE_OMNI
         //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
@@ -141,7 +155,8 @@ void DrawDecals()
         glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
 #endif
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, vbovert, 6);
     }
     
 #ifndef USE_OMNI

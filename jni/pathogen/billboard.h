@@ -24,13 +24,13 @@ public:
     float dist;
     int particle;
 	bool nolightvol;
-	unsigned int vbo;
+	//unsigned int vbo;
     
     CBillboard()
     {
         on = false;
         particle = -1;
-		vbo = 0;
+		//vbo = 0;
     }
 };
 

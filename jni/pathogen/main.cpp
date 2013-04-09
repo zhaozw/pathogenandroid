@@ -194,13 +194,16 @@ void Deinit()
         g_program[i] = 0;
     }
 
+	g_billbT.clear();
 	g_entityType.clear();
+	g_zdeathSnd.clear();
+	g_zgraspSnd.clear();
 }
 
 void LoadingScreen()
 {
 	GAMEMODE prevmode = g_mode;
-	OpenSoleView("loading");
+	OpenAnotherView("loading");
 	g_mode = LOADING;
 
 	Draw();
@@ -208,6 +211,7 @@ void LoadingScreen()
 	Draw();
     eglSwapBuffers(g_engine->display, g_engine->surface);
 
+	CloseView("loading");
 	g_mode = prevmode;
 }
 
@@ -227,9 +231,9 @@ void Reload(struct engine* engine)
     //glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK);
-    //glFrontFace(GL_CW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
 	glDisable(GL_CULL_FACE);
     
 	LOGI("Load shaders...");
@@ -1274,7 +1278,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
             // Also stop animating.
             engine->animating = 0;
 			
-            engine_draw_frame(engine);
+            //engine_draw_frame(engine);
+			Deinit();
 			LOGI("lost focus");
             break;
     }
@@ -1370,5 +1375,5 @@ void android_main(struct android_app* state)
         }
     }
 
-	//ANativeActivity_finish(state->activity);
+	ANativeActivity_finish(state->activity);
 }

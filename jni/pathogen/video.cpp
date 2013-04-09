@@ -7,6 +7,9 @@
 // http://stackoverflow.com/questions/4725773/ffmpeg-on-android/4820282#4820282
 // http://stackoverflow.com/questions/5000385/playing-audio-with-ffmpeg
 
+// http://stackoverflow.com/questions/3315966/opengl-in-android-for-video-display
+// http://stackoverflow.com/questions/8867616/android-ffmpeg-opengl-es-render-movie
+
 void PlayIntro()
 {
     g_mode = INTRO;

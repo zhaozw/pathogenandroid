@@ -198,6 +198,8 @@ void FreeEntities()
 	{
 		e = &g_entity[i];
 		e->on = false;
+		e->frame[0] = 0;
+		e->frame[1] = 0;
 	}
 }
 

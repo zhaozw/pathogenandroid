@@ -20,11 +20,11 @@ public:
 	CVector3 a, b, c, d;
 	CVector3 lpos;
 	float life;
-	unsigned int vbo;
+	//unsigned int vbo;
 
 	CDecal()
 	{
-		vbo = 0;
+		//vbo = 0;
 	}
 };
 

@@ -52,6 +52,7 @@ void DoScriptFunc(int script);
 void CheckFuncs();
 void UnloadMap();
 void GoToMap(int funcmap);
+void NoMove();
 
 void Script0();
 void Script0a();

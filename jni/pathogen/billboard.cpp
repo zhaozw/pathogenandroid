@@ -18,6 +18,7 @@
 vector<CBillboardType> g_billbT;
 CBillboard g_billb[BILLBOARDS];
 unsigned int g_muzzle[4];
+unsigned int g_billbVBO = 0;
 
 void Effects()
 {
@@ -142,13 +143,18 @@ void MakeBillbVBO()
 {
 	//return;
 
+	float vertices[BILLBOARDS*6*5];
+	glGenBuffers(1, &g_billbVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, g_billbVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*BILLBOARDS*6*5, vertices, GL_DYNAMIC_DRAW);
+	/*
 	CBillboard* billb;
     for(int i=0; i<BILLBOARDS; i++)
     {
         billb = &g_billb[i];
 		DummyVBO(&billb->vbo);
 	}
-	
+	*/
 	CEntity* e;
 	for(int i=0; i<ENTITIES; i++)
 	{
@@ -159,6 +165,8 @@ void MakeBillbVBO()
 
 void DelBillbVBO()
 {
+	glDeleteTextures(1, &g_billbVBO);
+	/*
 	CBillboard* billb;
     for(int i=0; i<BILLBOARDS; i++)
     {
@@ -169,7 +177,7 @@ void DelBillbVBO()
 			glDeleteTextures(1, &billb->vbo);
 			billb->vbo = 0;
 		}
-	}
+	}*/
 
 	CEntity* e;
 	for(int i=0; i<ENTITIES; i++)
@@ -215,6 +223,10 @@ void DrawBillboards()
 	
 		//for(int i=0; i<30; i++)
 		//	EmitParticle(BLOODPART, g_camera->Position());
+
+	int vbovert;
+
+	glBindBuffer(GL_ARRAY_BUFFER, g_billbVBO);
 
     for(int i=0; i<BILLBOARDS; i++)
    // for(int i=0; i<1; i++)
@@ -287,8 +299,11 @@ void DrawBillboards()
             a.x, a.y, a.z,          1, 0
         };
 
-		glBindBuffer(GL_ARRAY_BUFFER, billb->vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_DYNAMIC_DRAW);
+		vbovert = i * 6;
+		//glBindBuffer(GL_ARRAY_BUFFER, billb->vbo);
+        //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_DYNAMIC_DRAW);
+
+		glBufferSubData(GL_ARRAY_BUFFER, vbovert * 5 * sizeof(float), 6 * 5 * sizeof(float), vertices);
         
 #ifndef USE_OMNI
         //glVertexAttribPointer(g_slots[BILLBOARD][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
@@ -300,7 +315,8 @@ void DrawBillboards()
         glVertexAttribPointer(g_slots[OMNI][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[3]);
 #endif
         
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, vbovert, 6);
 
 		//return;
     }

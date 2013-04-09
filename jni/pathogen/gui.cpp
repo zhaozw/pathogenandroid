@@ -894,11 +894,6 @@ void RedoGUI()
     float buttonw = 120*g_scale;
     float centerw = g_width/2;
     
-    
-	AddView("loading");
-	//AddImage("gui\\bg.jpg", 0, 0, g_width, g_height);
-	AddText("status", "Loading...", MSGOTHIC16, halign, g_height/2);
-    
     AddView("logo");
     AddImage("gui/logo", g_width/2 - g_height/2, 0, g_width/2 + g_height/2, g_height, 1, 1, 1, 0);
     
@@ -1024,6 +1019,10 @@ void RedoGUI()
     
 	//AddView("quit");	//Ask the player if they want to quit the multiplayer game
 	// TO DO
+
+	AddView("loading");
+	//AddImage("gui\\bg.jpg", 0, 0, g_width, g_height);
+	AddText("status", "Loading...", MSGOTHIC16, halign, g_height/2);
 
 	//Chat("test");
 	//LOGE("size of long = %d", (int)sizeof(long));

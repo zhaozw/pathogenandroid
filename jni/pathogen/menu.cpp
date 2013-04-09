@@ -77,10 +77,14 @@ void Click_GoToCredits()
 
 void Click_GoToStory()
 {
+	LOGI("cl_gts 0");
+
 	LoadingScreen();
 
     //OpenSoleView("story");
     
+	LOGI("cl_gts 1");
+
     //g_map.LoadBSP(@"map1a");
     //g_map.LoadBSP(@"map1a");
     //g_map.LoadBSP(@"map2");
@@ -105,8 +109,11 @@ void Click_GoToStory()
     
     g_viewmode = THIRDPERSON;
     g_score = 0;
-    RedoScore();
+	RedoHP();
+	RedoStamina();
+	RedoScore();
 
+	NoMove();
 	//Update();
 	//Draw();
 
@@ -135,12 +142,17 @@ void Click_SwitchView()
 
 void Click_Retry()
 {
+	LoadingScreen();
     
+	LOGI("click_retry 1");
+
     CPlayer* p = &g_player[g_localP];
     p->hp = p->MaxHP();
     CEntity* e = &g_entity[p->entity];
     e->frame[0] = 0;
     e->frame[1] = 0;
+	
+	LOGI("click_retry 2");
     
     p->items.clear();
     p->equipped = -1;
@@ -155,8 +167,14 @@ void Click_Retry()
     
     g_arrest = false;
     CloseView("game over");
+
+	
+	LOGI("click_retry 3");
     
     UnloadMap();
+	
+	LOGI("click_retry 4");
+
     Click_GoToStory();
 }
 
