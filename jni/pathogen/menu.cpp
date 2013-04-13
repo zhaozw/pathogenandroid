@@ -25,9 +25,9 @@ void SkipLogo()
     if(g_mode != LOGO)
         return;
     
-    g_mode = MENU;
-    OpenSoleView("main");
-    //PlayIntro();
+    //g_mode = MENU;
+    //OpenSoleView("main");
+    PlayIntro();
 }
 
 void UpdateLogo()
@@ -691,6 +691,7 @@ void SkipIntro()
     //[g_intro stop];
     //[moviePlayer release];
     //[g_intro.view removeFromSuperview];
+	DeinitVideo();
     g_mode = MENU;
     OpenSoleView("main");
 }

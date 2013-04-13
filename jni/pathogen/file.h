@@ -28,6 +28,7 @@ public:
 	void write(const char* filepath, char* nativepath);
 	int seek(int off, int origin=SEEK_SET);
 	//void seekend();
+	int size();
 	int read(void* to, int amt);
 	int tell();
 	int remain();

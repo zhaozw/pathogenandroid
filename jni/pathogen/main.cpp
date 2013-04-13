@@ -44,7 +44,7 @@ float g_scale;
 double g_FrameInterval;
 GAMEMODE g_mode = LOADING;
 
-struct engine* g_engine;
+struct tUserData* g_userdata;
 float g_reddening = 0;
 bool g_arrest = false;
 int g_viewmode = FIRSTPERSON;
@@ -61,6 +61,8 @@ bool g_inited = false;
 //long g_tick = 0;
 //unsigned int g_img = 0;
 //unsigned int g_VBO = 0;
+
+//int g_puid;
 
 void DummyVBO(unsigned int* vbo, GLenum usage)
 {
@@ -162,6 +164,7 @@ void Deinit()
 	g_GUI.view.clear();
 
 	DeinitSound();
+	DeinitVideo();
 
 	g_GUI.delvbo();
 
@@ -174,6 +177,7 @@ void Deinit()
     //g_map.Destroy(true);
 
 	UnloadMap();
+	FreePlayers(-1);
     
     for(int i=0; i<MODELS; i++)
     {
@@ -207,17 +211,17 @@ void LoadingScreen()
 	g_mode = LOADING;
 
 	Draw();
-    eglSwapBuffers(g_engine->display, g_engine->surface);
+    eglSwapBuffers(g_userdata->display, g_userdata->surface);
 	Draw();
-    eglSwapBuffers(g_engine->display, g_engine->surface);
+    eglSwapBuffers(g_userdata->display, g_userdata->surface);
 
 	CloseView("loading");
 	g_mode = prevmode;
 }
 
-void Reload(struct engine* engine)
+void Reload(struct tUserData* userdata)
 {
-	g_engine = engine;
+	g_userdata = userdata;
 	g_quit = false;
 	Deinit();
 
@@ -244,66 +248,78 @@ void Reload(struct engine* engine)
 
 	LOGI("RedoGUI();....");
 	RedoGUI();
-
-	LoadingScreen();
-
-	LOGI("Init sound...");
-	InitSound();
-
-	LOGI("LoadSounds();....");
-	LoadSounds();
-	
-	//g_img = CreateTexture("models/human2.jpg");
-	//MakeVBO();
-
-	LOGI("Entities();....");
-	Entities();
-
-	LOGI("Items();....");
-	Items();
-
-	LOGI("Effects();....");
-	Effects();
-	
-	LOGI("Particles();....");
-	Particles();
-	
-	LOGI("Decals();....");
-	Decals();
-	
-	//LOGI("RedoGUI();....");
-	//RedoGUI();
-
-	//MakeVBO(&g_GUI.view[0].widget[0].vbo);
-	//g_GUI.view[0].widget[0].pos[0] = 10;
-	//g_GUI.view[0].widget[0].pos[1] = 10;
-	//g_GUI.view[0].widget[0].pos[2] = 300;
-	//g_GUI.view[0].widget[0].pos[3] = 300;
-	//LOGE("pos %f, %f, %f, %f", g_GUI.view[0].widget[0].pos[0], g_GUI.view[0].widget[0].pos[1],
-	//	g_GUI.view[0].widget[0].pos[2], g_GUI.view[0].widget[0].pos[3]);
-	//LOGE("before %u", g_GUI.view[0].widget[0].vbo);
-	//g_GUI.view[0].widget[0].Image_fillVBO();
 	
 	LOGI("Keymap();....");
 	Keymap();
 
-	//InitNet();
+	//if(g_userdata->state.skipintro)
+	//if(false)
+	{
+		LoadingScreen();
+
+		LOGI("Init sound...");
+		InitSound();
+
+		LOGI("LoadSounds();....");
+		LoadSounds();
+
+		LOGI("InitVideo();....");
+		InitVideo();
+		
+		//g_img = CreateTexture("models/human2.jpg");
+		//MakeVBO();
+
+		LOGI("Entities();....");
+		Entities();
+
+		LOGI("Items();....");
+		Items();
+
+		LOGI("Effects();....");
+		Effects();
+		
+		LOGI("Particles();....");
+		Particles();
+		
+		LOGI("Decals();....");
+		Decals();
+
 	
-	LOGI("ScriptFuncs();....");
-	ScriptFuncs();
-	//PlayIntro();
+		//LOGI("RedoGUI();....");
+		//RedoGUI();
 
-	MakeSky();
-	MakeBillbVBO();
-	MakeDecalVBO();
+		//MakeVBO(&g_GUI.view[0].widget[0].vbo);
+		//g_GUI.view[0].widget[0].pos[0] = 10;
+		//g_GUI.view[0].widget[0].pos[1] = 10;
+		//g_GUI.view[0].widget[0].pos[2] = 300;
+		//g_GUI.view[0].widget[0].pos[3] = 300;
+		//LOGE("pos %f, %f, %f, %f", g_GUI.view[0].widget[0].pos[0], g_GUI.view[0].widget[0].pos[1],
+		//	g_GUI.view[0].widget[0].pos[2], g_GUI.view[0].widget[0].pos[3]);
+		//LOGE("before %u", g_GUI.view[0].widget[0].vbo);
+		//g_GUI.view[0].widget[0].Image_fillVBO();
 
-	g_inited = true;
+		//InitNet();
+		
+		LOGI("ScriptFuncs();....");
+		ScriptFuncs();
+		//PlayIntro();
 
-	//Click_GoToStory();
+		MakeSky();
+		MakeBillbVBO();
+		MakeDecalVBO();
 
-	g_stage = 0;
-	OpenSoleView("logo");
-	g_mode = LOGO;
+		g_inited = true;
+
+		//Click_GoToStory();
+		//OpenSoleView("main");
+		//g_mode = MENU;
+	}
+	//else
+	{
+		g_stage = 0;
+		OpenSoleView("logo");
+		g_mode = LOGO;
+	}
 }
 
 bool Resize(int w, int h) 
@@ -894,7 +910,7 @@ void Draw()
 
 
 // Initialize an EGL context for the current display.
-static int engine_init_display(struct engine* engine) 
+static int engine_init_display(struct tUserData* userdata) 
 {
     // initialize OpenGL ES and EGL
 
@@ -933,9 +949,9 @@ static int engine_init_display(struct engine* engine)
      * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
     eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
 
-    ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+    ANativeWindow_setBuffersGeometry(userdata->app->window, 0, 0, format);
 
-    surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
+    surface = eglCreateWindowSurface(display, config, userdata->app->window, NULL);
 
 	EGLint contextAttrs[] = {
 		 EGL_CONTEXT_CLIENT_VERSION, 2,
@@ -953,12 +969,12 @@ static int engine_init_display(struct engine* engine)
     eglQuerySurface(display, surface, EGL_WIDTH, &w);
     eglQuerySurface(display, surface, EGL_HEIGHT, &h);
 
-    engine->display = display;
-    engine->context = context;
-    engine->surface = surface;
-    engine->width = w;
-    engine->height = h;
-    engine->state.angle = 0;
+    userdata->display = display;
+    userdata->context = context;
+    userdata->surface = surface;
+    userdata->width = w;
+    userdata->height = h;
+    userdata->state.angle = 0;
 
 	g_width = w;
 	g_height = h;
@@ -977,7 +993,7 @@ static int engine_init_display(struct engine* engine)
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	
-	g_amgr = engine->app->activity->assetManager;
+	g_amgr = userdata->app->activity->assetManager;
 
     return 0;
 }
@@ -1048,9 +1064,9 @@ bool AnimateNextFrame(int desiredFrameRate)
 /**
  * Just the current frame in the display.
  */
-static void engine_draw_frame(struct engine* engine) 
+static void engine_draw_frame(struct tUserData* userdata) 
 {
-    if (engine->display == NULL) 
+    if (userdata->display == NULL) 
 	{
         // No display.
         return;
@@ -1066,35 +1082,35 @@ static void engine_draw_frame(struct engine* engine)
 
 	Draw();
 
-    eglSwapBuffers(engine->display, engine->surface);
+    eglSwapBuffers(userdata->display, userdata->surface);
 }
 
 /**
  * Tear down the EGL context currently associated with the display.
  */
-static void engine_term_display(struct engine* engine) 
+static void engine_term_display(struct tUserData* userdata) 
 {
 	g_quit = true;
 	Deinit();
 
-    if (engine->display != EGL_NO_DISPLAY) 
+    if (userdata->display != EGL_NO_DISPLAY) 
 	{
-        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (engine->context != EGL_NO_CONTEXT) 
+        eglMakeCurrent(userdata->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (userdata->context != EGL_NO_CONTEXT) 
 		{
-            eglDestroyContext(engine->display, engine->context);
+            eglDestroyContext(userdata->display, userdata->context);
         }
-        if (engine->surface != EGL_NO_SURFACE) 
+        if (userdata->surface != EGL_NO_SURFACE) 
 		{
-            eglDestroySurface(engine->display, engine->surface);
+            eglDestroySurface(userdata->display, userdata->surface);
         }
-        eglTerminate(engine->display);
+        eglTerminate(userdata->display);
     }
 
-    engine->animating = 0;
-    engine->display = EGL_NO_DISPLAY;
-    engine->context = EGL_NO_CONTEXT;
-    engine->surface = EGL_NO_SURFACE;
+    userdata->animating = 0;
+    userdata->display = EGL_NO_DISPLAY;
+    userdata->context = EGL_NO_CONTEXT;
+    userdata->surface = EGL_NO_SURFACE;
 }
 
 // Process the next input event.
@@ -1107,7 +1123,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 {
 	//LOGI("engine handle input");
 
-    struct engine* engine = (struct engine*)app->userData;
+    struct tUserData* userdata = (struct tUserData*)app->userData;
 
 	unsigned int pindex = (AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 	//CTouch* touch;
@@ -1127,9 +1143,9 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		case AINPUT_EVENT_TYPE_MOTION:
 			{
 				//LOGI("motion %d,%d", (int)AMotionEvent_getX(event, 0), (int)AMotionEvent_getY(event, 0));
-				engine->animating = 1;
-				engine->state.x = AMotionEvent_getX(event, 0);
-				engine->state.y = AMotionEvent_getY(event, 0);
+				userdata->animating = 1;
+				userdata->state.x = AMotionEvent_getX(event, 0);
+				userdata->state.y = AMotionEvent_getY(event, 0);
 
 				switch(AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK)
 				{
@@ -1229,42 +1245,42 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 {
 	//LOGI("engine handle cmd %d", (int)cmd);
 
-    struct engine* engine = (struct engine*)app->userData;
+    struct tUserData* userdata = (struct tUserData*)app->userData;
     switch (cmd) {
         case APP_CMD_SAVE_STATE:
             // The system has asked us to save our current state.  Do so.
-            engine->app->savedState = malloc(sizeof(struct saved_state));
-            *((struct saved_state*)engine->app->savedState) = engine->state;
-            engine->app->savedStateSize = sizeof(struct saved_state);
+            userdata->app->savedState = malloc(sizeof(struct tSavedState));
+            *((struct tSavedState*)userdata->app->savedState) = userdata->state;
+            userdata->app->savedStateSize = sizeof(struct tSavedState);
 			LOGI("save state");
             break;
         case APP_CMD_INIT_WINDOW:
 			// http://stackoverflow.com/questions/5352910/how-to-use-native-activity-can-it-be-combined-with-traditional-activity
             // The window is being shown, get it ready.
-            if (engine->app->window != NULL) 
+            if (userdata->app->window != NULL) 
 			{
-                engine_init_display(engine);
-                //engine_draw_frame(engine);
+                engine_init_display(userdata);
+                //engine_draw_frame(userdata);
             }
 			LOGI("init win");
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
-            engine_term_display(engine);
+            engine_term_display(userdata);
 			LOGI("term win");
             break;
         case APP_CMD_GAINED_FOCUS:
 			
             // When our app gains focus, we start monitoring the accelerometer.
-            if (engine->accelerometerSensor != NULL) 
+            if (userdata->accelerometerSensor != NULL) 
 			{
                 //ASensorEventQueue_enableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
                 // We'd like to get 60 events per second (in us).
                 //ASensorEventQueue_setEventRate(engine->sensorEventQueue, engine->accelerometerSensor, (1000L/30)*1000);
             }
 
-			Reload(engine);
-			engine->animating = 1;
+			Reload(userdata);
+			userdata->animating = 1;
 
 			LOGI("gained focus");
             break;
@@ -1272,11 +1288,11 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 			
             // When our app loses focus, we stop monitoring the accelerometer.
             // This is to avoid consuming battery while not being used.
-            if (engine->accelerometerSensor != NULL) {
+            if (userdata->accelerometerSensor != NULL) {
                 //ASensorEventQueue_disableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
             }
             // Also stop animating.
-            engine->animating = 0;
+            userdata->animating = 0;
 			
             //engine_draw_frame(engine);
 			Deinit();
@@ -1290,33 +1306,34 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
  * android_native_app_glue.  It runs in its own thread, with its own
  * event loop for receiving input events and doing other things.
  */
-void android_main(struct android_app* state) 
+void android_main(struct android_app* app) 
 {
 	//LOGI("ANDROID MAIN");
 
-    struct engine engine;
+    struct tUserData userdata;
 
     // Make sure glue isn't stripped.
     app_dummy();
 
-    memset(&engine, 0, sizeof(engine));
-    state->userData = &engine;
-    state->onAppCmd = engine_handle_cmd;
-    state->onInputEvent = engine_handle_input;
-    engine.app = state;
+    memset(&userdata, 0, sizeof(tUserData));
+    app->userData = &userdata;
+    app->onAppCmd = engine_handle_cmd;
+    app->onInputEvent = engine_handle_input;
+    userdata.app = app;
+	userdata.state.skipintro = false;
 
     // Prepare to monitor accelerometer
     //engine.sensorManager = ASensorManager_getInstance();
     //engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
     //engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
 
-    if (state->savedState != NULL) 
+    if (app->savedState != NULL) 
 	{
         // We are starting with a previous saved state; restore from it.
-        engine.state = *(struct saved_state*)state->savedState;
+        userdata.state = *(struct tSavedState*)app->savedState;
     }
 
-	g_amgr = state->activity->assetManager;
+	g_amgr = app->activity->assetManager;
 
     // loop waiting for stuff to do.
     //while (!g_quit) 
@@ -1330,18 +1347,18 @@ void android_main(struct android_app* state)
         // If not animating, we will block forever waiting for events.
         // If animating, we loop until all events are read, then continue
         // to draw the next frame of animation.
-        while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0) 
+        while ((ident=ALooper_pollAll(userdata.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0) 
         //while ((ident=ALooper_pollAll(0, NULL, &events, (void**)&source)) >= 0) 
 		{
             // Process this event.
             if (source != NULL) 
 			{
-                source->process(state, source);
+                source->process(app, source);
             }
 
             // If a sensor has data, process it now.
             if (ident == LOOPER_ID_USER) {
-                if (engine.accelerometerSensor != NULL) 
+                if (userdata.accelerometerSensor != NULL) 
 				{
                     ASensorEvent event;
                     //while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) 
@@ -1352,22 +1369,22 @@ void android_main(struct android_app* state)
             }
 
             // Check if we are exiting.
-            if (state->destroyRequested != 0) 
+            if (app->destroyRequested != 0) 
 			{
-                engine_term_display(&engine);
+                engine_term_display(&userdata);
 				Deinit();
                 return;
 				//break;
             }
         }
 
-        if (engine.animating) 
+        if (userdata.animating) 
 		{
             // Done with events; draw next animation frame.
-            engine.state.angle += .01f;
-            if (engine.state.angle > 1) 
+            userdata.state.angle += .01f;
+            if (userdata.state.angle > 1) 
 			{
-                engine.state.angle = 0;
+                userdata.state.angle = 0;
             }
 
 			if(AnimateNextFrame(FRAME_RATE))
@@ -1375,7 +1392,7 @@ void android_main(struct android_app* state)
 				//LOGI("animate");
 				// Drawing is throttled to the screen update rate, so there
 				// is no need to do timing here.
-				engine_draw_frame(&engine);
+				engine_draw_frame(&userdata);
 			}
         }
     }

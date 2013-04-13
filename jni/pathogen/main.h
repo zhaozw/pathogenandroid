@@ -75,31 +75,6 @@ using namespace std;
 typedef unsigned char byte;
 typedef unsigned int UINT;
 
-struct saved_state 
-{
-    float angle;
-    int32_t x;
-    int32_t y;
-};
-
-// http://developer.android.com/reference/android/app/NativeActivity.html
-struct engine 
-{
-    struct android_app* app;
-
-    ASensorManager* sensorManager;
-    const ASensor* accelerometerSensor;
-    ASensorEventQueue* sensorEventQueue;
-
-    int animating;
-    EGLDisplay display;
-    EGLSurface surface;
-    EGLContext context;
-    int32_t width;
-    int32_t height;
-    struct saved_state state;
-};
-
 class CTouch
 {
 public:
@@ -119,7 +94,6 @@ public:
 	}
 };
 
-extern struct engine* g_engine;
 extern float g_width;
 extern float g_height;
 extern float g_near;
@@ -136,9 +110,38 @@ extern enum GAMEMODE g_mode;
 extern float g_reddening;
 extern bool g_arrest;
 extern int g_score;
+extern bool g_inited;
 
 enum VIEWMODE{FIRSTPERSON, THIRDPERSON};
 extern int g_viewmode;
+
+struct tSavedState 
+{
+    float angle;
+    int32_t x;
+    int32_t y;
+	bool skipintro;
+};
+
+// http://developer.android.com/reference/android/app/NativeActivity.html
+struct tUserData 
+{
+    struct android_app* app;
+
+    ASensorManager* sensorManager;
+    const ASensor* accelerometerSensor;
+    ASensorEventQueue* sensorEventQueue;
+
+    int animating;
+    EGLDisplay display;
+    EGLSurface surface;
+    EGLContext context;
+    int32_t width;
+    int32_t height;
+    struct tSavedState state;
+};
+
+extern struct tUserData* g_userdata;
 
 //#endif
 
@@ -153,6 +156,8 @@ extern vector<CTouch> g_touch;
 //extern bool g_inited;
 //extern unsigned int g_img;
 //extern unsigned int g_VBO;
+
+//extern int g_puid;
 
 void DummyVBO(unsigned int* vbo, GLenum usage = GL_DYNAMIC_DRAW);
 void checkGlError(const char* op);

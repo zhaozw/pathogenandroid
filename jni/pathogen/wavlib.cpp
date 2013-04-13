@@ -20,7 +20,7 @@
  */
 
 #include "wavlib.h"
-//#include "platform.h"
+#include "platform.h"
 #include "main.h"
 #include "file.h"
 #include "logger.h"
@@ -188,27 +188,6 @@ public:
 		file.mFile = 0;
 	}
 };
-
-///////////////////////// platform ///////////////////////////////////
-
-//void plat_free(void* d)
-void plat_free(wav_* d)
-{
-	//free(d);
-	delete d;
-}
-
-int plat_read(CFile* file, void* buff, int len)
-{
-	return file->read(buff, len);
-}
-
-void plat_close(CFile* file)
-{
-	file->close();
-}
-
-//////////////////////////////////////////////////////////////////////
 
 const char *wav_strerror(WAVError err)
 {
@@ -416,11 +395,14 @@ WAV wav_fdopen(const char* filename, WAVMode mode, WAVError *err)
 	//LOGI("wav_fdopen %s 1", filename);
 
     //WAV wav = calloc(1, sizeof(struct wav_));
-	WAV wav = new wav_;
+	//WAV wav = new wav_;
+	WAV wav = (WAV)plat_zalloc(sizeof(struct wav_));
 
     if (!wav) {
         WAV_SET_ERROR(err, WAV_NO_MEM);
     } 
+
+	wav->file.mFile = 0;
 
 	//LOGI("wav_fdopen %s 2", filename);
 

@@ -51,6 +51,7 @@ void ScriptFuncs();
 void DoScriptFunc(int script);
 void CheckFuncs();
 void UnloadMap();
+void FreePlayers(int ignore);
 void GoToMap(int funcmap);
 void NoMove();
 

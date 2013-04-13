@@ -149,6 +149,16 @@ int CFile::tell()
 	return 0;
 }
 
+int CFile::size()
+{
+	if(mFile)
+	{
+		return AAsset_getLength(mFile);
+	}
+
+	return 0;
+}
+
 int CFile::remain()
 {
 	if(mFile)

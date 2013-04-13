@@ -6,6 +6,7 @@ extern bool g_showdialog;
 extern int g_stage;
 
 void UpdateLogo();
+void SkipIntro();
 
 void Click_Login();
 void Click_GoToRegister();

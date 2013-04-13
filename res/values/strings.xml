@@ -7,5 +7,7 @@
     <string name="button_send">Send</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_display_message">My Message</string>
+    <string name="title_activity_video">pAtHoGeN</string>
+    <string name="title_activity_main2">Main2Activity</string>
 
 </resources>
