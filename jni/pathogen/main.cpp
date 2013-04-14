@@ -91,13 +91,14 @@ void DeleteVBO()
 	glDeleteBuffers(1, &g_VBO);
 }*/
 
-void DrawVBO()
+void DrawVBO(unsigned char tex, unsigned char vbo)
 {
 	//LOGI("draw v");
 
     glActiveTexture(GL_TEXTURE0);
     //glBindTexture(GL_TEXTURE_2D, g_img);
-    glBindTexture(GL_TEXTURE_2D, g_GUI.view[0].widget[0].tex);
+    //glBindTexture(GL_TEXTURE_2D, g_GUI.view[0].widget[0].tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
 #ifndef USE_OMNI
     glUniform1i(g_slots[ORTHO][TEXTURE], 0);
 #else
@@ -108,7 +109,8 @@ void DrawVBO()
 	//LOGI("draw vbo %u", g_GUI.view[0].widget[0].vbo);
 
     //glBindBuffer(GL_ARRAY_BUFFER, g_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, g_GUI.view[0].widget[0].vbo);
+    //glBindBuffer(GL_ARRAY_BUFFER, g_GUI.view[0].widget[0].vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 #ifndef USE_OMNI
     glVertexAttribPointer(g_slots[ORTHO][POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*0));
     glVertexAttribPointer(g_slots[ORTHO][TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*3));
@@ -512,7 +514,13 @@ void Draw()
     checkGlError("glDrawArrays");
 */
     //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	
+/*
+	if(g_mode == INTRO)
+	{
+		VideoFrame();
+		return;
+	}
+	*/
 	//glClearColor((float)(rand()%255)/255.0f, (float)(rand()%255)/255.0f, (float)(rand()%255)/255.0f, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

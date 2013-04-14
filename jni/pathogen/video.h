@@ -10,6 +10,9 @@
 
 //#include <sys/stat.h>
 
+#include <jni.h>
+
+void VideoFrame();
 void InitVideo();
 void PlayIntro();
 void DeinitVideo();

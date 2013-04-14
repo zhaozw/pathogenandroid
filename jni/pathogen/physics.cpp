@@ -234,6 +234,9 @@ void Physics()
         
 		if(t->category == DOOR || t->category == FIXEDENT)
 			continue;
+
+		if(t->category == ITEM)
+			continue;
         
 		c = &e->camera;
 		speed = t->speed;

@@ -212,8 +212,10 @@ void FreePlayers(int ignore)
 			continue;
         
 		p = &g_player[i];
+		NoAct(p);
 		p->on = false;
 		p->items.clear();
+		p->equipped = -1;
 	}
 }
 
@@ -240,6 +242,7 @@ void UnloadMap()
 	g_funcproxy.clear();
 	g_funcmap.clear();
     g_showdialog = true;
+	g_player[g_localP].reload = false;
 }
 
 void GoToMap(int funcmap)

@@ -63,3 +63,4 @@ bin/classes/
 *.tar
 *.o.d
 *.so
+workfolder/

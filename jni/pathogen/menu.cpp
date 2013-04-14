@@ -261,7 +261,7 @@ void Click_EquipNext()
 
 void Click_Shoot()
 {
-	//LOGI("shoot");
+	LOGI("shoot");
 
     if(g_mode != PLAY)
         return;
@@ -269,7 +269,7 @@ void Click_Shoot()
     if(g_arrest)
         return;
    
-	//LOGI("shoot2");
+	LOGI("shoot2");
 
     CPlayer* p = &g_player[g_localP];
     
@@ -285,31 +285,31 @@ void Click_Shoot()
 	//if(t->ammo == ITEM::NOAMMO)
 	//	return;
 
-	//LOGI("shoot3");
+	LOGI("shoot3");
     
 	if(t->damage == 0.0f)
 		return;
     
 	if(t->ammo != NOAMMO && h->clip < 1.0f)
 	{
-		//if(t->dryFireSound.size() > 0)
-		//	t->dryFireSound[ rand()%t->dryFireSound.size() ].Play();
+		if(t->dryFireSound.size() > 0)
+			t->dryFireSound[ rand()%t->dryFireSound.size() ].Play();
         
 		return;
 	}
     
-	//LOGI("shoot4");
+	LOGI("shoot4");
 
 	if(t->delay > 0 && GetTickCount() - p->last < t->delay)
 		return;
 	
-	//LOGI("shoot5");
+	LOGI("shoot5");
     
 	if(t->ammo == PRIMARYAMMO)
 		p->shoot = true;
 	else //if(t->ammo == ITEM::SECONDARYAMMO)
 	{
-		//LOGI("shoot6");
+		LOGI("shoot6");
 		p->shoot = false;
 		Shot(g_localP);
 	}

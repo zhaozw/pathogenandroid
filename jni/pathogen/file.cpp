@@ -134,6 +134,8 @@ int CFile::read(void* to, int amt)
 		return AAsset_read(mFile, to, amt);
 		//LOGI("read done.");
 	}
+
+	LOGE("read from non file");
 	return 0;
 }
 

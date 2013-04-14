@@ -79,6 +79,7 @@ extern CPlayer g_player[PLAYERS];
 
 extern int g_localP;
 
+void NoAct(CPlayer* p);
 int NewAI(int activity);
 void UpdateAI();
 void UpdatePlayers();

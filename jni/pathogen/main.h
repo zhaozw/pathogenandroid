@@ -159,6 +159,7 @@ extern vector<CTouch> g_touch;
 
 //extern int g_puid;
 
+void DrawVBO(unsigned char tex, unsigned char vbo);
 void DummyVBO(unsigned int* vbo, GLenum usage = GL_DYNAMIC_DRAW);
 void checkGlError(const char* op);
 unsigned int timeGetTime();

@@ -159,6 +159,8 @@ public:
 	{
 		if(over && ldown)
 		{
+			//LOGI("click func");
+
 			if(clickfunc != NULL)
 				clickfunc();
             
@@ -185,11 +187,11 @@ public:
 		{
 			ldown = true;
 
-			//LOGI("button down");
+			LOGI("button down");
 
 			if(clickfunc != NULL)
 			{
-			//LOGI("clickfunc");
+			LOGI("clickfunc");
 				clickfunc();
 			}
             

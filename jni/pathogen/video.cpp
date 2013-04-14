@@ -42,6 +42,8 @@ unsigned int g_vLast = 0;
 avi_t* g_avi = 0;
 unsigned int g_vVBO = 0;
 unsigned int g_vTex = 0;
+int g_keyframe = 0;
+char* g_framebuf = 0;
 
 static int readFunction(void* opaque, uint8_t* buf, int buf_size) 
 {
@@ -67,18 +69,53 @@ static int64_t seekFunction(void* opaque, int64_t offset, int whence)
 
 void VideoFrame()
 {
+	/*
 	//Check framerate
 	if(GetTickCount() - g_vLast < 1000 / AVI_frame_rate(g_avi))
 		return;
 
 	g_vLast = GetTickCount();
 
+	//g_keyframe = 0;
+	long frameSize = AVI_read_frame((avi_t*) g_avi, g_framebuf, &g_keyframe);
+
+	//if(g_keyframe >= AVI_video_frames(g_avi) || 
+	if(frameSize <= 0)
+	{
+		LOGI("done video frames=%ld", (long)AVI_video_frames(g_avi));
+		SkipIntro();
+		return;
+	}
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	
+
+	//glTexSubImage2D(	GLenum  	target (GL_TEXTURE_2D),
+ 	//GLint  	level (0),
+ 	//GLint  	xoffset,
+ 	//GLint  	yoffset,
+ 	//GLsizei  	width,
+ 	//GLsizei  	height,
+ 	//GLenum  	format (GL_RGB),
+ 	//GLenum  	type (GL_UNSIGNED_BYTE),
+ 	//const GLvoid *  	data);
+// Update the texture with the new frame
+	glTexSubImage2D(GL_TEXTURE_2D,
+		0,
+		0,
+		0,
+		AVI_video_width((avi_t*) g_avi),
+		AVI_video_height((avi_t*) g_avi),
+		GL_RGB,
+		GL_UNSIGNED_SHORT_5_6_5,
+		g_framebuf);
+
+	DrawVBO(g_vTex, g_vVBO);
 
     eglSwapBuffers(g_userdata->display, g_userdata->surface);
 
+	//g_keyframe ++;
+*/
 /*
 	if(GetTickCount() - g_vLast < g_vFSDelay * 1000.0f)
 		return;
@@ -157,8 +194,20 @@ class avio_context_from_ostream_utilities
 
 void InitVideo()
 {
-	//g_avi = AVI_open_input_file("video/Intro.avi", 1);
-	g_avi = AVI_open_input_file("video/Intro.avi", 0);
+	LOGI("init video");
+/*
+	g_avi = AVI_open_input_file("video/Intro.avi", 1);
+	//g_avi = AVI_open_input_file("video/Intro.avi", 0);
+
+	if(!g_avi)
+	{
+		LOGE("Error opening video");
+	}
+
+	g_keyframe = 0;
+	
+	long frameSize = AVI_frame_size((avi_t*) g_avi, 0);
+	g_framebuf = (char*)malloc( frameSize );
 
 	// int AVI video width((avi t*) avi);
 	// int AVI video height((avi t*) avi);
@@ -167,6 +216,7 @@ void InitVideo()
 	int videow = AVI_video_width(g_avi);
 	int videoh = AVI_video_height(g_avi);
 
+	// Make sure to set these big enough to hold the video
 	int texw = 512;
 	int texh = 512;
 
@@ -187,7 +237,10 @@ void InitVideo()
 	int top = g_height/2 - onscreenh/2;
 	int bottom = top + onscreenh;
 
-
+	int texleft = 0;
+	int texright = videow;
+	int textop = 0;
+	int texbottom = videoh;
 
 	glGenBuffers(1, &g_vVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, g_vVBO);
@@ -205,8 +258,19 @@ void InitVideo()
     };
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*5*6, vertices, GL_STATIC_DRAW);
-	
 
+	unsigned char texdata[texw * texh * 3];
+	memset(texdata, 0, texw * texh * 3);
+
+	glGenTextures(1, &g_vTex);
+	glBindTexture(GL_TEXTURE_2D, g_vTex);
+	int textureType = GL_RGB;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, textureType, texw, texh, 0, textureType, GL_UNSIGNED_BYTE, texdata);
+*/
 	/*
 	if(!g_inited)
 	{
@@ -386,9 +450,24 @@ void InitVideo()
 
 void DeinitVideo()
 {
-	AVI_close((avi_t*) g_avi);
-	glDeleteBuffers(1, &g_vVBO);
+	LOGI("deinit video");
+/*
+	if(g_framebuf)
+	{
+		LOGI("free g_framebuf");
+		free(g_framebuf);
+		g_framebuf = 0;
+	}
+	if(g_avi)
+	{
+		LOGI("AVI_close");
+		AVI_close((avi_t*) g_avi);
+		g_avi = 0;
+	}
 
+		LOGI("glDeleteBuffers(1, &g_vVBO);");
+	glDeleteBuffers(1, &g_vVBO);
+*/
 	/*
 	g_vfile.close();	//Safe to call
 	if(g_vAllocd)	//Not safe
@@ -422,6 +501,20 @@ void PlayIntro()
 
     g_mode = INTRO;
 
+	SkipIntro();
+/*
+	jmethodID mid;
+	 jclass handlerClass = (*env)->FindClass(env, "com/pathogengame/pathogen/Main2Activity");
+	 if (handlerClass == NULL) {
+		 // error handling 
+		 LOGE("handler class NULL");
+	 }
+	 mid = (*env)->GetMethodID(env, handlerClass, "onReturnedString", "(Ljava/lang/String;)V");
+	 if (mid == NULL) {
+		 // error handling 
+		 LOGE("method NULL");
+	 }
+*/
 	/*
 	g_userdata->state.skipintro = true;
 

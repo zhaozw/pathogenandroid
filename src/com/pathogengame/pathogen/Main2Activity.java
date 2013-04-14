@@ -53,4 +53,38 @@ public class Main2Activity extends android.app.NativeActivity
 		//Intent intent = new Intent(this, com.pathogengame.pathogen.Main2Activity.class);
 		//startActivity(intent);
 	}*/
+	/*
+	@Override
+	protected void onCreate(Bundle savedInstanceState) 
+	{
+        super.onCreate(savedInstanceState);
+        
+        PlayIntro();
+	}
+	
+	void SkipIntro()
+	{
+		System.out.println("java skip intro");
+	}
+	
+	void PlayIntro()
+	{
+		VideoView view = (VideoView)findViewById(R.id.touch_listen);
+		String path = "android.resource://" + getPackageName() + "/" + R.raw.intro;
+		view.setVideoURI(Uri.parse(path));
+		
+		// http://stackoverflow.com/questions/1847818/listener-or-handler-for-video-finish
+		 view.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+
+	            @Override
+	            public void onCompletion(MediaPlayer mp) {
+	                // not playVideo
+	                            // playVideo();
+
+	                            SkipIntro();
+	            }
+	        });
+		
+		view.start();
+	}*/
 }
